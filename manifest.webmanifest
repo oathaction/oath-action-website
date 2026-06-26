@@ -1,0 +1,19 @@
+{
+  "name": "Oath & Action",
+  "short_name": "Oath & Action",
+  "description": "Nonpartisan civic media tracking the gap between political promises and governing action — covering democracy reform and accountability.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#DCD9D2",
+  "theme_color": "#DCD9D2",
+  "lang": "en",
+  "categories": ["news", "government", "education"],
+  "_comment_icons": "Fallback icon only. Production should add purpose-built 192x192 and 512x512 PNG icons (include a maskable variant) under assets/icons/.",
+  "icons": [
+    {
+      "src": "assets/og-cover.png",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

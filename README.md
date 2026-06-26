@@ -41,21 +41,33 @@ Oath & Action
 │   ├── Article template (article.html)
 │   └── Issue template (issue.html) . Issue explainer hub (Redistricting & Fair Maps)
 │
-├── Data
-│   └── Reform Tracker template (tracker.html) … 50-state RCV tracker
+├── Data & civic intelligence
+│   ├── Reform Tracker template (tracker.html) … 50-state RCV tracker
+│   ├── Bill tracker template (bill.html) ……… Single-bill deep page
+│   └── Rep scorecard template (scorecard.html)  Nonpartisan legislator profile
 │
 ├── Get involved
 │   ├── Toolkit / Resources (toolkit.html) … Resource library + educator kits
 │   ├── Jobs / Opportunities (jobs.html) …… Jobs board + fellowships
+│   ├── Events / Calendar (events.html) …… Hearings, town halls, deadlines
+│   ├── Donate (donate.html) …………………… Giving tiers + transparency
 │   └── Contact / Join (contact.html) …… Volunteer form + ways to plug in
 │
 ├── About (about.html) .............. Mission, team, funding & ethics, timeline
 │
-└── Concept Variations (concepts.html)  4 design directions for key sections
+├── Utility & legal
+│   ├── Search results (search.html) … Search mockup w/ filters + pagination
+│   ├── Editorial standards (editorial-standards.html) · Privacy (privacy.html)
+│   ├── Terms (terms.html) · 404 (404.html)
+│   └── Concept Variations (concepts.html)  4 design directions for key sections
+│
+└── Machine surfaces … sitemap.xml · robots.txt · manifest.webmanifest · humans.txt
+                       · JSON-LD (Organization / WebSite / NewsArticle) on every page
 ```
 
 **Reusable templates** (built so the CMS can stamp out many instances):
-`article.html` (any story), `issue.html` (any issue hub), `tracker.html` (any reform tracker).
+`article.html` (any story), `issue.html` (any issue hub), `tracker.html` (any reform
+tracker), `bill.html` (any bill), `scorecard.html` (any representative).
 
 ---
 
@@ -185,6 +197,13 @@ prototype is structured so each maps onto a real data source cleanly.
 - **Print stylesheet** (`@media print`) tuned for the Article/Issue templates — drops chrome and
   CTAs, prints ink-on-white, and avoids breaking figures/cards across pages.
 - **Article TOC scrollspy** highlights the section you're reading; on-brand **404** page.
+- **Discoverability** — `sitemap.xml`, `robots.txt`, a `manifest.webmanifest` (installable PWA
+  basics), `humans.txt`, per-page `canonical` links, and **JSON-LD structured data**
+  (`NGO`/Organization sitewide, `WebSite` + `SearchAction` on home, `NewsArticle` on the article).
+  _(Domain `https://oathandaction.org` is a placeholder — swap at deploy.)_
+- **Global UI** — reusable **breadcrumb** and **pagination** components, a **back-to-top** button,
+  a privacy **consent banner** (remembers choice in `localStorage`), and a **copy-to-clipboard**
+  helper (`[data-copy]`), all dependency-free in `main.js`/`styles.css`.
 - **CSS variables** for the full token system (color, type scale, spacing, radius, motion) in
   `assets/css/styles.css` — theming/retheming is a single-file change.
 - **One small vanilla JS file** (`assets/js/main.js`) injects the shared header/footer (single
@@ -201,11 +220,14 @@ prototype is structured so each maps onto a real data source cleanly.
 ```
 .
 ├── index.html · about.html · explain.html · track.html · connect.html · act.html
-├── dispatches.html · article.html · issue.html · tracker.html
-├── toolkit.html · jobs.html · contact.html · concepts.html · 404.html
+├── dispatches.html · article.html · issue.html · tracker.html · bill.html · scorecard.html
+├── toolkit.html · jobs.html · events.html · donate.html · contact.html
+├── search.html · editorial-standards.html · privacy.html · terms.html
+├── concepts.html · 404.html
+├── sitemap.xml · robots.txt · manifest.webmanifest · humans.txt
 ├── assets/
 │   ├── css/styles.css      # design system (tokens + all components + print)
-│   ├── js/main.js          # header/footer injection + interactions + scrollspy
+│   ├── js/main.js          # header/footer injection + interactions + scrollspy + global UI
 │   └── og-cover.png        # 1200×630 social share image
 └── README.md
 ```

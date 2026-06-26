@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Representative Scorecard — Oath &amp; Action</title>
+  <meta name="description" content="A nonpartisan civic scorecard for one legislator — votes on the reforms we track, money and influence, and how to contact the office." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <!-- Social sharing / favicon -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Oath & Action" />
+  <meta property="og:title" content="Representative Scorecard — Oath &amp; Action" />
+  <meta property="og:description" content="A nonpartisan civic scorecard for one legislator — votes on the reforms we track, money and influence, and how to contact the office." />
+  <meta property="og:image" content="assets/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Representative Scorecard — Oath &amp; Action" />
+  <meta name="twitter:description" content="A nonpartisan civic scorecard for one legislator — votes on the reforms we track, money and influence, and how to contact the office." />
+  <meta name="twitter:image" content="assets/og-cover.png" />
+  <meta name="theme-color" content="#DCD9D2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='5' fill='%23DCD9D2'/%3E%3Crect x='1.75' y='1.75' width='28.5' height='28.5' rx='4.25' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.8' fill='%23E63946'/%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://oathandaction.org/scorecard.html" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"NGO","name":"Oath & Action","alternateName":"Oath and Action","url":"https://oathandaction.org/","logo":"https://oathandaction.org/assets/og-cover.png","description":"Nonpartisan civic media and a democracy-reform platform. We explain how power works, track who is changing it, and turn understanding into action.","slogan":"From spectators to stewards."}
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-nav="scorecard.html">
+  <div id="site-header"></div>
+  <main id="main">
+
+    <!-- ============================ PAGE HERO / PROFILE HEADER ============================ -->
+    <section class="page-hero">
+      <div class="container">
+        <!-- Breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span class="sep" aria-hidden="true">/</span>
+          <a href="connect.html">Connect</a>
+          <span class="sep" aria-hidden="true">/</span>
+          <a href="connect.html">Representatives</a>
+          <span class="sep" aria-hidden="true">/</span>
+          <span aria-current="page">Sen. Marcus Delgado</span>
+        </nav>
+
+        <!-- Profile header: avatar + name + office + contact (party-neutral) -->
+        <div class="flex items-center gap-5 wrap mt-5">
+          <div class="byline" style="gap:1rem">
+            <span class="avatar" style="width:72px;height:72px;font-size:1.5rem" aria-hidden="true">MD</span>
+            <div>
+              <span class="kicker">State legislator · Scorecard</span>
+              <h1 class="mt-2" style="margin-bottom:.3rem">Sen. Marcus Delgado</h1>
+              <p class="text-stone" style="font-size:1rem;margin:0">State Senate · District 14 · Ohio</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Status tags (party-neutral, factual) -->
+        <div class="flex gap-2 wrap mt-5">
+          <span class="tag tag-prussian">Committee chair — Elections &amp; Local Government</span>
+          <span class="tag tag-dot">In office since 2018</span>
+          <span class="tag tag-verdigris tag-dot">Up for re-election 2028</span>
+        </div>
+
+        <!-- Contact actions -->
+        <div class="flex gap-2 wrap mt-5">
+          <a class="btn btn-dark btn-sm" href="act.html">Email office <span class="arrow">→</span></a>
+          <a class="btn btn-ghost btn-sm" href="tel:+10000000000">Call (614) 555‑0114</a>
+          <a class="btn btn-ghost btn-sm" href="#" rel="nofollow">Official website</a>
+          <a class="btn btn-ghost btn-sm btn-ghost" href="#disclosures">Funding disclosures</a>
+        </div>
+
+        <p class="text-stone mt-5" style="font-size:.85rem;max-width:60ch">
+          This scorecard is a neutral record of public votes and filings on the reforms Oath &amp; Action tracks. It is not an endorsement, rating, or partisan judgment. Party affiliation is omitted by design.
+        </p>
+      </div>
+    </section>
+
+    <!-- ===================== SCORECARD DASHBOARD (KPI WIDGETS) ===================== -->
+    <section class="section tight">
+      <div class="container">
+        <div class="section-head" style="max-width:none">
+          <span class="kicker"><span class="signal"></span> The record at a glance</span>
+          <h2 class="mt-3">Four numbers, drawn from the public record</h2>
+        </div>
+
+        <div class="dash reveal">
+          <!-- KPI: reform votes aligned -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Reform votes aligned</h4>
+              <span class="tag tag-dot">2018–2026</span>
+            </div>
+            <div class="flex items-center gap-4 mt-4">
+              <div class="donut" style="background:conic-gradient(var(--verdigris) 0 72%, var(--prussian-soft) 72% 100%)" role="img" aria-label="Donut chart: voted with the reforms we track on 72 percent of key recorded votes">
+                <div class="inner"><b>72%</b></div>
+              </div>
+            </div>
+            <p class="text-stone mt-4" style="font-size:.82rem">of <span data-count="41">0</span> key recorded votes on tracked reforms.</p>
+          </div>
+
+          <!-- KPI: bills sponsored -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Reform bills sponsored</h4>
+              <span class="tag tag-verdigris tag-dot">Lead + co</span>
+            </div>
+            <div class="w-big mt-4"><span data-count="9">0</span></div>
+            <p class="text-stone mt-3" style="font-size:.82rem">4 as lead sponsor, 5 as co-sponsor, current session.</p>
+            <span class="delta up mt-3">▲ +3 from last session</span>
+          </div>
+
+          <!-- KPI: town halls held -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Town halls held</h4>
+              <span class="tag tag-dot">Rolling 12 mo.</span>
+            </div>
+            <div class="w-big mt-4"><span data-count="7">0</span></div>
+            <p class="text-stone mt-3" style="font-size:.82rem">Public, in-district events with open Q&amp;A.</p>
+            <span class="delta up mt-3">▲ above chamber median (4)</span>
+          </div>
+
+          <!-- KPI: responsiveness score -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Constituent responsiveness</h4>
+              <span class="tag tag-dot">Index 0–100</span>
+            </div>
+            <div class="w-big mt-4">81</div>
+            <div class="meter mt-3"><span style="width:81%"></span></div>
+            <p class="text-stone mt-3" style="font-size:.82rem">Median reply time to constituent mail: 6 days.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ON THE REFORMS WE TRACK (TRACKER TABLE) ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head flex items-center justify-between wrap" style="max-width:none">
+          <div style="max-width:48ch">
+            <span class="kicker">On the reforms we track</span>
+            <h2 class="mt-3">How this office has voted, reform by reform</h2>
+          </div>
+          <a class="link-arrow" href="tracker.html">See the full reform tracker <span class="arrow">→</span></a>
+        </div>
+
+        <div class="tracker reveal">
+          <table>
+            <thead>
+              <tr><th scope="col">Reform we track</th><th scope="col">Position</th><th scope="col">Key vote</th><th scope="col">Date</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="state-name">Ranked-choice voting</td>
+                <td><span class="status passed">Supported</span></td>
+                <td>Yea — SB 88, second reading</td>
+                <td>Mar 4, 2026</td>
+              </tr>
+              <tr>
+                <td class="state-name">Independent redistricting</td>
+                <td><span class="status passed">Supported</span></td>
+                <td>Yea — HB 1042, floor vote</td>
+                <td>Apr 22, 2026</td>
+              </tr>
+              <tr>
+                <td class="state-name">Campaign-finance disclosure</td>
+                <td><span class="status active">Mixed</span></td>
+                <td>Yea on bill, Nay on amendment 3</td>
+                <td>Feb 11, 2026</td>
+              </tr>
+              <tr>
+                <td class="state-name">Same-day registration</td>
+                <td><span class="status stalled">Opposed</span></td>
+                <td>Nay — HB 770, committee vote</td>
+                <td>Jan 28, 2026</td>
+              </tr>
+              <tr>
+                <td class="state-name">Open primaries</td>
+                <td><span class="status blocked">No record</span></td>
+                <td>No recorded vote this session</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="text-stone mt-4" style="font-size:.82rem">Labels describe positions on the reforms we track. They carry no partisan meaning and are not a rating of the legislator.</p>
+      </div>
+    </section>
+
+    <!-- ===================== MONEY & INFLUENCE ===================== -->
+    <section class="section section-paper" id="disclosures">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Money &amp; influence</span>
+          <h2>Where the campaign money comes from</h2>
+          <p class="lede">Sourced from publicly filed campaign-finance disclosures for the 2024–2026 cycle. Sector labels follow standard nonpartisan classification. Dollar figures are reported totals, not adjusted.</p>
+        </div>
+
+        <div class="split" style="align-items:start">
+          <!-- Top funding sectors as meter-row bars -->
+          <div class="widget">
+            <div class="w-head">
+              <h4>Top reported funding sectors</h4>
+              <span class="tag tag-dot">2024–2026 cycle · $1.42M total</span>
+            </div>
+            <div class="mt-4">
+              <div class="meter-row">
+                <div class="lab"><span>Individual small donors (&lt;$200)</span><span class="text-stone">$486k · 34%</span></div>
+                <div class="meter"><span style="width:34%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Law &amp; lobbying</span><span class="text-stone">$298k · 21%</span></div>
+                <div class="meter prussian"><span style="width:21%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Real estate &amp; construction</span><span class="text-stone">$213k · 15%</span></div>
+                <div class="meter prussian"><span style="width:15%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Healthcare</span><span class="text-stone">$170k · 12%</span></div>
+                <div class="meter prussian"><span style="width:12%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Energy &amp; utilities</span><span class="text-stone">$128k · 9%</span></div>
+                <div class="meter red"><span style="width:9%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Other / unclassified</span><span class="text-stone">$128k · 9%</span></div>
+                <div class="meter red"><span style="width:9%"></span></div>
+              </div>
+            </div>
+            <a class="link-arrow mt-5" href="#" rel="nofollow">View full disclosure filings <span class="arrow">→</span></a>
+          </div>
+
+          <!-- Context callout (nonpartisan framing) -->
+          <div>
+            <div class="prose">
+              <div class="callout">
+                <p><strong>How to read this.</strong> A funding mix is context, not a verdict. Small-donor share, in-state share, and sector concentration each tell you something different — and none of them, on their own, predict how a legislator will vote. We show the disclosure data and let you weigh it.</p>
+              </div>
+            </div>
+            <div class="grid grid-2 gap-4 mt-5">
+              <div class="stat"><span class="figure"><span data-count="34">0</span>%</span><span class="label">from small individual donors</span></div>
+              <div class="stat"><span class="figure"><span data-count="71">0</span>%</span><span class="label">raised from in-district sources</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== RECENT ACTIVITY (TIMELINE) ===================== -->
+    <section class="section">
+      <div class="container narrow">
+        <div class="section-head">
+          <span class="kicker">Recent activity</span>
+          <h2>Votes, sponsorships, and statements</h2>
+          <p class="lede">A reverse-chronological log of public actions touching the reforms we track.</p>
+        </div>
+
+        <div class="timeline reveal">
+          <div class="tl-item done">
+            <span class="tl-date">Jun 18, 2026</span>
+            <h4>Statement — committee schedule</h4>
+            <p>As chair, scheduled a June 30 hearing on HB 1042 (Independent Redistricting Commission Act) and invited public testimony.</p>
+          </div>
+          <div class="tl-item done">
+            <span class="tl-date">Apr 22, 2026</span>
+            <h4>Floor vote — Yea on HB 1042</h4>
+            <p>Voted to advance independent redistricting to a third reading; the measure cleared the chamber 21–12.</p>
+          </div>
+          <div class="tl-item done">
+            <span class="tl-date">Mar 4, 2026</span>
+            <h4>Co-sponsor — SB 88 (ranked-choice pilot)</h4>
+            <p>Signed on as co-sponsor of a municipal ranked-choice voting pilot for cities over 50,000 residents.</p>
+          </div>
+          <div class="tl-item done">
+            <span class="tl-date">Feb 11, 2026</span>
+            <h4>Split vote — disclosure bill &amp; amendment</h4>
+            <p>Voted for the underlying campaign-finance disclosure bill but against Amendment 3, which would have raised the reporting threshold.</p>
+          </div>
+          <div class="tl-item done">
+            <span class="tl-date">Jan 28, 2026</span>
+            <h4>Committee vote — Nay on HB 770</h4>
+            <p>Voted against the same-day registration measure in the Elections committee, citing county-administration concerns in a floor statement.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CONTACT THIS OFFICE (ACTION BLOCK) ===================== -->
+    <section class="section section-paper">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Act — contact this office</span>
+          <h2>Make the record include your voice</h2>
+          <p class="lede">Offices track constituent contact. A specific, on-the-record message is one of the most reliable ways to move a vote.</p>
+        </div>
+        <div class="grid grid-3 reveal">
+          <article class="card card-action">
+            <span class="effort">● 5 minutes</span>
+            <h3>Send a message</h3>
+            <p>We draft a clear note on a reform you choose and route it to Sen. Delgado's office with your district verified.</p>
+            <a class="link-arrow" href="act.html">Start <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">●● 1–2 hours</span>
+            <h3>Attend a town hall</h3>
+            <p>The office holds open Q&amp;A events in-district. We'll tell you the next date and a sharp question to bring.</p>
+            <a class="link-arrow" href="act.html">Find the next one <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">● 10 minutes</span>
+            <h3>Ask a question</h3>
+            <p>Submit a question for the public record on any tracked reform. We forward it and log the response.</p>
+            <a class="link-arrow" href="act.html">Ask <span class="arrow">→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== METHODOLOGY ===================== -->
+    <section class="section tight">
+      <div class="container narrow">
+        <div class="prose">
+          <span class="kicker">Methodology &amp; sources</span>
+          <h2>How this scorecard is built</h2>
+          <p>Every figure on this page is drawn from public records: roll-call votes from the state legislature's journal, committee minutes, official press releases, and campaign-finance disclosures filed with the Secretary of State. We do not estimate, model, or infer positions where a public record does not exist — those appear as "No record."</p>
+          <div class="callout">
+            <p><strong>Neutrality statement.</strong> Oath &amp; Action is nonpartisan and takes no position on candidates or parties. Party affiliation is deliberately omitted from this profile. "Reform votes aligned" measures only how often the legislator voted with the specific reforms we track — it is not a measure of quality, ideology, or party.</p>
+          </div>
+          <ul>
+            <li><strong>Vote alignment</strong> — share of key recorded votes on tracked reforms where the legislator voted with the reform, 2018–2026.</li>
+            <li><strong>Responsiveness index</strong> — composite of median reply time, town-hall frequency, and published constituent-service data, normalized 0–100 across the chamber.</li>
+            <li><strong>Funding sectors</strong> — standard nonpartisan donor classification applied to itemized disclosure filings.</li>
+          </ul>
+          <p>Found an error? Records change and clerks amend filings. <a href="act.html">Flag a correction</a> and we will review it against the primary source within five business days.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CLOSING CTA ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="banner-cta section-prussian mech-grid">
+          <div class="split" style="align-items:center">
+            <div>
+              <span class="kicker" style="color:rgba(255,255,255,.7)">Connect</span>
+              <h2 class="mt-3" style="color:#fff">Look up your own representatives.</h2>
+              <p>Enter your address and we'll build a scorecard like this one for every official who answers to you — from your statehouse to your city council.</p>
+            </div>
+            <div>
+              <a class="btn btn-light btn-lg" href="connect.html">Find my representatives <span class="arrow">→</span></a>
+              <p class="mt-4" style="font-size:.8rem;color:rgba(255,255,255,.6)">Free, nonpartisan, and built from the public record.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

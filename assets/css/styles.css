@@ -560,6 +560,57 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
 .swatchset { display: flex; gap: .4rem; }
 .swatchset i { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--ink-12); display: block; }
 
+/* 17b. NAVIGATION & GLOBAL UI (round 2) ------------------------------- */
+/* Breadcrumb */
+.breadcrumb { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; font-family: var(--font-head); font-size: var(--fs-sm); margin-bottom: var(--space-5); }
+.breadcrumb a { color: var(--stone); transition: color var(--t-fast); }
+.breadcrumb a:hover { color: var(--charcoal); }
+.breadcrumb .sep { color: var(--ink-12); }
+.breadcrumb [aria-current="page"] { color: var(--charcoal); font-weight: 600; }
+.section-dark .breadcrumb a, .section-prussian .breadcrumb a { color: rgba(255,255,255,.6); }
+.section-dark .breadcrumb a:hover, .section-prussian .breadcrumb a:hover { color: #fff; }
+.section-dark .breadcrumb [aria-current="page"], .section-prussian .breadcrumb [aria-current="page"] { color: #fff; }
+.section-dark .breadcrumb .sep, .section-prussian .breadcrumb .sep { color: rgba(255,255,255,.3); }
+
+/* Pagination */
+.pagination { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem; justify-content: center; margin-top: var(--space-7); }
+.pagination .pg { min-width: 40px; height: 40px; padding: 0 .85rem; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line); border-radius: var(--radius); font-family: var(--font-head); font-weight: 500; font-size: var(--fs-sm);
+  color: var(--ink-70); background: var(--white); transition: background var(--t-fast), color var(--t-fast), border-color var(--t-fast); }
+.pagination .pg:hover { border-color: var(--charcoal); color: var(--charcoal); }
+.pagination .pg.active { background: var(--charcoal); color: #fff; border-color: var(--charcoal); }
+.pagination .pg.gap { border-color: transparent; background: transparent; pointer-events: none; }
+
+/* Back-to-top floating button (injected by main.js) */
+.to-top { position: fixed; right: 20px; bottom: 20px; z-index: 90; width: 46px; height: 46px; border-radius: 50%;
+  background: var(--charcoal); color: #fff; display: grid; place-items: center; box-shadow: var(--shadow-md);
+  opacity: 0; transform: translateY(10px); pointer-events: none;
+  transition: opacity var(--t), transform var(--t), background var(--t-fast); }
+.to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+.to-top:hover { background: var(--pillar-red); }
+
+/* Cookie / privacy consent banner (injected by main.js) */
+.consent { position: fixed; left: 16px; right: 16px; bottom: 16px; z-index: 120; max-width: 560px; margin-inline: auto;
+  background: var(--charcoal); color: var(--newsprint); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
+  padding: var(--space-5); display: flex; gap: var(--space-4); align-items: center;
+  transform: translateY(160%); transition: transform .42s var(--ease); }
+.consent.show { transform: none; }
+.consent p { color: rgba(220,217,210,.82); font-size: var(--fs-sm); margin: 0; }
+.consent p a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
+.consent .consent-actions { display: flex; gap: .5rem; flex: none; }
+@media (max-width: 560px) { .consent { flex-direction: column; align-items: stretch; } .consent .consent-actions { justify-content: flex-end; } }
+
+/* Copied-to-clipboard flash (used by [data-copy]) */
+.copied-flash { position: fixed; left: 50%; bottom: 28px; transform: translateX(-50%) translateY(12px); z-index: 130;
+  background: var(--verdigris); color: #fff; font-family: var(--font-head); font-weight: 600; font-size: var(--fs-sm);
+  padding: .6rem 1rem; border-radius: 100px; box-shadow: var(--shadow-md); opacity: 0; transition: opacity var(--t), transform var(--t); }
+.copied-flash.show { opacity: 1; transform: translateX(-50%); }
+
+/* Date block (used by events list) */
+.dateblock { flex: none; width: 64px; text-align: center; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; background: var(--white); }
+.dateblock .m { display: block; font-family: var(--font-head); font-size: var(--fs-xs); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff; background: var(--pillar-red); padding: 2px 0; }
+.dateblock .d { display: block; font-family: var(--font-head); font-size: 1.5rem; font-weight: 700; line-height: 1.4; color: var(--charcoal); }
+
 /* 18. UTILITIES ------------------------------------------------------- */
 .center { text-align: center; }
 .center .lede, .center .section-head { margin-inline: auto; }

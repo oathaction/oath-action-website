@@ -64,9 +64,9 @@
     '<button class="btn btn-primary">Subscribe</button></div>' +
     "</div>" +
     footCol("Platform", [["explain.html","Explain"],["track.html","Track"],["connect.html","Connect"],["act.html","Act"]]) +
-    footCol("Read", [["dispatches.html","Dispatches"],["article.html","Articles"],["issue.html","Issues"],["tracker.html","Reform Tracker"]]) +
-    footCol("Get involved", [["jobs.html","Jobs & fellowships"],["toolkit.html","Organizer toolkit"],["contact.html","Volunteer"],["contact.html","Donate"]]) +
-    footCol("Organization", [["about.html","About"],["about.html","Editorial standards"],["about.html","Funding & ethics"],["contact.html","Contact"]]) +
+    footCol("Read & data", [["dispatches.html","Dispatches"],["tracker.html","Reform Tracker"],["bill.html","Bill tracker"],["scorecard.html","Rep scorecards"],["issue.html","Issue briefs"]]) +
+    footCol("Get involved", [["contact.html","Volunteer"],["donate.html","Donate"],["events.html","Events"],["jobs.html","Jobs & fellowships"],["toolkit.html","Organizer toolkit"]]) +
+    footCol("Organization", [["about.html","About"],["editorial-standards.html","Editorial standards"],["privacy.html","Privacy"],["contact.html","Contact"]]) +
     "</div>" +
     '<div class="footer-bottom">' +
     '<span>© 2026 Oath &amp; Action. A 501(c)(3) nonpartisan civic organization.</span>' +
@@ -166,4 +166,62 @@
       if (note) { note.hidden = false; form.querySelectorAll("input,textarea,select,button").forEach(function(el){ if(el.type!=="button") el.disabled = true; }); }
     });
   });
+
+  /* ---- Back-to-top floating button ---- */
+  var toTop = document.createElement("button");
+  toTop.className = "to-top";
+  toTop.setAttribute("aria-label", "Back to top");
+  toTop.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  toTop.addEventListener("click", function () {
+    window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  });
+  document.body.appendChild(toTop);
+  var onScroll = function () { toTop.classList.toggle("show", window.scrollY > 700); };
+  window.addEventListener("scroll", onScroll, { passive: true });
+  onScroll();
+
+  /* ---- Copy-to-clipboard ([data-copy]; copies its value, or page URL if empty) ---- */
+  var flash;
+  function showFlash(msg) {
+    if (!flash) { flash = document.createElement("div"); flash.className = "copied-flash"; document.body.appendChild(flash); }
+    flash.textContent = msg;
+    requestAnimationFrame(function () { flash.classList.add("show"); });
+    clearTimeout(showFlash._t);
+    showFlash._t = setTimeout(function () { flash.classList.remove("show"); }, 1600);
+  }
+  document.querySelectorAll("[data-copy]").forEach(function (el) {
+    el.addEventListener("click", function (e) {
+      e.preventDefault();
+      var text = el.getAttribute("data-copy") || location.href;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function () { showFlash("Copied to clipboard"); },
+          function () { showFlash("Copied"); });
+      } else { showFlash("Copied"); }
+    });
+  });
+
+  /* ---- Privacy consent banner (remembers choice in localStorage) ---- */
+  function storageGet(k) { try { return localStorage.getItem(k); } catch (e) { return "dismissed"; } }
+  function storageSet(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  if (storageGet("oa-consent") === null) {
+    var banner = document.createElement("div");
+    banner.className = "consent";
+    banner.setAttribute("role", "dialog");
+    banner.setAttribute("aria-label", "Privacy notice");
+    banner.innerHTML =
+      '<p>We use privacy-respecting analytics to improve our reporting — no ad trackers, ever. ' +
+      'See our <a href="privacy.html">Privacy Policy</a>.</p>' +
+      '<div class="consent-actions">' +
+      '<button class="btn btn-ghost btn-sm" data-consent="declined" style="border-color:rgba(255,255,255,.3);color:#fff">Decline</button>' +
+      '<button class="btn btn-primary btn-sm" data-consent="accepted">Accept</button></div>';
+    document.body.appendChild(banner);
+    setTimeout(function () { banner.classList.add("show"); }, 900);
+    banner.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-consent]");
+      if (!b) return;
+      storageSet("oa-consent", b.getAttribute("data-consent"));
+      banner.classList.remove("show");
+      setTimeout(function () { banner.remove(); }, 450);
+    });
+  }
 })();

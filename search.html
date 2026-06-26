@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Search — Oath &amp; Action</title>
+  <meta name="description" content="Search explainers, articles, trackers, issues, and resources across Oath &amp; Action's nonpartisan civic-media library." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <!-- Social sharing / favicon -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Oath & Action" />
+  <meta property="og:title" content="Search — Oath &amp; Action" />
+  <meta property="og:description" content="Search explainers, articles, trackers, issues, and resources across Oath &amp; Action's nonpartisan civic-media library." />
+  <meta property="og:image" content="assets/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Search — Oath &amp; Action" />
+  <meta name="twitter:description" content="Search explainers, articles, trackers, issues, and resources across Oath &amp; Action's nonpartisan civic-media library." />
+  <meta name="twitter:image" content="assets/og-cover.png" />
+  <meta name="theme-color" content="#DCD9D2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='5' fill='%23DCD9D2'/%3E%3Crect x='1.75' y='1.75' width='28.5' height='28.5' rx='4.25' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.8' fill='%23E63946'/%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://oathandaction.org/search.html" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"NGO","name":"Oath & Action","alternateName":"Oath and Action","url":"https://oathandaction.org/","logo":"https://oathandaction.org/assets/og-cover.png","description":"Nonpartisan civic media and a democracy-reform platform. We explain how power works, track who is changing it, and turn understanding into action.","slogan":"From spectators to stewards."}
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-nav="search.html">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- ============================ SEARCH HERO ============================ -->
+    <section class="page-hero">
+      <div class="container">
+        <!-- breadcrumb -->
+        <nav class="breadcrumb" aria-label="Breadcrumb">
+          <a href="index.html">Home</a>
+          <span class="sep" aria-hidden="true">/</span>
+          <span aria-current="page">Search</span>
+        </nav>
+
+        <span class="kicker mt-4">Search the library</span>
+        <h1 class="mt-3">Search</h1>
+        <!-- search form (static mockup) -->
+        <form class="signup mt-4" data-demo role="search" aria-label="Search Oath &amp; Action">
+          <label for="q" class="sr-only">Search query</label>
+          <input id="q" class="input" type="search" name="q" value="redistricting" placeholder="Search explainers, trackers, issues…" aria-label="Search query">
+          <button class="btn btn-primary" type="submit">Search</button>
+          <p data-formnote hidden class="full mt-3">✓ This is a static prototype — results below are illustrative.</p>
+        </form>
+        <p class="text-stone mt-4" style="font-size:.95rem">About <strong>48 results</strong> for &ldquo;redistricting&rdquo;</p>
+      </div>
+    </section>
+
+    <!-- ============================ FILTERS + RESULTS ============================ -->
+    <section class="section">
+      <div class="container">
+        <!-- two-column layout: filters sidebar + results; reuse .article-layout grid -->
+        <div class="article-layout" style="display:grid; grid-template-columns: 280px 1fr; gap: 3rem;">
+
+          <!-- filters sidebar -->
+          <aside>
+            <div class="widget" aria-label="Filter results">
+              <div class="w-head">
+                <h4>Filter results</h4>
+                <a class="link-arrow" href="search.html" style="font-size:.8rem">Clear</a>
+              </div>
+
+              <!-- content type -->
+              <fieldset style="border:0;padding:0;margin:0 0 var(--space-5)">
+                <legend class="kicker" style="margin-bottom:.6rem">Content type</legend>
+                <label class="checkrow"><input type="checkbox" checked> Explainers <span class="text-stone">(14)</span></label>
+                <label class="checkrow"><input type="checkbox" checked> Articles <span class="text-stone">(11)</span></label>
+                <label class="checkrow"><input type="checkbox"> Tracker <span class="text-stone">(8)</span></label>
+                <label class="checkrow"><input type="checkbox"> Issues <span class="text-stone">(6)</span></label>
+                <label class="checkrow"><input type="checkbox"> Resources <span class="text-stone">(7)</span></label>
+                <label class="checkrow"><input type="checkbox"> Events <span class="text-stone">(2)</span></label>
+              </fieldset>
+
+              <!-- topic -->
+              <fieldset style="border:0;padding:0;margin:0 0 var(--space-5)">
+                <legend class="kicker" style="margin-bottom:.6rem">Topic</legend>
+                <div class="filterbar" data-chipgroup>
+                  <button type="button" class="chip active">Redistricting</button>
+                  <button type="button" class="chip">Voting access</button>
+                  <button type="button" class="chip">Money in politics</button>
+                  <button type="button" class="chip">Elections</button>
+                  <button type="button" class="chip">Courts</button>
+                </div>
+              </fieldset>
+
+              <!-- date range -->
+              <fieldset style="border:0;padding:0;margin:0">
+                <legend class="kicker" style="margin-bottom:.6rem">Date range</legend>
+                <label class="checkrow"><input type="radio" name="date" checked> Any time</label>
+                <label class="checkrow"><input type="radio" name="date"> Past month</label>
+                <label class="checkrow"><input type="radio" name="date"> Past year</label>
+                <label class="checkrow"><input type="radio" name="date"> 2026</label>
+              </fieldset>
+            </div>
+          </aside>
+
+          <!-- results list -->
+          <div>
+            <!-- result 1 -->
+            <article class="card mb-4">
+              <span class="tag tag-red">Explainer</span>
+              <h3 class="mt-3"><a href="explain.html">How districts get drawn: redistricting without the jargon</a></h3>
+              <p class="excerpt mt-3">A plain-language walk through redistricting — who draws the lines, what a commission changes, and why the map often decides the result before you vote.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Explain &middot; 7 min read &middot; Updated Jun 12, 2026</div>
+            </article>
+
+            <!-- result 2 -->
+            <article class="card mb-4">
+              <span class="tag tag-verdigris">Article</span>
+              <h3 class="mt-3"><a href="article.html">Follow the money: who funds the people who handle redistricting</a></h3>
+              <p class="excerpt mt-3">We traced disclosure filings across twelve states to find the quiet donors shaping the next decade of redistricting maps.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">The Dispatch &middot; Money &amp; power &middot; Jun 22, 2026</div>
+            </article>
+
+            <!-- result 3 -->
+            <article class="card mb-4">
+              <span class="tag tag-prussian">Tracker</span>
+              <h3 class="mt-3"><a href="tracker.html">State reform tracker: independent redistricting, by state</a></h3>
+              <p class="excerpt mt-3">Live status for redistricting reform in all 50 states — enacted, in committee, stalled, or blocked — with momentum and next steps.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Track &middot; Updated weekly &middot; Last sync Jun 25, 2026</div>
+            </article>
+
+            <!-- result 4 -->
+            <article class="card mb-4">
+              <span class="tag">Issue</span>
+              <h3 class="mt-3"><a href="issue.html">Redistricting &amp; fair maps</a></h3>
+              <p class="excerpt mt-3">Everything we publish on redistricting in one place: the explainers, the tracker view, the active bills, and the actions you can take now.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Issues &middot; Topic hub &middot; 9 reforms tracked</div>
+            </article>
+
+            <!-- result 5 -->
+            <article class="card mb-4">
+              <span class="tag tag-red">Explainer</span>
+              <h3 class="mt-3"><a href="explain.html">Gerrymandering vs. redistricting: what's the actual difference?</a></h3>
+              <p class="excerpt mt-3">Redistricting is the routine redrawing of lines; gerrymandering is rigging it. We show how to tell them apart on a real map.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Explain &middot; 5 min read &middot; Updated May 28, 2026</div>
+            </article>
+
+            <!-- result 6 -->
+            <article class="card mb-4">
+              <span class="tag tag-verdigris">Resource</span>
+              <h3 class="mt-3"><a href="toolkit.html">Redistricting public-comment toolkit (PDF)</a></h3>
+              <p class="excerpt mt-3">A ready-to-use guide for submitting testimony to a redistricting commission, including a template and the key questions to ask.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Toolkit &middot; Resource &middot; PDF, 1.4 MB</div>
+            </article>
+
+            <!-- result 7 -->
+            <article class="card mb-4">
+              <span class="tag tag-prussian">Tracker</span>
+              <h3 class="mt-3"><a href="tracker.html">HB 1042 — redistricting transparency act</a></h3>
+              <p class="excerpt mt-3">Bill detail for a redistricting transparency measure: sponsors, current status, choke points, and the next scheduled committee step.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Track &middot; Bill detail &middot; In committee &middot; Updated Jun 24, 2026</div>
+            </article>
+
+            <!-- result 8 -->
+            <article class="card mb-5">
+              <span class="tag tag-red">Explainer</span>
+              <h3 class="mt-3"><a href="explain.html">What a redistricting commission actually does</a></h3>
+              <p class="excerpt mt-3">Independent commissions are the most-discussed redistricting reform. Here's how they're built, what powers they have, and where they fall short.</p>
+              <div class="meta mt-3" style="color:var(--stone);font-size:.85rem">Explain &middot; 6 min read &middot; Updated Apr 30, 2026</div>
+            </article>
+
+            <!-- pagination -->
+            <nav class="pagination" aria-label="Pagination">
+              <a class="pg prev" href="#">&lsaquo; Prev</a>
+              <a class="pg active" aria-current="page" href="#">1</a>
+              <a class="pg" href="#">2</a>
+              <a class="pg" href="#">3</a>
+              <span class="pg gap">…</span>
+              <a class="pg" href="#">6</a>
+              <a class="pg next" href="#">Next &rsaquo;</a>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ DID YOU MEAN / POPULAR SEARCHES ============================ -->
+    <section class="section section-paper tight">
+      <div class="container">
+        <div class="section-head" style="max-width:none">
+          <span class="kicker">Did you mean &middot; popular searches</span>
+          <h2 class="mt-3">Try a related search</h2>
+        </div>
+        <div class="filterbar mt-2">
+          <a class="chip" href="search.html">ranked-choice voting</a>
+          <a class="chip" href="search.html">gerrymandering</a>
+          <a class="chip" href="search.html">redistricting commission</a>
+          <a class="chip" href="search.html">dark money disclosure</a>
+          <a class="chip" href="search.html">same-day registration</a>
+          <a class="chip" href="search.html">ballot initiatives</a>
+          <a class="chip" href="search.html">open primaries</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ NEWSLETTER CTA ============================ -->
+    <section class="section">
+      <div class="container">
+        <div class="banner-cta section-prussian mech-grid">
+          <div class="split" style="align-items:center">
+            <div>
+              <span class="kicker" style="color:rgba(255,255,255,.7)">The Dispatch</span>
+              <h2 class="mt-3" style="color:#fff">Can't find it? We'll bring the reform to you.</h2>
+              <p>One email a week — the system explained, plus a single scoped action. Tell us your topic and we'll point you to the right explainer.</p>
+            </div>
+            <div>
+              <form class="signup" data-demo>
+                <input class="input" type="email" placeholder="you@email.com" aria-label="Email" required>
+                <button class="btn btn-primary" type="submit">Subscribe</button>
+                <p data-formnote hidden class="full mt-3" style="color:#fff">✓ You're in. Check your inbox to confirm.</p>
+              </form>
+              <p class="mt-4" style="font-size:.8rem;color:rgba(255,255,255,.6)">Join 312,000 stewards. Unsubscribe anytime.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
