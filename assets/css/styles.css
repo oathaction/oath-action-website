@@ -613,8 +613,13 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
   .nav, .header-cta .btn { display: none; }
   .nav-toggle { display: inline-flex; }
   .header-cta { gap: var(--space-2); }
+  /* NOTE: .site-header uses backdrop-filter, which makes it the containing
+     block for position:fixed descendants. So the open menu is sized against
+     the 64px header, not the viewport — we set an explicit height (not bottom:0)
+     so it fills the screen below the header. */
   body.nav-open .nav {
-    display: flex; position: fixed; inset: var(--header-h) 0 0 0; z-index: 99;
+    display: flex; position: fixed; top: var(--header-h); left: 0; right: 0; bottom: auto; z-index: 99;
+    height: calc(100dvh - var(--header-h)); height: calc(100vh - var(--header-h));
     flex-direction: column; align-items: stretch; gap: 0; background: var(--newsprint);
     padding: var(--space-5); overflow-y: auto;
   }
