@@ -75,7 +75,7 @@
     "</div></div></footer>";
 
   function footCol(title, links) {
-    return '<div class="footer-col"><h5>' + title + "</h5>" +
+    return '<div class="footer-col"><h2>' + title + "</h2>" +
       links.map(function (l) { return '<a href="' + l[0] + '">' + l[1] + "</a>"; }).join("") + "</div>";
   }
 

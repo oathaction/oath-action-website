@@ -191,6 +191,11 @@ prototype is structured so each maps onto a real data source cleanly.
 
 - **Semantic HTML5**, landmark regions, skip-link, visible focus states, `prefers-reduced-motion`
   support, labeled form controls, `aria-hidden` on decorative SVG / `aria-label` on meaningful art.
+- **WCAG 2.1 AA verified** — audited with **axe-core** across all 23 pages: **0 violations**
+  (color-contrast, heading order, names/roles, landmarks, best-practice). The palette carries
+  dedicated AA text tokens (`--red-ink`, `--verdigris-ink`, darkened `--stone`, `--red-deep` for
+  white-on-red buttons) so brand color stays vivid as a *signal* while text stays legible; the
+  brand `--pillar-red` is reserved for graphics, dots, and large accents.
 - **Shareable previews** — Open Graph + Twitter Card meta on every page, a branded 1200×630
   `assets/og-cover.png`, an inline-SVG favicon, and a `theme-color`. _(Prototype uses a relative
   `og:image` path; set an absolute URL + per-page `canonical` in production.)_
