@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Track — The state of democracy reform, updated weekly — Oath &amp; Action</title>
+  <meta name="description" content="A live democracy-reform dashboard. We track bills, money, momentum, and implementation across all 50 states — updated weekly, sourced, and nonpartisan." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-nav="track.html">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- ============================ HERO ============================ -->
+    <section class="page-hero section-dark mech-grid">
+      <div class="container">
+        <span class="pillar-index">02 / TRACK</span>
+        <h1>The state of democracy reform, updated weekly.</h1>
+        <p class="lede">This is the instrument panel. We monitor every active democracy-reform bill in the country — the votes, the money, the momentum, and what happens after a law passes — and we refresh it every Monday at 6am ET. Read the numbers, then read the briefs.</p>
+        <div class="eyebrow-row mt-5">
+          <span class="kicker"><span class="signal"></span> Live · last refreshed Mon, Jun 22, 2026</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DASHBOARD ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">The dashboard</span>
+          <h2>Democracy reform, at a glance</h2>
+          <p class="lede">Four headline numbers, the year's momentum curve, the reforms with the most legislative energy, and the share of the country in play.</p>
+        </div>
+
+        <div class="dash reveal">
+          <!-- KPI: Bills tracked -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Bills tracked</h4>
+              <span class="tag tag-prussian tag-dot">All 50 states</span>
+            </div>
+            <div class="w-big"><span data-count="1240">0</span></div>
+            <span class="delta up">▲ +63 since last quarter</span>
+          </div>
+
+          <!-- KPI: States active -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>States active</h4>
+              <span class="tag tag-verdigris tag-dot">Live</span>
+            </div>
+            <div class="w-big"><span data-count="38">0</span></div>
+            <span class="delta up">▲ +2 this month</span>
+          </div>
+
+          <!-- KPI: Reforms enacted YTD -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Reforms enacted, YTD</h4>
+              <span class="tag tag-red tag-dot">2026</span>
+            </div>
+            <div class="w-big"><span data-count="47">0</span></div>
+            <span class="delta up">▲ +11 vs. 2025 pace</span>
+          </div>
+
+          <!-- KPI: Stalled this quarter -->
+          <div class="widget col-3">
+            <div class="w-head">
+              <h4>Stalled this quarter</h4>
+              <span class="tag tag-dot">Watch</span>
+            </div>
+            <div class="w-big"><span data-count="19">0</span></div>
+            <span class="delta down">▼ +5 from Q1</span>
+          </div>
+
+          <!-- Bar chart: reform momentum by month -->
+          <div class="widget col-7">
+            <div class="w-head">
+              <h4>Reform momentum by month</h4>
+              <span class="tag tag-dot">Bills advancing a stage · 2026</span>
+            </div>
+            <div class="bars" role="img" aria-label="Monthly bar chart of bills advancing a legislative stage through 2026, peaking in March and June">
+              <div class="bar"><span style="height:34%"></span></div>
+              <div class="bar"><span style="height:48%"></span></div>
+              <div class="bar hot"><span style="height:88%"></span></div>
+              <div class="bar"><span style="height:61%"></span></div>
+              <div class="bar"><span style="height:52%"></span></div>
+              <div class="bar hot"><span style="height:96%"></span></div>
+              <div class="bar"><span style="height:44%"></span></div>
+              <div class="bar"><span style="height:38%"></span></div>
+              <div class="bar"><span style="height:55%"></span></div>
+              <div class="bar"><span style="height:67%"></span></div>
+              <div class="bar"><span style="height:72%"></span></div>
+              <div class="bar"><span style="height:46%"></span></div>
+            </div>
+            <p class="text-stone mt-4" style="font-size:.82rem">Red bars mark session peaks — March crossover deadlines and the June pre-recess push.</p>
+          </div>
+
+          <!-- Donut: share of states with active reform -->
+          <div class="widget col-5">
+            <div class="w-head">
+              <h4>Share of states in play</h4>
+              <span class="tag tag-verdigris tag-dot">38 / 50</span>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="donut" style="background:conic-gradient(var(--pillar-red) 0 76%, var(--prussian-soft) 76% 100%)" role="img" aria-label="Donut chart: 76 percent of states have at least one active reform bill">
+                <div class="inner"><b>76%</b></div>
+              </div>
+              <div>
+                <p class="text-stone" style="font-size:.9rem">of states have at least one active democracy-reform bill we're tracking this session.</p>
+                <p class="text-verdigris mt-3" style="font-size:.82rem;font-weight:600">▲ up from 68% a year ago</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Meters: momentum by reform type -->
+          <div class="widget col-12">
+            <div class="w-head">
+              <h4>Momentum by reform type</h4>
+              <span class="tag tag-dot">Composite index · advancing vs. stalled</span>
+            </div>
+            <div class="grid grid-2 gap-5">
+              <div>
+                <div class="meter-row">
+                  <div class="lab"><span>Ranked-choice voting</span><span class="text-verdigris">Advancing · +4 states</span></div>
+                  <div class="meter"><span style="width:72%"></span></div>
+                </div>
+                <div class="meter-row">
+                  <div class="lab"><span>Redistricting transparency</span><span class="text-prussian">In committee</span></div>
+                  <div class="meter prussian"><span style="width:48%"></span></div>
+                </div>
+              </div>
+              <div>
+                <div class="meter-row">
+                  <div class="lab"><span>Money-in-politics disclosure</span><span class="text-red">Stalled</span></div>
+                  <div class="meter red"><span style="width:27%"></span></div>
+                </div>
+                <div class="meter-row">
+                  <div class="lab"><span>Voter access &amp; registration</span><span class="text-verdigris">Advancing</span></div>
+                  <div class="meter"><span style="width:64%"></span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== WHAT WE TRACK ===================== -->
+    <section class="section section-paper">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">What we track</span>
+          <h2>Four data streams, one picture</h2>
+          <p class="lede">Reform doesn't live in a single number. We watch four streams at once and synthesize them into the dashboard above.</p>
+        </div>
+        <div class="grid grid-4 reveal">
+          <article class="card card-pillar">
+            <div class="ic">①</div>
+            <h3>Bills &amp; votes</h3>
+            <p>Every introduced, amended, and voted democracy-reform measure across 50 statehouses — keyed to roll calls and committee actions.</p>
+          </article>
+          <article class="card card-pillar">
+            <div class="ic">②</div>
+            <h3>Money &amp; disclosure</h3>
+            <p>Campaign-finance filings, PAC flows, and lobbying registrations tied to the bills and the people moving them.</p>
+          </article>
+          <article class="card card-pillar">
+            <div class="ic">③</div>
+            <h3>Reform momentum</h3>
+            <p>A composite index that scores whether a reform is gaining or losing ground — sponsors, hearings, crossovers, and press.</p>
+          </article>
+          <article class="card card-pillar">
+            <div class="ic">④</div>
+            <h3>Implementation</h3>
+            <p>What happens after the vote: rule-making, funding, litigation, and whether a law actually reaches voters.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TRACKER BRIEFS ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head flex items-center justify-between wrap" style="max-width:none">
+          <div style="max-width:46ch">
+            <span class="kicker">The Tracker Desk — this week's briefs</span>
+            <h2 class="mt-3">Three movements worth watching</h2>
+          </div>
+          <a class="link-arrow" href="dispatches.html">All tracker briefs <span class="arrow">→</span></a>
+        </div>
+
+        <div class="grid grid-3 reveal">
+          <article class="card card-editorial">
+            <a href="article.html" class="thumb">
+              <svg class="glyph" viewBox="0 0 400 250" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+                <rect width="400" height="250" fill="#1F2D5A"/>
+                <g stroke="#fff" stroke-opacity=".18" stroke-width="1">
+                  <path d="M0 60h400M0 120h400M0 180h400M80 0v250M160 0v250M240 0v250M320 0v250"/>
+                </g>
+                <circle cx="160" cy="120" r="7" fill="#E63946"/><circle cx="240" cy="60" r="5" fill="#E63946"/><circle cx="320" cy="180" r="5" fill="#E63946"/>
+                <path d="M160 120L240 60M160 120L320 180" stroke="#E63946" stroke-width="1.5" stroke-opacity=".7"/>
+              </svg>
+              <span class="tag tag-prussian">Tracker brief</span>
+            </a>
+            <div class="body">
+              <div class="meta"><span>Ranked-choice voting</span><span>·</span><span>4 min read</span></div>
+              <h3><a href="article.html">RCV cleared committee in four states this month — here's what's next</a></h3>
+              <p class="excerpt">Nevada, Colorado, and two New England holdouts moved bills out of committee within a single week. The floor calendar decides whether it sticks.</p>
+              <div class="foot"><span>Jun 20, 2026</span><span>By The Tracker Desk</span></div>
+            </div>
+          </article>
+
+          <article class="card card-editorial">
+            <a href="article.html" class="thumb">
+              <svg class="glyph" viewBox="0 0 400 250" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+                <rect width="400" height="250" fill="#4A7C74"/>
+                <g stroke="#fff" stroke-opacity=".22"><rect x="40" y="40" width="320" height="170" fill="none" stroke-width="1"/><rect x="80" y="80" width="240" height="90" fill="none" stroke-width="1"/></g>
+                <circle cx="200" cy="125" r="8" fill="#E63946"/>
+              </svg>
+              <span class="tag tag-verdigris">Money watch</span>
+            </a>
+            <div class="body">
+              <div class="meta"><span>Disclosure</span><span>·</span><span>6 min read</span></div>
+              <h3><a href="article.html">Why disclosure reform keeps stalling in the same five states</a></h3>
+              <p class="excerpt">We mapped the filings against the no-votes. The pattern is the same committee chair, three sessions running.</p>
+              <div class="foot"><span>Jun 18, 2026</span><span>By R. Halvorsen</span></div>
+            </div>
+          </article>
+
+          <article class="card card-editorial">
+            <a href="article.html" class="thumb">
+              <svg class="glyph" viewBox="0 0 400 250" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+                <rect width="400" height="250" fill="#121212"/>
+                <g stroke="#DCD9D2" stroke-opacity=".25" stroke-width="1.5" fill="none">
+                  <path d="M40 200 L120 150 L200 170 L280 90 L360 110"/>
+                </g>
+                <circle cx="280" cy="90" r="6" fill="#E63946"/><circle cx="120" cy="150" r="4" fill="#DCD9D2"/>
+              </svg>
+              <span class="tag tag-red">Implementation</span>
+            </a>
+            <div class="body">
+              <div class="meta"><span>After the vote</span><span>·</span><span>5 min read</span></div>
+              <h3><a href="article.html">Michigan enacted independent redistricting. Did it actually work?</a></h3>
+              <p class="excerpt">Three cycles of data later, we score the commission against the promise — turnout, competitiveness, and the lawsuits that followed.</p>
+              <div class="foot"><span>Jun 15, 2026</span><span>By M. Okonkwo</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TRACKER PREVIEW ===================== -->
+    <section class="section section-dark">
+      <div class="container">
+        <div class="section-head flex items-center justify-between wrap" style="max-width:none">
+          <div style="max-width:46ch">
+            <span class="kicker">State reform tracker — preview</span>
+            <h2 class="mt-3">Where reform stands, state by state</h2>
+          </div>
+          <a class="link-arrow" href="tracker.html">Open the full 50-state tracker <span class="arrow">→</span></a>
+        </div>
+        <div class="tracker reveal">
+          <table>
+            <thead>
+              <tr><th>State</th><th>Reform</th><th>Status</th><th>Momentum</th><th>Next step</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="state-name">Michigan</td>
+                <td>Independent redistricting</td>
+                <td><span class="status passed">Enacted</span></td>
+                <td><div class="meter mini-meter"><span style="width:100%"></span></div></td>
+                <td>Implementation oversight</td>
+              </tr>
+              <tr>
+                <td class="state-name">Nevada</td>
+                <td>Ranked-choice voting</td>
+                <td><span class="status active">In committee</span></td>
+                <td><div class="meter prussian mini-meter"><span style="width:66%"></span></div></td>
+                <td>Floor vote expected Jul 14</td>
+              </tr>
+              <tr>
+                <td class="state-name">Colorado</td>
+                <td>Open primaries</td>
+                <td><span class="status active">In committee</span></td>
+                <td><div class="meter prussian mini-meter"><span style="width:58%"></span></div></td>
+                <td>Second reading scheduled</td>
+              </tr>
+              <tr>
+                <td class="state-name">Georgia</td>
+                <td>Same-day registration</td>
+                <td><span class="status stalled">Stalled</span></td>
+                <td><div class="meter red mini-meter"><span style="width:30%"></span></div></td>
+                <td>Needs three co-sponsors</td>
+              </tr>
+              <tr>
+                <td class="state-name">Wisconsin</td>
+                <td>Disclosure reform</td>
+                <td><span class="status blocked">Blocked</span></td>
+                <td><div class="meter red mini-meter"><span style="width:14%"></span></div></td>
+                <td>Ballot-initiative path</td>
+              </tr>
+              <tr>
+                <td class="state-name">Arizona</td>
+                <td>Voter-access expansion</td>
+                <td><span class="status passed">Enacted</span></td>
+                <td><div class="meter mini-meter"><span style="width:94%"></span></div></td>
+                <td>Rule-making underway</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== METHODOLOGY ===================== -->
+    <section class="section">
+      <div class="container narrow">
+        <div class="section-head">
+          <span class="kicker">How the dashboard is built</span>
+          <h2>Methodology &amp; sources</h2>
+        </div>
+        <div class="callout reveal">
+          <p><strong>Sources.</strong> Bill and vote data is drawn from Open States, individual state legislature feeds, and the National Conference of State Legislatures. Money figures come from FollowTheMoney, state campaign-finance portals, and federal disclosure filings. Implementation tracking pulls from agency rule-making dockets and court records.</p>
+          <p class="mt-4"><strong>The momentum index.</strong> Each reform is scored 0–100 on a weighted blend of sponsor count, committee progress, crossover status, recent hearings, and press signal. It measures legislative energy, not our endorsement — we are nonpartisan and take no position on any bill.</p>
+          <p class="mt-4"><strong>Cadence.</strong> The full dataset refreshes every Monday at 6am ET. Breaking actions — a floor vote, a veto, a signature — are logged within 24 hours and flagged <span class="tag tag-red tag-dot">Live</span> on the relevant row.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== NEWSLETTER CTA ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="banner-cta section-prussian mech-grid">
+          <div class="split" style="align-items:center">
+            <div>
+              <span class="kicker" style="color:rgba(255,255,255,.7)">The Tracker Brief</span>
+              <h2 class="mt-3" style="color:#fff">Get the dashboard in your inbox, every Monday.</h2>
+              <p>One weekly email: what moved, what stalled, and the three rows worth your attention — with the data behind each. Free, sourced, nonpartisan.</p>
+            </div>
+            <div>
+              <form class="signup" data-demo>
+                <input class="input" type="email" placeholder="you@email.com" aria-label="Email" required>
+                <button class="btn btn-primary" type="submit">Subscribe</button>
+                <p data-formnote hidden class="full mt-3" style="color:#fff">✓ You're in. The next Tracker Brief lands Monday at 6am ET.</p>
+              </form>
+              <p class="mt-4" style="font-size:.8rem;color:rgba(255,255,255,.6)">Join 312,000 stewards. Unsubscribe anytime.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
