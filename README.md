@@ -179,6 +179,12 @@ prototype is structured so each maps onto a real data source cleanly.
 
 - **Semantic HTML5**, landmark regions, skip-link, visible focus states, `prefers-reduced-motion`
   support, labeled form controls, `aria-hidden` on decorative SVG / `aria-label` on meaningful art.
+- **Shareable previews** — Open Graph + Twitter Card meta on every page, a branded 1200×630
+  `assets/og-cover.png`, an inline-SVG favicon, and a `theme-color`. _(Prototype uses a relative
+  `og:image` path; set an absolute URL + per-page `canonical` in production.)_
+- **Print stylesheet** (`@media print`) tuned for the Article/Issue templates — drops chrome and
+  CTAs, prints ink-on-white, and avoids breaking figures/cards across pages.
+- **Article TOC scrollspy** highlights the section you're reading; on-brand **404** page.
 - **CSS variables** for the full token system (color, type scale, spacing, radius, motion) in
   `assets/css/styles.css` — theming/retheming is a single-file change.
 - **One small vanilla JS file** (`assets/js/main.js`) injects the shared header/footer (single
@@ -196,9 +202,10 @@ prototype is structured so each maps onto a real data source cleanly.
 .
 ├── index.html · about.html · explain.html · track.html · connect.html · act.html
 ├── dispatches.html · article.html · issue.html · tracker.html
-├── toolkit.html · jobs.html · contact.html · concepts.html
+├── toolkit.html · jobs.html · contact.html · concepts.html · 404.html
 ├── assets/
-│   ├── css/styles.css      # design system (tokens + all components)
-│   └── js/main.js          # header/footer injection + interactions
+│   ├── css/styles.css      # design system (tokens + all components + print)
+│   ├── js/main.js          # header/footer injection + interactions + scrollspy
+│   └── og-cover.png        # 1200×630 social share image
 └── README.md
 ```

@@ -660,6 +660,28 @@ body.nav-open .nav-toggle span::after { transform: translateY(-6px) rotate(-45de
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
 }
 
+/* 21. PRINT ----------------------------------------------------------- */
+/* Optimized for the Article / Issue templates: drop chrome and CTAs,
+   put ink on white paper, and keep figures/cards from splitting. */
+@media print {
+  :root { --header-h: 0px; }
+  body { background: #fff; color: #000; }
+  .site-header, .site-footer, .nav-toggle, .skip-link, .toc, .share,
+  .hero-cta, .banner-cta, .signup, .signup-card, form,
+  .filterbar, .header-cta { display: none !important; }
+  .section, .section.tight { padding-block: 1rem; }
+  .section-dark, .section-prussian, .section-paper { background: #fff !important; color: #000 !important; }
+  .section-dark *, .section-prussian * { color: #000 !important; }
+  a { color: #000; text-decoration: none; }
+  .prose { max-width: none; }
+  .prose p, .prose ul li { font-size: 11.5pt; line-height: 1.5; color: #000; }
+  .article-layout { display: block !important; }
+  .card, .widget, .factbox, .tracker, .systems-map, figure, .prose blockquote { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+  h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+  .signal::after { display: none; }
+  @page { margin: 18mm; }
+}
+
 /* Reveal-on-scroll (progressive enhancement; visible by default if JS off) */
 .reveal { opacity: 1; }
 .js .reveal { opacity: 0; transform: translateY(16px); transition: opacity .6s var(--ease), transform .6s var(--ease); }

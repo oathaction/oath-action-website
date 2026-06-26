@@ -141,6 +141,23 @@
     });
   });
 
+  /* ---- Article TOC scrollspy: highlight the section you're reading ---- */
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll(".toc a[href^='#']"));
+  if (tocLinks.length && "IntersectionObserver" in window) {
+    var targets = tocLinks
+      .map(function (a) { return document.getElementById(a.getAttribute("href").slice(1)); })
+      .filter(Boolean);
+    var setActive = function (id) {
+      tocLinks.forEach(function (a) {
+        a.classList.toggle("active", a.getAttribute("href") === "#" + id);
+      });
+    };
+    var spy = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) setActive(e.target.id); });
+    }, { rootMargin: "-20% 0px -70% 0px", threshold: 0 });
+    targets.forEach(function (t) { spy.observe(t); });
+  }
+
   /* ---- Demo forms: prevent navigation, show acknowledgement ---- */
   document.querySelectorAll("form[data-demo]").forEach(function (form) {
     form.addEventListener("submit", function (e) {
