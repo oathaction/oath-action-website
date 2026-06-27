@@ -1,0 +1,8 @@
+# robots.txt for Oath & Action
+# https://oathandaction.org (placeholder domain — swap at deploy)
+# Allow all crawlers full access; no disallowed paths.
+
+User-agent: *
+Allow: /
+
+Sitemap: https://oathandaction.org/sitemap.xml

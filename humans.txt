@@ -1,0 +1,20 @@
+/* TEAM */
+
+  Oath & Action — Editorial & Engineering
+  Site: https://oathandaction.org (placeholder domain — swap at deploy)
+  From spectators to stewards.
+
+
+/* THANKS */
+
+  To the readers who hold power to account, and to the open-web
+  community whose tools make independent civic media possible.
+
+
+/* SITE */
+
+  Standards: HTML5, CSS3, vanilla JavaScript
+  Privacy: no trackers, no third-party analytics, no ad tech
+  Mission: nonpartisan civic media — the gap between oath and action
+  Language: English
+  Built: by humans, for citizens

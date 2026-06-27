@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connect — Find the levers and the people holding them — Oath &amp; Action</title>
+  <meta name="description" content="See the whole machine and find where you fit. Look up your representatives, map your issue to the people who decide it, and connect with vetted reform coalitions near you." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <!-- Social sharing / favicon (prototype: og:image is a relative path; set an absolute URL + canonical per page in production) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Oath & Action" />
+  <meta property="og:title" content="Connect — Find the levers and the people holding them — Oath &amp; Action" />
+  <meta property="og:description" content="See the whole machine and find where you fit. Look up your representatives, map your issue to the people who decide it, and connect with vetted reform coalitions near you." />
+  <meta property="og:image" content="assets/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Connect — Find the levers and the people holding them — Oath &amp; Action" />
+  <meta name="twitter:description" content="See the whole machine and find where you fit. Look up your representatives, map your issue to the people who decide it, and connect with vetted reform coalitions near you." />
+  <meta name="twitter:image" content="assets/og-cover.png" />
+  <meta name="theme-color" content="#DCD9D2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='5' fill='%23DCD9D2'/%3E%3Crect x='1.75' y='1.75' width='28.5' height='28.5' rx='4.25' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.8' fill='%23E63946'/%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://oathandaction.org/connect.html" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"NGO","name":"Oath & Action","alternateName":"Oath and Action","url":"https://oathandaction.org/","logo":"https://oathandaction.org/assets/og-cover.png","description":"Nonpartisan civic media and a democracy-reform platform. We explain how power works, track who is changing it, and turn understanding into action.","slogan":"From spectators to stewards."}
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-nav="connect.html">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- ============================ PAGE HERO ============================ -->
+    <section class="page-hero">
+      <div class="container">
+        <span class="pillar-index">03 / CONNECT</span>
+        <h1>Find the levers — and the people holding them.</h1>
+        <p class="lede">Reform never moves in a straight line. It passes through committees, donors, courts, the press, and a governor's desk before it touches your life. Connect maps that whole machine on one page — then shows you the exact people who answer to you, and the coalitions already pushing where you want to push.</p>
+      </div>
+    </section>
+
+    <!-- ===================== FLAGSHIP SYSTEMS MAP ===================== -->
+    <section class="section section-dark">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker"><span class="signal"></span> The systems map</span>
+          <h2>One reform, eight actors, and the places it can die</h2>
+          <p class="lede">Follow a bill from the public square to the statute books. Every box is a hand on a lever. The points marked in red are where a reform usually stalls — and where pressure from you actually changes the outcome.</p>
+        </div>
+
+        <div class="systems-map" aria-label="Systems map showing how a reform moves from the public through committee, the floor, the governor, and the courts — and where you connect">
+          <svg viewBox="0 0 960 480" role="img" aria-label="Network diagram. Public, Donors, and Press feed into a legislative Committee. The Committee leads to a Floor vote, then to the Governor, who can sign or veto. A veto can be challenged in the Courts. You connect into the Public, Press, and Committee. Three red signal points mark the committee gate, the governor's desk, and the public-pressure inflow.">
+            <defs>
+              <marker id="cm-arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+                <path d="M0 0L9 4.5L0 9z" fill="#5D636D"/>
+              </marker>
+            </defs>
+
+            <!-- faint grid backdrop -->
+            <g stroke="#fff" stroke-opacity=".06" stroke-width="1">
+              <path d="M0 120h960M0 240h960M0 360h960M160 0v480M320 0v480M480 0v480M640 0v480M800 0v480"/>
+            </g>
+
+            <!-- connector lines -->
+            <g stroke="#5D636D" stroke-width="1.6" fill="none" marker-end="url(#cm-arrow)" opacity=".85">
+              <!-- inputs into committee -->
+              <path d="M170 90 C300 90 320 200 388 222"/>
+              <path d="M170 240 C300 240 320 236 388 238"/>
+              <path d="M170 390 C300 390 320 270 388 254"/>
+              <!-- committee to floor -->
+              <path d="M512 238 C600 238 600 150 668 130"/>
+              <!-- floor to governor -->
+              <path d="M790 130 C840 130 840 200 800 232"/>
+              <!-- governor to courts (veto challenged) -->
+              <path d="M708 270 C660 330 660 360 708 388"/>
+            </g>
+
+            <!-- "You" feeds public, press, committee -->
+            <g stroke="#E63946" stroke-width="1.6" fill="none" stroke-opacity=".75" stroke-dasharray="5 5">
+              <path d="M110 430 C110 300 110 180 110 122"/>
+              <path d="M150 414 C260 360 320 300 388 250"/>
+            </g>
+
+            <!-- NODES -->
+            <g font-family="Inter Tight, sans-serif" font-size="14" fill="#DCD9D2">
+              <!-- left column: inputs -->
+              <g><rect x="30" y="64" width="140" height="44" rx="5" fill="#181818" stroke="#5D636D"/><text x="50" y="91">Public</text></g>
+              <g><rect x="30" y="214" width="140" height="44" rx="5" fill="#181818" stroke="#5D636D"/><text x="50" y="241">Donors &amp; PACs</text></g>
+              <g><rect x="30" y="364" width="140" height="44" rx="5" fill="#181818" stroke="#5D636D"/><text x="50" y="391">Press</text></g>
+
+              <!-- center: committee (red gate) -->
+              <g><rect x="388" y="210" width="124" height="56" rx="5" fill="#1F2D5A" stroke="#E63946" stroke-width="1.6"/><text x="408" y="243">Committee</text></g>
+
+              <!-- floor vote -->
+              <g><rect x="668" y="104" width="124" height="48" rx="5" fill="#181818" stroke="#5D636D"/><text x="692" y="133">Floor vote</text></g>
+
+              <!-- governor / veto (red gate) -->
+              <g><rect x="708" y="222" width="160" height="56" rx="5" fill="#1F2D5A" stroke="#E63946" stroke-width="1.6"/><text x="724" y="248">Governor</text><text x="724" y="266" font-size="11" fill="#5D636D">sign · veto</text></g>
+
+              <!-- courts -->
+              <g><rect x="668" y="372" width="124" height="48" rx="5" fill="#181818" stroke="#5D636D"/><text x="708" y="401">Courts</text></g>
+
+              <!-- You -->
+              <g><rect x="36" y="416" width="128" height="44" rx="5" fill="#0d0d0d" stroke="#E63946" stroke-width="1.4"/><text x="84" y="443" fill="#fff">You</text></g>
+            </g>
+
+            <!-- RED SIGNAL POINTS -->
+            <circle cx="450" cy="210" r="7" fill="#E63946"><animate attributeName="opacity" values="1;.3;1" dur="2.4s" repeatCount="indefinite"/></circle>
+            <circle cx="788" cy="222" r="7" fill="#E63946"><animate attributeName="opacity" values="1;.3;1" dur="2.4s" begin=".8s" repeatCount="indefinite"/></circle>
+            <circle cx="170" cy="86" r="6" fill="#E63946"><animate attributeName="opacity" values="1;.3;1" dur="2.4s" begin="1.6s" repeatCount="indefinite"/></circle>
+          </svg>
+        </div>
+        <p class="text-stone mt-4" style="max-width:64ch">A reform bill enters from the left — carried by public attention, donor money, and press coverage. It has to survive the <span class="text-red">committee gate</span> to ever reach a floor vote, then clear the <span class="text-red">governor's desk</span>, where a veto can send it to the courts. Your leverage is concentrated where the signal pulses red: the public-pressure inflow, the committee, and the governor.</p>
+      </div>
+    </section>
+
+    <!-- ===================== REPRESENTATIVE LOOKUP ===================== -->
+    <section class="section section-paper">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Who represents you</span>
+          <h2>Find the people who answer to you</h2>
+          <p class="lede">Enter your ZIP code. We'll surface the three offices most likely to move on the reforms you care about — and a direct line to each.</p>
+        </div>
+
+        <div class="card signup-card">
+          <form class="signup" data-demo aria-label="Representative lookup by ZIP code">
+            <div class="field full">
+              <label for="zip-lookup">Your ZIP code</label>
+              <input class="input" id="zip-lookup" name="zip" type="text" inputmode="numeric" placeholder="e.g. 53703" value="53703" required>
+              <span class="hint">We use ZIP only to match districts. We don't store it.</span>
+            </div>
+            <button class="btn btn-primary" type="submit">Look up my reps <span class="arrow">→</span></button>
+            <p data-formnote hidden class="full mt-3 text-verdigris">✓ Match found — here are your representatives for ZIP 53703 (Madison, WI).</p>
+          </form>
+
+          <!-- Mocked lookup result -->
+          <div class="grid grid-3 mt-6">
+            <article class="card">
+              <div class="byline">
+                <span class="avatar">MP</span>
+                <div>
+                  <strong>Rep. Marcus Pell</strong>
+                  <span class="text-stone">US House · WI-02</span>
+                </div>
+              </div>
+              <p class="excerpt mt-3">Sits on the House Administration Committee — a key gate for federal elections rules.</p>
+              <span class="tag tag-prussian">Federal</span>
+              <a class="btn btn-sm btn-ghost mt-4" href="act.html">Contact <span class="arrow">→</span></a>
+            </article>
+
+            <article class="card">
+              <div class="byline">
+                <span class="avatar">DO</span>
+                <div>
+                  <strong>Sen. Dana Ohuabunwa</strong>
+                  <span class="text-stone">State Senate · District 26</span>
+                </div>
+              </div>
+              <p class="excerpt mt-3">Co-sponsor of the 2026 disclosure-reform package. Up for re-election this cycle.</p>
+              <span class="tag tag-verdigris">State</span>
+              <a class="btn btn-sm btn-ghost mt-4" href="act.html">Contact <span class="arrow">→</span></a>
+            </article>
+
+            <article class="card">
+              <div class="byline">
+                <span class="avatar">TR</span>
+                <div>
+                  <strong>Rep. Tomás Reyna</strong>
+                  <span class="text-stone">State House · District 48</span>
+                </div>
+              </div>
+              <p class="excerpt mt-3">Vice-chair of the Assembly Committee on Campaigns &amp; Elections — your committee lever.</p>
+              <span class="tag tag-red">Swing vote</span>
+              <a class="btn btn-sm btn-ghost mt-4" href="act.html">Contact <span class="arrow">→</span></a>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== MAP YOUR ISSUE ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Map your issue</span>
+          <h2>Three questions turn an issue into a target</h2>
+          <p class="lede">Caring about something isn't a plan. To move a reform, you need to know who decides it, who shapes that decision, and the exact point where outside pressure lands.</p>
+        </div>
+        <div class="grid grid-3 reveal">
+          <article class="card card-pillar">
+            <span class="ic">①</span>
+            <h3>Who decides</h3>
+            <p>The body with formal authority — a committee chair, an agency director, a county board. Find the seat where the vote or the signature actually happens.</p>
+          </article>
+          <article class="card card-pillar">
+            <span class="ic">②</span>
+            <h3>Who influences</h3>
+            <p>The donors, staffers, party leaders, and editorial pages whispering before the vote. Influence is quieter than authority — and often louder in effect.</p>
+          </article>
+          <article class="card card-pillar">
+            <span class="ic">③</span>
+            <h3>Where you push</h3>
+            <p>The one reachable point in the chain where your call, comment, or coalition tips the margin. We mark it red on every systems map.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== COALITION / PARTNER DIRECTORY ===================== -->
+    <section class="section section-paper">
+      <div class="container">
+        <div class="section-head flex items-center justify-between wrap" style="max-width:none">
+          <div style="max-width:48ch">
+            <span class="kicker">The coalition directory</span>
+            <h2 class="mt-3">You're not starting from zero</h2>
+          </div>
+          <a class="link-arrow" href="connect.html">Browse all 240+ partners <span class="arrow">→</span></a>
+        </div>
+        <div class="grid grid-3 reveal">
+          <article class="card">
+            <div class="meta"><span class="tag tag-prussian">Redistricting</span></div>
+            <h3 class="mt-3">Fair Maps Wisconsin</h3>
+            <p class="excerpt">Citizen-led coalition pushing an independent redistricting commission via ballot initiative. Needs signature gatherers and data volunteers.</p>
+            <div class="foot"><span>Madison, WI</span><a class="link-arrow" href="connect.html">View profile <span class="arrow">→</span></a></div>
+          </article>
+
+          <article class="card">
+            <div class="meta"><span class="tag tag-verdigris">Voting access</span></div>
+            <h3 class="mt-3">The Open Ballot Project</h3>
+            <p class="excerpt">Nonpartisan group running ranked-choice and open-primary campaigns in six states. Hosts a weekly organizer training open to newcomers.</p>
+            <div class="foot"><span>Phoenix, AZ</span><a class="link-arrow" href="connect.html">View profile <span class="arrow">→</span></a></div>
+          </article>
+
+          <article class="card">
+            <div class="meta"><span class="tag tag-red">Money in politics</span></div>
+            <h3 class="mt-3">Sunlight &amp; Ledger</h3>
+            <p class="excerpt">A disclosure watchdog that turns campaign-finance filings into searchable maps. Looking for researchers and local FOIA partners.</p>
+            <div class="foot"><span>Atlanta, GA</span><a class="link-arrow" href="connect.html">View profile <span class="arrow">→</span></a></div>
+          </article>
+
+          <article class="card">
+            <div class="meta"><span class="tag tag-prussian">Civic data</span></div>
+            <h3 class="mt-3">Statehouse Civic Lab</h3>
+            <p class="excerpt">Volunteer engineers and analysts who track legislation for grassroots groups. Builds the dashboards smaller coalitions can't afford.</p>
+            <div class="foot"><span>Lansing, MI</span><a class="link-arrow" href="connect.html">View profile <span class="arrow">→</span></a></div>
+          </article>
+
+          <article class="card">
+            <div class="meta"><span class="tag tag-verdigris">Youth turnout</span></div>
+            <h3 class="mt-3">Campus Vote Collective</h3>
+            <p class="excerpt">Student-run network registering voters and fighting registration barriers on 80+ campuses. Always recruiting chapter leads.</p>
+            <div class="foot"><span>Austin, TX</span><a class="link-arrow" href="connect.html">View profile <span class="arrow">→</span></a></div>
+          </article>
+
+          <article class="card">
+            <div class="meta"><span class="tag tag-red">Election admin</span></div>
+            <h3 class="mt-3">The Poll Worker Guild</h3>
+            <p class="excerpt">Recruits, trains, and supports nonpartisan poll workers ahead of the 2026 midterms. Half-day onboarding, real impact.</p>
+            <div class="foot"><span>Columbus, OH</span><a class="link-arrow" href="connect.html">View profile <span class="arrow">→</span></a></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CONNECT LOCALLY ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Connect locally</span>
+          <h2>Four ways to plug in this month</h2>
+          <p class="lede">Pick the entry point that fits how you work. Each one drops you into a real group of people, not a mailing list.</p>
+        </div>
+        <div class="grid grid-4 reveal">
+          <article class="card card-action">
+            <span class="effort">● Nearby</span>
+            <h3>Find a local chapter</h3>
+            <p>Match to a vetted reform chapter within 25 miles. 1,400+ active across all 50 states.</p>
+            <a class="link-arrow" href="connect.html">Search chapters <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">●● Skills-based</span>
+            <h3>Join a working group</h3>
+            <p>Lend a specific skill — research, design, legal, organizing — to a campaign that needs it.</p>
+            <a class="link-arrow" href="connect.html">See open roles <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">● This week</span>
+            <h3>Attend an event</h3>
+            <p>Town halls, trainings, and hearings near you — filtered to the issues you follow.</p>
+            <a class="link-arrow" href="connect.html">Browse events <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">●●● Ongoing</span>
+            <h3>Start a node</h3>
+            <p>No chapter where you live? We'll give you a playbook and a starter cohort to launch one.</p>
+            <a class="link-arrow" href="connect.html">Start a node <span class="arrow">→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== CLOSING CTA BANNER ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="banner-cta section-prussian mech-grid">
+          <div class="split" style="align-items:center">
+            <div>
+              <span class="kicker" style="color:rgba(255,255,255,.7)">You found the lever</span>
+              <h2 class="mt-3" style="color:#fff">Now pull it. Know exactly what to do next.</h2>
+              <p>You've seen the machine and met the people who answer to you. The Act pillar turns that map into a scoped, specific move sized to the time you have.</p>
+            </div>
+            <div class="flex gap-3 wrap">
+              <a class="btn btn-primary btn-lg" href="act.html">Find your action <span class="arrow">→</span></a>
+              <a class="btn btn-on-dark btn-lg" href="contact.html">Talk to an organizer</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ranked-Choice Voting — 50-state tracker — Oath &amp; Action</title>
+  <meta name="description" content="The full state-by-state ranked-choice voting tracker: bills, sponsors, status, last action, and momentum across all 50 states. Sourced and updated weekly." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <!-- Social sharing / favicon (prototype: og:image is a relative path; set an absolute URL + canonical per page in production) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Oath & Action" />
+  <meta property="og:title" content="Ranked-Choice Voting — 50-state tracker — Oath &amp; Action" />
+  <meta property="og:description" content="The full state-by-state ranked-choice voting tracker: bills, sponsors, status, last action, and momentum across all 50 states. Sourced and updated weekly." />
+  <meta property="og:image" content="assets/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Ranked-Choice Voting — 50-state tracker — Oath &amp; Action" />
+  <meta name="twitter:description" content="The full state-by-state ranked-choice voting tracker: bills, sponsors, status, last action, and momentum across all 50 states. Sourced and updated weekly." />
+  <meta name="twitter:image" content="assets/og-cover.png" />
+  <meta name="theme-color" content="#DCD9D2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='5' fill='%23DCD9D2'/%3E%3Crect x='1.75' y='1.75' width='28.5' height='28.5' rx='4.25' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.8' fill='%23E63946'/%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://oathandaction.org/tracker.html" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"NGO","name":"Oath & Action","alternateName":"Oath and Action","url":"https://oathandaction.org/","logo":"https://oathandaction.org/assets/og-cover.png","description":"Nonpartisan civic media and a democracy-reform platform. We explain how power works, track who is changing it, and turn understanding into action.","slogan":"From spectators to stewards."}
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-nav="tracker.html">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- ============================ HERO ============================ -->
+    <section class="page-hero">
+      <div class="container">
+        <span class="tag tag-red">Reform Tracker</span>
+        <h1 class="mt-3">Ranked-Choice Voting — 50-state tracker</h1>
+        <p class="lede">Every active ranked-choice voting bill and ballot measure in the country, one row at a time: who's carrying it, where it stands, when it last moved, and what has to happen next. This is the live record behind our reporting.</p>
+        <div class="eyebrow-row mt-5">
+          <span class="kicker"><span class="signal"></span> Last updated Mon, Jun 22, 2026 · refreshed weekly · sourced from Open States &amp; state feeds</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== SUMMARY STRIP ===================== -->
+    <section class="section-dark section tight">
+      <div class="container">
+        <div class="dash">
+          <div class="widget col-3">
+            <div class="w-head"><p class="w-title">States enacted</p><span class="tag tag-verdigris tag-dot">RCV in use</span></div>
+            <div class="w-big"><span data-count="5">0</span></div>
+            <span class="delta up">▲ +1 this cycle</span>
+          </div>
+          <div class="widget col-3">
+            <div class="w-head"><p class="w-title">In legislation</p><span class="tag tag-prussian tag-dot">Active bills</span></div>
+            <div class="w-big"><span data-count="21">0</span></div>
+            <span class="delta up">▲ +6 vs. last session</span>
+          </div>
+          <div class="widget col-3">
+            <div class="w-head"><p class="w-title">Ballot measures pending</p><span class="tag tag-red tag-dot">Nov 2026</span></div>
+            <div class="w-big"><span data-count="7">0</span></div>
+            <span class="delta up">▲ signatures certified</span>
+          </div>
+          <div class="widget col-3">
+            <div class="w-head"><p class="w-title">Population covered</p><span class="tag tag-dot">If pending pass</span></div>
+            <div class="w-big"><span data-count="58">0</span>M</div>
+            <span class="delta up">▲ +14M potential</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== FILTER CONTROLS ===================== -->
+    <section class="section tight">
+      <div class="container">
+        <div class="section-head" style="margin-bottom:1.5rem">
+          <span class="kicker">The tracker</span>
+          <h2>Filter the board</h2>
+        </div>
+
+        <div class="filterbar reveal">
+          <div data-chipgroup aria-label="Filter by status">
+            <button class="chip active" type="button">All states</button>
+            <button class="chip" type="button">Enacted</button>
+            <button class="chip" type="button">In committee</button>
+            <button class="chip" type="button">Stalled</button>
+            <button class="chip" type="button">Blocked</button>
+          </div>
+          <div data-chipgroup aria-label="Filter by region">
+            <button class="chip active" type="button">All regions</button>
+            <button class="chip" type="button">Northeast</button>
+            <button class="chip" type="button">Midwest</button>
+            <button class="chip" type="button">South</button>
+            <button class="chip" type="button">West</button>
+          </div>
+        </div>
+
+        <!-- ===================== MAIN TABLE ===================== -->
+        <div class="tracker reveal mt-5">
+          <table>
+            <thead>
+              <tr>
+                <th>State</th>
+                <th>Bill / Measure</th>
+                <th>Sponsor</th>
+                <th>Status</th>
+                <th>Last action</th>
+                <th>Momentum</th>
+                <th>Next step</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="state-name">Maine</td>
+                <td>Statewide RCV (in use)</td>
+                <td>Sec. of State office</td>
+                <td><span class="status passed">Enacted</span></td>
+                <td>Apr 2, 2026</td>
+                <td><div class="meter mini-meter"><span style="width:100%"></span></div></td>
+                <td>Primary administration</td>
+              </tr>
+              <tr>
+                <td class="state-name">Alaska</td>
+                <td>Final-four RCV (in use)</td>
+                <td>Ballot Measure 2 (2020)</td>
+                <td><span class="status passed">Enacted</span></td>
+                <td>Mar 18, 2026</td>
+                <td><div class="meter mini-meter"><span style="width:96%"></span></div></td>
+                <td>Repeal effort defeated</td>
+              </tr>
+              <tr>
+                <td class="state-name">Nevada</td>
+                <td>SB 412 — open-primary RCV</td>
+                <td>Sen. D. Marquez</td>
+                <td><span class="status active">In committee</span></td>
+                <td>Jun 19, 2026</td>
+                <td><div class="meter prussian mini-meter"><span style="width:68%"></span></div></td>
+                <td>Floor vote set Jul 14</td>
+              </tr>
+              <tr>
+                <td class="state-name">Colorado</td>
+                <td>HB 1042 — municipal RCV opt-in</td>
+                <td>Rep. A. Whitfield</td>
+                <td><span class="status active">In committee</span></td>
+                <td>Jun 11, 2026</td>
+                <td><div class="meter prussian mini-meter"><span style="width:61%"></span></div></td>
+                <td>Second reading scheduled</td>
+              </tr>
+              <tr>
+                <td class="state-name">Oregon</td>
+                <td>HB 2773 — statewide RCV</td>
+                <td>Rep. L. Okafor</td>
+                <td><span class="status active">In committee</span></td>
+                <td>Jun 9, 2026</td>
+                <td><div class="meter prussian mini-meter"><span style="width:54%"></span></div></td>
+                <td>Fiscal note pending</td>
+              </tr>
+              <tr>
+                <td class="state-name">Minnesota</td>
+                <td>SF 988 — local-option RCV</td>
+                <td>Sen. R. Pelletier</td>
+                <td><span class="status active">In committee</span></td>
+                <td>May 28, 2026</td>
+                <td><div class="meter prussian mini-meter"><span style="width:49%"></span></div></td>
+                <td>Awaiting committee vote</td>
+              </tr>
+              <tr>
+                <td class="state-name">Virginia</td>
+                <td>HB 1310 — primary RCV pilot</td>
+                <td>Del. C. Nakamura</td>
+                <td><span class="status active">In committee</span></td>
+                <td>May 21, 2026</td>
+                <td><div class="meter prussian mini-meter"><span style="width:44%"></span></div></td>
+                <td>Subcommittee markup</td>
+              </tr>
+              <tr>
+                <td class="state-name">Michigan</td>
+                <td>HB 5201 — municipal authorization</td>
+                <td>Rep. T. Boateng</td>
+                <td><span class="status stalled">Stalled</span></td>
+                <td>Apr 30, 2026</td>
+                <td><div class="meter red mini-meter"><span style="width:33%"></span></div></td>
+                <td>Needs hearing date</td>
+              </tr>
+              <tr>
+                <td class="state-name">Georgia</td>
+                <td>SB 276 — overseas-ballot RCV</td>
+                <td>Sen. M. Delacroix</td>
+                <td><span class="status stalled">Stalled</span></td>
+                <td>Mar 25, 2026</td>
+                <td><div class="meter red mini-meter"><span style="width:28%"></span></div></td>
+                <td>Needs three co-sponsors</td>
+              </tr>
+              <tr>
+                <td class="state-name">Texas</td>
+                <td>HB 2044 — local RCV opt-in</td>
+                <td>Rep. J. Castellano</td>
+                <td><span class="status stalled">Stalled</span></td>
+                <td>Mar 12, 2026</td>
+                <td><div class="meter red mini-meter"><span style="width:22%"></span></div></td>
+                <td>Carried to next session</td>
+              </tr>
+              <tr>
+                <td class="state-name">Tennessee</td>
+                <td>SB 1199 — RCV preemption repeal</td>
+                <td>Sen. H. Vandersloot</td>
+                <td><span class="status blocked">Blocked</span></td>
+                <td>Feb 26, 2026</td>
+                <td><div class="meter red mini-meter"><span style="width:12%"></span></div></td>
+                <td>Ballot-initiative path</td>
+              </tr>
+              <tr>
+                <td class="state-name">Florida</td>
+                <td>SB 7032 — statewide preemption</td>
+                <td>Committee on Ethics</td>
+                <td><span class="status blocked">Blocked</span></td>
+                <td>Feb 14, 2026</td>
+                <td><div class="meter red mini-meter"><span style="width:8%"></span></div></td>
+                <td>Litigation under review</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ===================== LEGEND ===================== -->
+        <div class="flex items-center gap-5 wrap mt-5">
+          <span class="kicker">Status key</span>
+          <span class="flex items-center gap-2"><span class="status passed">Enacted</span> <span class="text-stone" style="font-size:.85rem">signed into law or in use</span></span>
+          <span class="flex items-center gap-2"><span class="status active">In committee</span> <span class="text-stone" style="font-size:.85rem">moving through the process</span></span>
+          <span class="flex items-center gap-2"><span class="status stalled">Stalled</span> <span class="text-stone" style="font-size:.85rem">introduced but not advancing</span></span>
+          <span class="flex items-center gap-2"><span class="status blocked">Blocked</span> <span class="text-stone" style="font-size:.85rem">defeated, preempted, or vetoed</span></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== HOW A REFORM MOVES ===================== -->
+    <section class="section section-paper">
+      <div class="container narrow">
+        <div class="section-head">
+          <span class="kicker">Read the board</span>
+          <h2>How a reform moves</h2>
+          <p class="lede">Every bill in the table is somewhere on this path. The momentum meter roughly tracks how far along — and how fast.</p>
+        </div>
+        <div class="timeline reveal">
+          <div class="tl-item done">
+            <span class="tl-date">Stage 01</span>
+            <p class="tl-title">Introduced</p>
+            <p>A legislator files the bill and it gets a number. Sponsor count starts here.</p>
+          </div>
+          <div class="tl-item done">
+            <span class="tl-date">Stage 02</span>
+            <p class="tl-title">Committee</p>
+            <p>Hearings, markups, and amendments. The highest-mortality stage — most bills die here.</p>
+          </div>
+          <div class="tl-item">
+            <span class="tl-date">Stage 03</span>
+            <p class="tl-title">Floor</p>
+            <p>The full chamber debates and votes; then it must clear the second chamber too.</p>
+          </div>
+          <div class="tl-item">
+            <span class="tl-date">Stage 04</span>
+            <p class="tl-title">Enacted</p>
+            <p>Signed by the governor — or approved at the ballot box as a measure.</p>
+          </div>
+          <div class="tl-item">
+            <span class="tl-date">Stage 05</span>
+            <p class="tl-title">Implemented</p>
+            <p>Rule-making, funding, and the first election actually run under the new system.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== DRILL-DOWN DETAIL ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">Drill-down · featured row</span>
+          <h2>Nevada — SB 412</h2>
+          <p class="lede">A closer look at the most-watched active bill on the board: open-primary ranked-choice voting, one floor vote from the governor's desk.</p>
+        </div>
+
+        <div class="split reveal" style="align-items:start">
+          <!-- left: detail card -->
+          <div class="card">
+            <div class="flex items-center justify-between wrap">
+              <h3 style="margin:0">SB 412 — Open-Primary RCV</h3>
+              <span class="status active">In committee</span>
+            </div>
+            <div class="article-meta mt-3">
+              <span>Sponsor: Sen. D. Marquez</span><span>·</span><span>12 co-sponsors</span><span>·</span><span>Last action Jun 19, 2026</span>
+            </div>
+
+            <div class="mt-5">
+              <div class="meter-row">
+                <div class="lab"><span>Momentum index</span><span class="text-prussian">68 / 100</span></div>
+                <div class="meter prussian"><span style="width:68%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Sponsor support</span><span class="text-verdigris">Strong</span></div>
+                <div class="meter"><span style="width:74%"></span></div>
+              </div>
+              <div class="meter-row">
+                <div class="lab"><span>Floor-vote odds (analyst est.)</span><span class="text-prussian">Lean yes</span></div>
+                <div class="meter prussian"><span style="width:58%"></span></div>
+              </div>
+            </div>
+
+            <blockquote class="quote mt-5">"Nevadans already voted for this idea once. SB 412 finishes the job — it gives every voter a real choice in the primary that actually decides most races." <br><span class="text-stone" style="font-size:.85rem;font-style:normal">— Sen. D. Marquez, prime sponsor</span></blockquote>
+
+            <a class="link-arrow mt-4" href="article.html">Read the full Nevada brief <span class="arrow">→</span></a>
+          </div>
+
+          <!-- right: mini timeline for this bill -->
+          <div class="widget">
+            <div class="w-head"><p class="w-title">SB 412 — path so far</p><span class="tag tag-prussian tag-dot">Stage 02 of 05</span></div>
+            <div class="timeline">
+              <div class="tl-item done">
+                <span class="tl-date">Feb 4, 2026</span>
+                <p class="tl-title">Introduced</p>
+                <p>Filed with 9 original co-sponsors; referred to Senate Legislative Operations.</p>
+              </div>
+              <div class="tl-item done">
+                <span class="tl-date">May 6, 2026</span>
+                <p class="tl-title">Committee hearing</p>
+                <p>Public testimony heard; amended to phase in by 2028.</p>
+              </div>
+              <div class="tl-item done">
+                <span class="tl-date">Jun 19, 2026</span>
+                <p class="tl-title">Committee passage</p>
+                <p>Voted out of committee 5–2; co-sponsor count up to 12.</p>
+              </div>
+              <div class="tl-item">
+                <span class="tl-date">Jul 14, 2026</span>
+                <p class="tl-title">Floor vote</p>
+                <p>Scheduled before the pre-recess deadline. The decisive step.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== METHODOLOGY ===================== -->
+    <section class="section section-dark">
+      <div class="container narrow">
+        <div class="section-head">
+          <span class="kicker">Methodology &amp; data sources</span>
+          <h2>How this tracker is maintained</h2>
+        </div>
+        <div class="callout reveal">
+          <p><strong>Where the rows come from.</strong> Bill text, sponsors, and actions are pulled from Open States and individual state legislature feeds, cross-checked against the National Conference of State Legislatures. Ballot-measure status comes from state election divisions and Ballotpedia filings.</p>
+          <p class="mt-4"><strong>Momentum scoring.</strong> The 0–100 momentum meter blends sponsor count, committee progress, recent action recency, crossover status, and press signal. Floor-vote odds are analyst estimates, clearly labeled, and never a prediction we stake reporting on.</p>
+          <p class="mt-4"><strong>Cadence &amp; corrections.</strong> Rows refresh every Monday at 6am ET; breaking actions are logged within 24 hours. Spot an error? Email <a class="link-arrow" href="about.html">the Tracker Desk</a> — we publish corrections.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== ALERTS CTA ===================== -->
+    <section class="section">
+      <div class="container">
+        <div class="banner-cta section-prussian mech-grid">
+          <div class="split" style="align-items:center">
+            <div>
+              <span class="kicker" style="color:rgba(255,255,255,.7)">State alerts</span>
+              <h2 class="mt-3" style="color:#fff">Get alerts when your state moves.</h2>
+              <p>Pick your state and the reform you care about. We'll email you the moment a bill changes status — a hearing, a floor vote, a signature. Nothing else.</p>
+            </div>
+            <div>
+              <form class="signup-card" data-demo>
+                <div class="field">
+                  <label for="alert-state">Your state</label>
+                  <select class="select" id="alert-state">
+                    <option>Nevada</option>
+                    <option>Colorado</option>
+                    <option>Oregon</option>
+                    <option>Minnesota</option>
+                    <option>Virginia</option>
+                    <option>Michigan</option>
+                    <option>Georgia</option>
+                    <option>Texas</option>
+                    <option>Other / all states</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="alert-email">Email</label>
+                  <input class="input" id="alert-email" type="email" placeholder="you@email.com" required>
+                </div>
+                <button class="btn btn-primary full" type="submit">Set my alert</button>
+                <p data-formnote hidden class="mt-3" style="color:#fff">✓ Alert set. We'll email you the moment your state moves.</p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

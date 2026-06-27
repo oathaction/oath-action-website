@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contact &amp; Join — Oath &amp; Action</title>
+  <meta name="description" content="Become a steward. Volunteer, partner, donate, or just reach the Oath &amp; Action team. Nonpartisan civic media and a democracy-reform platform." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Lora:ital,wght@1,400;1,500&display=swap" rel="stylesheet" />
+  <!-- Social sharing / favicon (prototype: og:image is a relative path; set an absolute URL + canonical per page in production) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Oath & Action" />
+  <meta property="og:title" content="Contact &amp; Join — Oath &amp; Action" />
+  <meta property="og:description" content="Become a steward. Volunteer, partner, donate, or just reach the Oath &amp;amp; Action team. Nonpartisan civic media and a democracy-reform platform." />
+  <meta property="og:image" content="assets/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Contact &amp; Join — Oath &amp; Action" />
+  <meta name="twitter:description" content="Become a steward. Volunteer, partner, donate, or just reach the Oath &amp;amp; Action team. Nonpartisan civic media and a democracy-reform platform." />
+  <meta name="twitter:image" content="assets/og-cover.png" />
+  <meta name="theme-color" content="#DCD9D2" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='30' height='30' rx='5' fill='%23DCD9D2'/%3E%3Crect x='1.75' y='1.75' width='28.5' height='28.5' rx='4.25' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='6.5' fill='none' stroke='%23121212' stroke-width='1.5'/%3E%3Cpath d='M16 3v4M16 25v4M3 16h4M25 16h4' stroke='%23121212' stroke-width='1.5'/%3E%3Ccircle cx='16' cy='16' r='2.8' fill='%23E63946'/%3E%3C/svg%3E" />
+  <link rel="canonical" href="https://oathandaction.org/contact.html" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"NGO","name":"Oath & Action","alternateName":"Oath and Action","url":"https://oathandaction.org/","logo":"https://oathandaction.org/assets/og-cover.png","description":"Nonpartisan civic media and a democracy-reform platform. We explain how power works, track who is changing it, and turn understanding into action.","slogan":"From spectators to stewards."}
+  </script>
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body data-nav="contact.html">
+  <div id="site-header"></div>
+
+  <main id="main">
+    <!-- ============================ PAGE HERO ============================ -->
+    <section class="page-hero mech-grid">
+      <div class="container">
+        <span class="kicker"><span class="signal"></span> Join Oath &amp; Action</span>
+        <h1>Become a steward.</h1>
+        <p class="lede">Self-government is a participation sport. Whether you can give five minutes a week or five hours, write code or knock doors, there's a place for you here. Tell us how you want to help and we'll point you at the work that fits.</p>
+      </div>
+    </section>
+
+    <!-- ============================ JOIN FORM + CONTACT ASIDE ============================ -->
+    <section class="section">
+      <div class="container">
+        <div class="split">
+          <!-- Volunteer / join form -->
+          <div>
+            <span class="kicker">Volunteer with us</span>
+            <h2 class="mt-3">Tell us how you'd like to pitch in</h2>
+            <p class="lede">We'll match you with a real role on a real reform — and we won't spam you. Expect a personal reply, not an autoresponder.</p>
+            <form data-demo class="mt-6">
+              <div class="field">
+                <label for="v-name">Full name</label>
+                <input class="input" id="v-name" name="name" type="text" placeholder="Jordan Rivera" required>
+              </div>
+              <div class="field">
+                <label for="v-email">Email</label>
+                <input class="input" id="v-email" name="email" type="email" placeholder="you@email.com" required>
+                <span class="hint">We'll only use this to talk about volunteering.</span>
+              </div>
+              <div class="field">
+                <label for="v-zip">ZIP code</label>
+                <input class="input" id="v-zip" name="zip" type="text" inputmode="numeric" pattern="[0-9]{5}" placeholder="48104" required>
+                <span class="hint">So we can match you to local coalitions and your statehouse.</span>
+              </div>
+              <div class="field">
+                <label for="v-help">How do you want to help?</label>
+                <select class="select" id="v-help" name="help">
+                  <option value="" selected disabled>Choose an area…</option>
+                  <option>Write / research</option>
+                  <option>Local organizing</option>
+                  <option>Data &amp; engineering</option>
+                  <option>Design</option>
+                  <option>Legal / policy</option>
+                  <option>Donate</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="v-skills">What should we know about you?</label>
+                <textarea class="textarea" id="v-skills" name="skills" rows="4" placeholder="Skills, availability, a cause you care about, a statehouse you follow…"></textarea>
+              </div>
+              <div class="checkrow">
+                <input type="checkbox" id="v-consent" name="consent" required>
+                <label for="v-consent">I'd like Oath &amp; Action to contact me about volunteer opportunities.</label>
+              </div>
+              <div class="checkrow">
+                <input type="checkbox" id="v-news" name="newsletter">
+                <label for="v-news">Send me The Dispatch — one email a week, the system explained.</label>
+              </div>
+              <button class="btn btn-primary btn-lg mt-5" type="submit">Sign me up <span class="arrow">→</span></button>
+              <p data-formnote hidden class="mt-4 text-verdigris">✓ Thank you — you're on the list. A real human from our community team will reach out within two business days.</p>
+            </form>
+          </div>
+
+          <!-- Ways to reach us -->
+          <aside class="card">
+            <span class="kicker">Reach the team</span>
+            <h3 class="mt-3">Other ways to get in touch</h3>
+
+            <div class="meter-row mt-5">
+              <div class="lab"><span><strong>General inquiries</strong></span></div>
+              <a class="link-arrow" href="mailto:hello@oathandaction.org">hello@oathandaction.org</a>
+            </div>
+            <div class="divider"></div>
+
+            <div class="meter-row">
+              <div class="lab"><span><strong>Press &amp; media</strong></span></div>
+              <a class="link-arrow" href="mailto:press@oathandaction.org">press@oathandaction.org</a>
+            </div>
+            <div class="divider"></div>
+
+            <div class="meter-row">
+              <div class="lab"><span><strong>Partnerships</strong></span></div>
+              <a class="link-arrow" href="mailto:partners@oathandaction.org">partners@oathandaction.org</a>
+            </div>
+            <div class="divider"></div>
+
+            <div class="meter-row">
+              <div class="lab"><span><strong>Jobs &amp; careers</strong></span></div>
+              <a class="link-arrow" href="jobs.html">See open roles <span class="arrow">→</span></a>
+            </div>
+            <div class="divider"></div>
+
+            <p class="text-stone mt-4"><strong>Remote-first.</strong> Our team works from twelve states; our mailing address is in Ann Arbor, MI. No walk-ins, but we love a scheduled call.</p>
+            <p class="text-stone mt-3"><strong>Response time:</strong> we reply to most messages within two business days. Press on deadline, email <a href="mailto:press@oathandaction.org">press@</a> and write URGENT in the subject.</p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ OTHER WAYS TO PLUG IN ============================ -->
+    <section class="section section-paper">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">More than volunteering</span>
+          <h2>Other ways to plug in</h2>
+          <p class="lede">Different time, different lever. Pick the one that fits where you are right now.</p>
+        </div>
+        <div class="grid grid-4 reveal">
+          <article class="card card-action">
+            <span class="effort">● Anytime</span>
+            <h3>Donate</h3>
+            <p>Small-dollar members fund the majority of our work and keep us independent. $10 a month covers a lot of source-checking.</p>
+            <a class="link-arrow" href="contact.html">Become a member <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">●● Organizations</span>
+            <h3>Partner with us</h3>
+            <p>Newsrooms, civic groups, and open-data projects: co-publish, share datasets, or build a tracker together.</p>
+            <a class="link-arrow" href="mailto:partners@oathandaction.org">Start a conversation <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">●● Students</span>
+            <h3>Bring O&amp;A to your campus</h3>
+            <p>Start a chapter, run a registration drive, or host an explainer night. We'll send the toolkit and a starter budget.</p>
+            <a class="link-arrow" href="toolkit.html">Get the campus kit <span class="arrow">→</span></a>
+          </article>
+          <article class="card card-action">
+            <span class="effort">● 30 seconds</span>
+            <h3>Newsletter</h3>
+            <p>The lowest-effort way to stay a steward: one weekly email, the system explained, one action attached.</p>
+            <a class="link-arrow" href="dispatches.html">Read past issues <span class="arrow">→</span></a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ VOLUNTEER FAQ ============================ -->
+    <section class="section">
+      <div class="container narrow">
+        <div class="section-head">
+          <span class="kicker">Before you sign up</span>
+          <h2>Common questions</h2>
+        </div>
+        <div class="grid reveal">
+          <details class="card">
+            <summary><strong>Do I need any experience or a background in politics?</strong></summary>
+            <p class="mt-3">No. Most of our volunteers are curious people with day jobs in something else entirely. We'll match the task to your time and skills, and every role comes with a short playbook so you're never guessing.</p>
+          </details>
+          <details class="card">
+            <summary><strong>How much time does volunteering take?</strong></summary>
+            <p class="mt-3">As little or as much as you want. Some stewards send one message a week; others lead a local coalition. The form lets you set your availability, and we never pressure you to do more.</p>
+          </details>
+          <details class="card">
+            <summary><strong>Is Oath &amp; Action partisan? Will I be asked to back a party?</strong></summary>
+            <p class="mt-3">Never. We're strictly nonpartisan. Our volunteer work is about process reforms — fair maps, transparent money, accessible voting — not candidates or parties. If a role ever feels otherwise, tell us; that's a bug, not a feature.</p>
+          </details>
+          <details class="card">
+            <summary><strong>What happens after I submit the form?</strong></summary>
+            <p class="mt-3">A real person from our community team reads it and replies within two business days with a couple of concrete ways to get started near you. No bots, no spam, and you can step back anytime.</p>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================ NEWSLETTER SIGNUP ============================ -->
+    <section class="section section-paper">
+      <div class="container narrow">
+        <div class="signup-card center">
+          <span class="kicker">The Dispatch</span>
+          <h2 class="mt-3">Not ready to volunteer? Start with the newsletter.</h2>
+          <p class="lede">One email a week. The system, explained — and one scoped thing to do about it. Free, forever.</p>
+          <form class="signup mt-5" data-demo>
+            <input class="input" type="email" placeholder="you@email.com" aria-label="Email" required>
+            <button class="btn btn-primary" type="submit">Subscribe</button>
+            <p data-formnote hidden class="full mt-3 text-verdigris">✓ You're in. Check your inbox to confirm.</p>
+          </form>
+          <p class="mt-4 text-stone" style="font-size:.8rem">Join 312,000 stewards. Unsubscribe anytime.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="site-footer"></div>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
