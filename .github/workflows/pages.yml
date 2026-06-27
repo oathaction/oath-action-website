@@ -1,0 +1,44 @@
+name: Deploy prototype to GitHub Pages
+
+# Publishes the static Oath & Action prototype (repo root) to GitHub Pages.
+# One-time setup: in the repo, go to Settings → Pages → Build and deployment →
+# Source: "GitHub Actions". After that, every push to the branch below redeploys.
+
+on:
+  push:
+    branches:
+      - claude/oath-action-website-p4zyll
+  workflow_dispatch:
+
+# Permissions required for the Pages deploy
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only one Pages deployment at a time
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload static site (repo root)
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "."
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
