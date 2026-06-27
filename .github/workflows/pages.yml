@@ -33,10 +33,6 @@ jobs:
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
-        with:
-          # Auto-enable Pages with the "GitHub Actions" source if it isn't already,
-          # so no manual Settings → Pages toggle is needed.
-          enablement: true
 
       - name: Upload static site (repo root)
         uses: actions/upload-pages-artifact@v3
