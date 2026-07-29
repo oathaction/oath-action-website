@@ -52,17 +52,20 @@ const CONFIDENCE_ATTENTION = 0.6;
  * are dropped first so an absent item never leaves a dangling dot.
  */
 function separated(nodes: React.ReactNode[]): React.ReactNode[] {
-  const present = nodes.filter(Boolean);
-  return present.flatMap((node, index) =>
-    index === 0
-      ? [node]
-      : [
-          <span key={`sep-${index}`} aria-hidden="true" className="text-border-strong">
+  return nodes
+    .filter(Boolean)
+    .map((node, index) => (
+      // The separator travels with the item that follows it, so a wrapped line
+      // never ends on a dangling dot.
+      <span key={index} className="flex items-center gap-2">
+        {index > 0 ? (
+          <span aria-hidden="true" className="text-border-strong">
             ·
-          </span>,
-          node,
-        ],
-  );
+          </span>
+        ) : null}
+        {node}
+      </span>
+    ));
 }
 
 export function ConfidenceBadge({

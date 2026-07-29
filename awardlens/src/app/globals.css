@@ -117,7 +117,14 @@
   --border: #e3e0d8; /* warm gray — the default container edge */
   --border-subtle: #edeae1; /* hairline for dividers *inside* a container */
   --border-strong: #cfcabd; /* emphasis edge: quote rules, dashed empty states */
-  --border-control: #948d7e; /* 3.30:1 on white — real control boundaries (WCAG 1.4.11) */
+  /*
+   * The one border that must be measured rather than eyeballed. An input or an
+   * outlined button on a near-white page has no fill to distinguish it, so its
+   * boundary is the whole affordance, and WCAG 1.4.11 asks for 3:1 there. The
+   * old --border-strong managed 1.64:1. This is deliberately low-chroma so 3:1
+   * does not read as a brown box.
+   */
+  --border-control: #93908a; /* 3.18:1 on white, 3.05:1 on background */
   --ring: #0f5c4a;
 
   /* Scrim behind modals: warm and honest, not a blue-black film. */
