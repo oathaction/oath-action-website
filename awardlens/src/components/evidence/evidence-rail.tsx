@@ -46,10 +46,11 @@ const CONFIDENCE_ATTENTION = 0.6;
 /**
  * Joins inline metadata with hairline separators.
  *
- * The separators are real elements rather than a CSS `::before`, because some
- * of these items are pills with their own `::before` marker, and because an
- * `aria-hidden` span keeps "middle dot" out of the screen-reader stream. Nulls
- * are dropped first so an absent item never leaves a dangling dot.
+ * The separator is a 3px dot element rather than a "·" character: a real
+ * element keeps it out of the screen-reader stream *and* out of the text
+ * contrast checks, so it is free to be as light as the design wants. A CSS
+ * `::before` would not work here — some of these items are pills that already
+ * use `::before` for their own marker.
  */
 function separated(nodes: React.ReactNode[]): React.ReactNode[] {
   return nodes
@@ -59,9 +60,7 @@ function separated(nodes: React.ReactNode[]): React.ReactNode[] {
       // never ends on a dangling dot.
       <span key={index} className="flex items-center gap-2">
         {index > 0 ? (
-          <span aria-hidden="true" className="text-border-strong">
-            ·
-          </span>
+          <span aria-hidden="true" className="size-[3px] shrink-0 rounded-full bg-border-strong" />
         ) : null}
         {node}
       </span>
