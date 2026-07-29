@@ -20,7 +20,7 @@ export function TabsList({
   return (
     <TabsPrimitive.List
       className={cn(
-        "flex items-center gap-1 overflow-x-auto border-b border-border",
+        "relative flex items-center gap-1 overflow-x-auto border-b border-border",
         className,
       )}
       {...props}
@@ -28,20 +28,35 @@ export function TabsList({
   );
 }
 
+/**
+ * The tab underline is a pseudo-element, not a border, for three reasons: it
+ * can be inset from the label's padding so the rule tracks the word rather than
+ * the hit area, it can have rounded caps, and it can animate its colour without
+ * the 1px reflow that toggling a border-bottom causes.
+ *
+ * 2px is the weight. 1px disappears next to the list's own hairline; 3px starts
+ * to look like a progress bar. The label weight never changes between states —
+ * a font-weight swap on tab change makes the whole row jitter — so the active
+ * state is carried by ink colour plus the rule.
+ *
+ * Exported as a string so a nav built from <Link>s can look identical to a real
+ * tablist without pretending to be one.
+ */
+export const tabTriggerClasses = cn(
+  "group relative -mb-px whitespace-nowrap rounded-t-sm px-3 py-2.5 text-sm font-medium",
+  "text-muted-foreground transition-colors hover:text-foreground",
+  "after:pointer-events-none after:absolute after:inset-x-2 after:-bottom-px after:h-0.5",
+  "after:rounded-full after:bg-transparent after:transition-colors after:content-['']",
+  "hover:after:bg-border-strong",
+  "data-[state=active]:text-foreground data-[state=active]:after:bg-primary",
+  "aria-[current=page]:text-foreground aria-[current=page]:after:bg-primary",
+);
+
 export function TabsTrigger({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Trigger>) {
-  return (
-    <TabsPrimitive.Trigger
-      className={cn(
-        "-mb-px whitespace-nowrap border-b-2 border-transparent px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
-        "data-[state=active]:border-primary data-[state=active]:text-foreground",
-        className,
-      )}
-      {...props}
-    />
-  );
+  return <TabsPrimitive.Trigger className={cn(tabTriggerClasses, className)} {...props} />;
 }
 
 export function TabsContent({
@@ -49,6 +64,23 @@ export function TabsContent({
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return <TabsPrimitive.Content className={cn("pt-5", className)} {...props} />;
+}
+
+/**
+ * A count that rides along with a tab label. Muted when the tab is idle so it
+ * reads as a footnote, and it inherits the active ink so the pair moves as one.
+ */
+export function TabsCount({ className, ...props }: React.ComponentProps<"span">) {
+  return (
+    <span
+      className={cn(
+        "tabular ml-1.5 text-xs font-normal text-muted-foreground",
+        "group-data-[state=active]:text-foreground-soft",
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 /* ----------------------------------------------------------- Tooltip ---- */
@@ -60,6 +92,7 @@ export const TooltipTrigger = TooltipPrimitive.Trigger;
 export function TooltipContent({
   className,
   sideOffset = 6,
+  children,
   ...props
 }: React.ComponentProps<typeof TooltipPrimitive.Content>) {
   return (
@@ -67,11 +100,15 @@ export function TooltipContent({
       <TooltipPrimitive.Content
         sideOffset={sideOffset}
         className={cn(
-          "z-50 max-w-xs rounded-md bg-foreground px-2.5 py-1.5 text-xs text-background shadow-md",
+          "animate-popover-in z-50 max-w-xs rounded-md bg-foreground px-2.5 py-1.5",
+          "text-xs font-medium leading-relaxed text-background shadow-popover",
           className,
         )}
         {...props}
-      />
+      >
+        {children}
+        <TooltipPrimitive.Arrow className="fill-foreground" width={10} height={5} />
+      </TooltipPrimitive.Content>
     </TooltipPrimitive.Portal>
   );
 }
@@ -93,7 +130,8 @@ export function DropdownMenuContent({
         sideOffset={sideOffset}
         align={align}
         className={cn(
-          "z-50 min-w-44 overflow-hidden rounded-md border border-border bg-surface p-1 shadow-md",
+          "animate-popover-in z-50 min-w-48 overflow-hidden rounded-lg border border-border",
+          "bg-surface p-1 shadow-popover",
           className,
         )}
         {...props}
@@ -109,7 +147,32 @@ export function DropdownMenuItem({
   return (
     <DropdownMenuPrimitive.Item
       className={cn(
-        "relative flex cursor-pointer select-none items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-muted data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:size-4",
+        "relative flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-2",
+        "text-sm text-foreground-soft outline-none transition-colors",
+        "focus:bg-muted focus:text-foreground",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "[&_svg]:size-4 [&_svg]:shrink-0 [&_svg]:text-muted-foreground",
+        "focus:[&_svg]:text-foreground-soft",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+/** A menu item that destroys something. Red on hover, not red at rest. */
+export function DropdownMenuDestructiveItem({
+  className,
+  ...props
+}: React.ComponentProps<typeof DropdownMenuPrimitive.Item>) {
+  return (
+    <DropdownMenuPrimitive.Item
+      className={cn(
+        "relative flex cursor-pointer select-none items-center gap-2.5 rounded-md px-2.5 py-2",
+        "text-sm text-destructive outline-none transition-colors",
+        "focus:bg-destructive-subtle",
+        "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        "[&_svg]:size-4 [&_svg]:shrink-0",
         className,
       )}
       {...props}
@@ -123,7 +186,7 @@ export function DropdownMenuSeparator({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Separator>) {
   return (
     <DropdownMenuPrimitive.Separator
-      className={cn("-mx-1 my-1 h-px bg-border", className)}
+      className={cn("-mx-1 my-1 h-px bg-border-subtle", className)}
       {...props}
     />
   );
@@ -135,7 +198,7 @@ export function DropdownMenuLabel({
 }: React.ComponentProps<typeof DropdownMenuPrimitive.Label>) {
   return (
     <DropdownMenuPrimitive.Label
-      className={cn("px-2 py-1.5 text-xs font-semibold text-muted-foreground", className)}
+      className={cn("eyebrow px-2.5 pb-1 pt-2 text-muted-foreground", className)}
       {...props}
     />
   );
@@ -150,7 +213,10 @@ export function AccordionItem({
   ...props
 }: React.ComponentProps<typeof AccordionPrimitive.Item>) {
   return (
-    <AccordionPrimitive.Item className={cn("border-b border-border", className)} {...props} />
+    <AccordionPrimitive.Item
+      className={cn("border-b border-border-subtle last:border-b-0", className)}
+      {...props}
+    />
   );
 }
 
@@ -163,13 +229,18 @@ export function AccordionTrigger({
     <AccordionPrimitive.Header className="flex">
       <AccordionPrimitive.Trigger
         className={cn(
-          "flex flex-1 items-center justify-between gap-4 py-4 text-left text-[15px] font-medium transition-colors hover:text-primary [&[data-state=open]>svg]:rotate-180",
+          "group flex flex-1 items-center justify-between gap-4 py-4 text-left",
+          "text-[15px] font-medium leading-snug tracking-[-0.008em] text-foreground",
+          "transition-colors hover:text-primary [&[data-state=open]>svg]:rotate-180",
           className,
         )}
         {...props}
       >
         {children}
-        <ChevronDown className="size-4 shrink-0 text-muted-foreground transition-transform duration-200" />
+        <ChevronDown
+          className="size-4 shrink-0 text-muted-foreground transition-transform duration-200 group-hover:text-primary"
+          aria-hidden="true"
+        />
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );
@@ -185,7 +256,7 @@ export function AccordionContent({
       className={cn("overflow-hidden text-sm text-muted-foreground", className)}
       {...props}
     >
-      <div className="pb-4 pr-8 leading-relaxed">{children}</div>
+      <div className="measure-wide pb-5 pr-8 leading-relaxed">{children}</div>
     </AccordionPrimitive.Content>
   );
 }
