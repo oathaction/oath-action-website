@@ -72,6 +72,25 @@ export async function closeSql(): Promise<void> {
   globalForSql.__awardlensSql = undefined;
 }
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Screens an id before it reaches a uuid column.
+ *
+ * The reference store simply matches nothing for an unknown id and returns
+ * null/false/[]. Postgres instead raises 22P02 for a value that is not a valid
+ * uuid, which would turn "no such record" — an ordinary, expected outcome that
+ * every caller already handles — into an unhandled 500. Since ids arrive from
+ * URLs and form fields, that is user-reachable.
+ *
+ * Shared here so every module screens identically; a module that forgets is a
+ * denial-of-service on its own routes.
+ */
+export function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
 /* ------------------------------------------------------------- mapping --- */
 
 /** Postgres timestamptz → ISO string, the shape the domain model uses. */

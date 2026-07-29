@@ -17,7 +17,7 @@ import type {
 } from "@/lib/domain/types";
 
 import type { Sql } from "./client";
-import { getSql, toDateOrNull, toIso, toNumber, toNumberOrNull } from "./client";
+import { getSql, isUuid, toDateOrNull, toIso, toNumber, toNumberOrNull } from "./client";
 
 /**
  * Postgres adapter: obligations and their citations.
@@ -304,6 +304,7 @@ export async function listObligations(
   awardId: string,
   organizationId: string,
 ): Promise<Obligation[]> {
+  if (!isUuid(awardId) || !isUuid(organizationId)) return [];
   const sql = getSql();
   const rows = await sql<ObligationRow[]>`
     select * from public.obligations
@@ -324,6 +325,7 @@ export async function listObligations(
 export async function listObligationsForOrganization(
   organizationId: string,
 ): Promise<Obligation[]> {
+  if (!isUuid(organizationId)) return [];
   const sql = getSql();
   const rows = await sql<ObligationRow[]>`
     select * from public.obligations
@@ -337,6 +339,7 @@ export async function getObligation(
   id: string,
   organizationId: string,
 ): Promise<Obligation | null> {
+  if (!isUuid(id) || !isUuid(organizationId)) return null;
   const sql = getSql();
   const [row] = await sql<ObligationRow[]>`
     select * from public.obligations
@@ -350,6 +353,7 @@ export async function updateObligation(
   organizationId: string,
   patch: Partial<Obligation>,
 ): Promise<Obligation | null> {
+  if (!isUuid(id) || !isUuid(organizationId)) return null;
   const sql = getSql();
 
   // The whitelist IS the immutability guarantee: id, award_id, organization_id,
@@ -409,6 +413,7 @@ export async function updateObligation(
  * behind.
  */
 export async function deleteObligation(id: string, organizationId: string): Promise<boolean> {
+  if (!isUuid(id) || !isUuid(organizationId)) return false;
   const sql = getSql();
   const rows = await sql`
     delete from public.obligations
@@ -465,12 +470,13 @@ function mapCitation(row: CitationRow): ObligationCitation {
 export async function listCitations(obligationIds: string[]): Promise<ObligationCitation[]> {
   // `in ()` is a syntax error, so the empty set short-circuits rather than
   // emitting SQL.
-  if (obligationIds.length === 0) return [];
+  const usable = obligationIds.filter(isUuid);
+  if (usable.length === 0) return [];
 
   const sql = getSql();
   const rows = await sql<CitationRow[]>`
     select * from public.obligation_citations
-    where obligation_id in ${sql(obligationIds)}
+    where obligation_id in ${sql(usable)}
     -- Insertion order, which is what the file store's array filter returns and
     -- what the stable sort in attachCitations then preserves within equal
     -- match scores.
