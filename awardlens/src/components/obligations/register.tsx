@@ -8,8 +8,12 @@ import {
   ArrowUp,
   ArrowUpDown,
   Check,
+  ChevronDown,
   ClipboardCheck,
+  FileWarning,
   LayoutList,
+  PenLine,
+  Quote,
   RotateCcw,
   Search,
   Table2,
@@ -20,19 +24,23 @@ import {
 
 import { deleteObligationAction, setReviewStatusAction } from "@/app/actions/obligations";
 import { AddObligationDialog } from "@/components/obligations/add-obligation-dialog";
-import { EvidenceRail, ReviewStatusBadge } from "@/components/evidence/evidence-rail";
+import { ConfidenceBadge, ReviewStatusBadge } from "@/components/evidence/evidence-rail";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonRow } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Field, Input, Label, NativeSelect } from "@/components/ui/field";
-import { formatLocatorShort } from "@/lib/documents/segment";
+import { EmptyState } from "@/components/ui/misc";
+import { formatLocator, formatLocatorShort } from "@/lib/documents/segment";
 import {
   CATEGORY_GROUP_LABELS,
   CATEGORY_META,
+  INTERPRETATION_LABELS,
   OBLIGATION_CATEGORIES,
   OBLIGATION_PRIORITIES,
   PRIORITY_LABELS,
   REVIEW_STATUSES,
   REVIEW_STATUS_LABELS,
+  SOURCE_STATUS_LABELS,
   type Award,
   type CategoryGroup,
   type ObligationCategory,
@@ -190,9 +198,37 @@ function citedLocator(obligation: ObligationWithCitations): string | null {
   return cited ? formatLocatorShort(cited.locatorType, cited.locatorValue) : null;
 }
 
+/**
+ * The coloured spine, keyed to whether a person has signed off — the same
+ * keying the Evidence Rail and the table use, so all three views agree at a
+ * glance. Every state it encodes is also stated in words on the row.
+ */
+function spineTone(obligation: ObligationWithCitations): string {
+  if (obligation.reviewStatus === "confirmed") return "bg-success";
+  if (obligation.sourceStatus === "unverified") return "bg-destructive";
+  if (obligation.reviewStatus === "needs_review") return "bg-ink-accent";
+  return "bg-border-strong";
+}
+
+/** The same keying as a left border, for the table, where a cell is the row. */
+function spineBorder(obligation: ObligationWithCitations): string {
+  if (obligation.reviewStatus === "confirmed") return "border-l-success";
+  if (obligation.sourceStatus === "unverified") return "border-l-destructive";
+  if (obligation.reviewStatus === "needs_review") return "border-l-ink-accent";
+  return "border-l-border-strong";
+}
+
 /* ---------------------------------------------------------------- actions */
 
-function ObligationActions({
+/**
+ * The escapes: everything that is not "Confirm".
+ *
+ * They live inside the row's detail panel rather than beside the title,
+ * because a register is read far more often than it is edited, and six
+ * equally-weighted buttons on every one of thirteen rows is what made this
+ * screen unreadable.
+ */
+function ObligationEscapes({
   obligation,
   awardId,
 }: {
@@ -227,27 +263,12 @@ function ObligationActions({
   }
 
   return (
-    <>
-      {obligation.reviewStatus !== "confirmed" ? (
-        <Button
-          type="button"
-          size="sm"
-          variant="secondary"
-          disabled={pending}
-          className="min-h-11 sm:min-h-8"
-          onClick={() => setStatus("confirmed", "Confirmed.")}
-        >
-          <Check className="size-4" aria-hidden="true" />
-          Confirm
-          <span className="sr-only"> {obligation.title}</span>
-        </Button>
-      ) : null}
-
+    <ButtonRow data-print="hide">
       {obligation.reviewStatus !== "not_applicable" ? (
         <Button
           type="button"
           size="sm"
-          variant="ghost"
+          variant="muted"
           disabled={pending}
           className="min-h-11 sm:min-h-8"
           onClick={() => setStatus("not_applicable", "Marked not applicable.")}
@@ -297,9 +318,9 @@ function ObligationActions({
           <Button
             type="button"
             size="sm"
-            variant="ghost"
+            variant="destructiveGhost"
             disabled={pending}
-            className="min-h-11 text-destructive hover:text-destructive sm:min-h-8"
+            className="min-h-11 sm:min-h-8"
             onClick={() => setConfirmingDelete(true)}
           >
             <Trash2 className="size-4" aria-hidden="true" />
@@ -308,7 +329,377 @@ function ObligationActions({
           </Button>
         )
       ) : null}
-    </>
+    </ButtonRow>
+  );
+}
+
+/** Confirm — the one action that stays on the collapsed row. */
+function ConfirmAction({ obligation }: { obligation: ObligationWithCitations }) {
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <Button
+      type="button"
+      size="sm"
+      variant="secondary"
+      disabled={pending}
+      className="min-h-11 sm:min-h-8"
+      onClick={() => {
+        const formData = new FormData();
+        formData.set("obligationId", obligation.id);
+        formData.set("reviewStatus", "confirmed");
+        startTransition(async () => {
+          const result = await setReviewStatusAction(formData);
+          if (result.ok) toast.success("Confirmed.");
+          else toast.error(result.message ?? "That could not be saved.");
+        });
+      }}
+    >
+      <Check className="size-4" aria-hidden="true" />
+      Confirm
+      <span className="sr-only"> {obligation.title}</span>
+    </Button>
+  );
+}
+
+/* ------------------------------------------------------------- card rows */
+
+/**
+ * When this is due — the first column, and the thing the eye should land on.
+ *
+ * Mono and tabular so a column of dates lines up, with the countdown carrying
+ * the only colour: red past due, amber inside thirty days, quiet after that.
+ */
+function WhenCell({ obligation }: { obligation: ObligationWithCitations }) {
+  const days = daysUntil(obligation.dueDate);
+
+  if (obligation.dueDate) {
+    const overdue = days !== null && days < 0;
+    const soon = days !== null && days >= 0 && days <= 30;
+    return (
+      <p className="tabular font-mono leading-snug">
+        <span className="text-[13px] font-medium tracking-[-0.01em] text-foreground">
+          {formatIsoDate(obligation.dueDate, { month: "short", day: "numeric", year: "numeric" })}
+        </span>
+        {days !== null ? (
+          <span
+            className={cn(
+              "ml-2 text-[11px] sm:ml-0 sm:mt-0.5 sm:block",
+              overdue
+                ? "font-semibold text-destructive"
+                : soon
+                  ? "text-warning"
+                  : "text-muted-foreground",
+            )}
+          >
+            {overdue
+              ? `${Math.abs(days)} days overdue`
+              : days === 0
+                ? "due today"
+                : `in ${days} days`}
+          </span>
+        ) : null}
+      </p>
+    );
+  }
+
+  /* Deliberately not mono: the monospace voice belongs to real calendar dates,
+     so a column of them stays the thing the eye finds first. */
+  return (
+    <p className="text-[13px] leading-snug text-muted-foreground">
+      <span>{obligation.originalDateText ? "No fixed date" : "No date stated"}</span>
+      {obligation.originalDateText ? (
+        <span className="ml-2 text-[11px] sm:ml-0 sm:mt-0.5 sm:block">stated in words</span>
+      ) : null}
+    </p>
+  );
+}
+
+/**
+ * One register row.
+ *
+ * Collapsed it answers three questions and nothing else: when is it due, what
+ * is it, and where did it come from. The passage itself, the plain-English
+ * restatement and the ways of retiring an item are one click away, behind a
+ * disclosure that names what it holds — the citation is never hidden behind a
+ * label that implies the claim stands on its own.
+ */
+function ObligationRow({
+  obligation,
+  awardId,
+}: {
+  obligation: ObligationWithCitations;
+  awardId: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  const meta = CATEGORY_META[obligation.category];
+  const manual = obligation.origin === "manual";
+  const primaryCitation =
+    obligation.citations.find((citation) => citation.documentSegmentId) ?? obligation.citations[0];
+  const hasCitation = Boolean(primaryCitation && primaryCitation.documentSegmentId);
+  /* Long form on a card ("Page 2"), short form in the table ("p.2"): the row
+     has the width to say what the number means, and a locator nobody can read
+     is not a citation. */
+  const locator =
+    hasCitation && primaryCitation
+      ? formatLocator(primaryCitation.locatorType, primaryCitation.locatorValue)
+      : null;
+  const alsoCited = obligation.citations.filter((citation) => citation.documentSegmentId).slice(1);
+  const conflicted = obligation.dateConflicts.length > 1;
+
+  const titleId = `register-${obligation.id}-title`;
+  const panelId = `register-${obligation.id}-detail`;
+
+  return (
+    <article
+      aria-labelledby={titleId}
+      className={cn(
+        "relative overflow-hidden rounded-lg border border-border bg-surface transition-shadow",
+        open ? "shadow-raised" : "shadow-resting",
+      )}
+    >
+      <span
+        aria-hidden="true"
+        className={cn("absolute inset-y-0 left-0 w-[3px]", spineTone(obligation))}
+      />
+
+      <div className="grid gap-x-4 gap-y-1.5 py-3 pl-4 pr-3 sm:grid-cols-[7.5rem_minmax(0,1fr)_auto] sm:items-baseline sm:py-3.5 sm:pl-5 sm:pr-4">
+        <WhenCell obligation={obligation} />
+
+        <div className="min-w-0">
+          <h3
+            id={titleId}
+            className="text-[15px] font-semibold leading-snug tracking-[-0.011em] text-foreground"
+          >
+            {obligation.title}
+          </h3>
+
+          <div className="meta-row type-caption mt-1 font-normal text-muted-foreground">
+            <span className="text-foreground-soft">{meta.label}</span>
+
+            {/* Badges are wrapped: `.meta-row` draws its separator with a
+                `::before`, and a quiet Badge uses its own `::before` for the
+                marker dot. The wrapper gives each one its own pseudo-element. */}
+            {obligation.priority === "critical" || obligation.priority === "high" ? (
+              <span>
+                <Badge
+                  variant={obligation.priority === "critical" ? "destructive" : "warning"}
+                  emphasis={obligation.priority === "critical" ? "solid" : "quiet"}
+                  size="xs"
+                >
+                  {PRIORITY_LABELS[obligation.priority]} priority
+                </Badge>
+              </span>
+            ) : null}
+
+            {conflicted ? (
+              <span>
+                <Badge variant="warning" emphasis="solid" size="xs">
+                  <TriangleAlert className="size-3" aria-hidden="true" />
+                  Conflicting dates
+                </Badge>
+              </span>
+            ) : null}
+
+            <span>
+              <ReviewStatusBadge status={obligation.reviewStatus} />
+            </span>
+
+            {manual ? (
+              <span>Added by you</span>
+            ) : locator ? (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1.5",
+                  obligation.sourceStatus === "unverified"
+                    ? "text-destructive"
+                    : "text-foreground-soft",
+                )}
+              >
+                <span className="font-mono text-[11.5px] tracking-[-0.01em]">{locator}</span>
+                {obligation.sourceStatus !== "verified" ? (
+                  <span className="font-medium">
+                    {obligation.sourceStatus === "partial"
+                      ? "partial match"
+                      : "confirmation needed"}
+                  </span>
+                ) : null}
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-medium text-destructive">
+                <FileWarning className="size-3 shrink-0" aria-hidden="true" />
+                {SOURCE_STATUS_LABELS.unverified}
+              </span>
+            )}
+
+            {obligation.suggestedOwnerRole ? (
+              <span>{obligation.suggestedOwnerRole}</span>
+            ) : null}
+
+            {obligation.recurrence ? <span>repeats {obligation.recurrence}</span> : null}
+          </div>
+        </div>
+
+        <div
+          className="mt-1 flex flex-wrap items-center gap-1.5 sm:mt-0 sm:justify-end"
+          data-print="hide"
+        >
+          {obligation.reviewStatus !== "confirmed" ? (
+            <ConfirmAction obligation={obligation} />
+          ) : null}
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            aria-expanded={open}
+            aria-controls={panelId}
+            className="min-h-11 sm:min-h-8"
+            onClick={() => setOpen((current) => !current)}
+          >
+            {hasCitation ? "Source" : "Detail"}
+            <span className="sr-only"> for {obligation.title}</span>
+            <ChevronDown
+              className={cn("size-4 transition-transform duration-150", open && "rotate-180")}
+              aria-hidden="true"
+            />
+          </Button>
+        </div>
+      </div>
+
+      {/*
+        Always rendered so `aria-controls` always resolves; the `hidden`
+        attribute does the hiding. Do not add a display utility to this
+        element — it would defeat `[hidden]`.
+      */}
+      <div
+        id={panelId}
+        hidden={!open}
+        className="border-t border-border-subtle px-4 pb-4 pt-3.5 sm:pl-5 sm:pr-4"
+      >
+        <div className="stack-md">
+          <p className="type-small max-w-[74ch] text-foreground-soft">{obligation.description}</p>
+
+          {obligation.originalDateText && !obligation.dueDate ? (
+            <p className="type-caption font-normal text-muted-foreground">
+              Timing, in the document&rsquo;s own words:{" "}
+              <span className="text-foreground-soft">
+                &ldquo;{obligation.originalDateText}&rdquo;
+              </span>
+            </p>
+          ) : null}
+
+          {conflicted ? (
+            <div className="rounded-md border border-warning-border bg-warning-subtle px-3 py-2.5">
+              <p className="flex items-center gap-1.5 text-xs font-semibold text-warning">
+                <TriangleAlert className="size-3.5 shrink-0" aria-hidden="true" />
+                The document gives more than one date for this requirement
+              </p>
+              <ul className="mt-1.5 space-y-1">
+                {obligation.dateConflicts.map((conflict, index) => (
+                  <li key={index} className="text-xs leading-relaxed text-warning">
+                    <span className="tabular font-mono font-medium">
+                      {conflict.normalizedDate ?? "—"}
+                    </span>
+                    {" — "}
+                    &ldquo;{truncate(conflict.dateText, 70)}&rdquo;
+                    {conflict.locatorValue
+                      ? ` (${formatLocator(conflict.locatorType, conflict.locatorValue)})`
+                      : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+
+          {/* The provenance panel: warm paper, serif at reading size, a mono
+              locator. It should look like a piece of the document lifted into
+              the row rather than more interface. */}
+          <div className="overflow-hidden rounded-md border border-paper-border bg-paper">
+            {hasCitation && primaryCitation ? (
+              <figure>
+                <figcaption className="flex items-center gap-1.5 px-4 pb-1.5 pt-2.5">
+                  <Quote className="size-3 shrink-0 text-highlight-rule" aria-hidden="true" />
+                  <span className="min-w-0 truncate">
+                    <span className="type-caption text-ink-document-soft">Source: </span>
+                    <span className="font-mono text-[11.5px] font-medium tracking-[-0.01em] text-ink-document">
+                      {formatLocator(primaryCitation.locatorType, primaryCitation.locatorValue)}
+                    </span>
+                  </span>
+                </figcaption>
+                <blockquote className="evidence-quote evidence-quote-hang max-w-[66ch] px-4 pb-3">
+                  &ldquo;{truncate(primaryCitation.excerpt, 340)}&rdquo;
+                </blockquote>
+              </figure>
+            ) : manual ? (
+              <p className="flex items-start gap-2 px-4 py-3 text-xs leading-relaxed text-ink-document-soft">
+                <PenLine className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+                <span>
+                  Entered by hand by someone at your organisation, so there is no passage from the
+                  award document to quote.
+                </span>
+              </p>
+            ) : (
+              <p className="flex items-start gap-2 px-4 py-3 text-xs leading-relaxed text-destructive">
+                <FileWarning className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+                <span>
+                  We could not match this item to a passage in your document. Check it against the
+                  award before relying on it.
+                </span>
+              </p>
+            )}
+
+            {alsoCited.length > 0 ? (
+              <p className="px-4 pb-2.5 text-xs text-ink-document-soft">
+                Also cited at{" "}
+                {alsoCited
+                  .map((citation) => formatLocator(citation.locatorType, citation.locatorValue))
+                  .join(", ")}
+              </p>
+            ) : null}
+
+            {!manual ? (
+              <div className="meta-row type-caption border-t border-paper-border/70 px-4 py-2 font-normal text-ink-document-soft">
+                <span
+                  className={cn(
+                    obligation.sourceStatus === "verified"
+                      ? "text-success"
+                      : obligation.sourceStatus === "partial"
+                        ? "text-warning"
+                        : "text-destructive",
+                  )}
+                >
+                  {SOURCE_STATUS_LABELS[obligation.sourceStatus]}
+                </span>
+                <span>{INTERPRETATION_LABELS[obligation.interpretationLevel]}</span>
+                <span>
+                  <ConfidenceBadge confidence={obligation.confidence} />
+                </span>
+                {obligation.suggestedOwnerRole ? (
+                  <span>Suggested owner: {obligation.suggestedOwnerRole}</span>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          {obligation.clarificationQuestion ? (
+            <p className="rounded-md border border-border-subtle bg-muted px-3 py-2.5 text-xs leading-relaxed text-foreground-soft">
+              <span className="font-semibold">Question for the funder: </span>
+              {obligation.clarificationQuestion}
+            </p>
+          ) : null}
+
+          {obligation.notes ? (
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              <span className="font-semibold">Your note: </span>
+              {obligation.notes}
+            </p>
+          ) : null}
+
+          <ObligationEscapes obligation={obligation} awardId={awardId} />
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -432,15 +823,11 @@ export function Register({
   function sortHeader(key: SortKey, label: string, className?: string) {
     const active = key === sortKey;
     return (
-      <th
-        scope="col"
-        aria-sort={ariaSort(key)}
-        className={cn("px-3 py-2 text-left font-semibold", className)}
-      >
+      <th scope="col" aria-sort={ariaSort(key)} className={cn("px-3 py-2 text-left", className)}>
         <button
           type="button"
           onClick={() => applySort(key)}
-          className="inline-flex items-center gap-1 rounded-sm py-1 transition-colors hover:text-primary"
+          className="eyebrow inline-flex items-center gap-1 rounded-sm py-1 transition-colors hover:text-primary"
         >
           {label}
           {active ? (
@@ -462,7 +849,14 @@ export function Register({
     );
   }
 
-  const selectClass = "h-11 sm:h-10";
+  /*
+   * The controls are chrome, so they are set as chrome: an 11px label, a 36px
+   * control, no panel around them and one hairline underneath. A filter bar
+   * that is heavier than the data it filters teaches people to read the
+   * controls instead of the register.
+   */
+  const labelClass = "eyebrow text-muted-foreground";
+  const selectClass = "h-11 text-[13px] sm:h-9";
 
   return (
     <section aria-labelledby="register-heading" className="mt-6">
@@ -471,12 +865,13 @@ export function Register({
       </h2>
 
       {conflictCount > 0 ? (
-        <div
+        <Alert
           role="note"
-          className="mb-5 flex items-start gap-3 rounded-lg border border-warning-border bg-warning-subtle px-4 py-3"
+          variant="warning"
+          className="mb-5"
+          icon={<TriangleAlert aria-hidden="true" />}
         >
-          <TriangleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
-          <p className="text-sm leading-relaxed text-warning">
+          <AlertDescription className="text-sm leading-relaxed">
             <span className="font-semibold">
               The document states conflicting dates for{" "}
               {conflictCount === 1 ? "one requirement" : `${conflictCount} requirements`}.
@@ -484,22 +879,19 @@ export function Register({
             AwardLens has deliberately not picked one. Each affected item lists every date the
             document gives, with the passage it came from, so you can decide which governs — or ask
             the funder.
-          </p>
-        </div>
+          </AlertDescription>
+        </Alert>
       ) : null}
 
       {/* ------------------------------------------------------- controls --
           Hidden entirely when there is nothing to filter: an empty register
           should read as empty, not as a set of controls that do nothing. */}
-      <div
-        className={cn(
-          "rounded-lg border border-border bg-surface p-4",
-          obligations.length === 0 && "hidden",
-        )}
-      >
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <Field className="sm:col-span-2">
-            <Label htmlFor="register-search">Search</Label>
+      <div className={cn("border-b border-border pb-3.5", obligations.length === 0 && "hidden")}>
+        <div className="flex flex-wrap items-end gap-x-3 gap-y-3">
+          <Field className="min-w-[15rem] flex-[2_1_15rem]">
+            <Label htmlFor="register-search" className={labelClass}>
+              Search
+            </Label>
             <div className="relative">
               <Search
                 className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
@@ -512,13 +904,15 @@ export function Register({
                 onChange={(event) => update("query", event.currentTarget.value)}
                 placeholder="Title, description or quoted source text…"
                 autoComplete="off"
-                className="h-11 pl-9 sm:h-10"
+                className={cn(selectClass, "pl-9")}
               />
             </div>
           </Field>
 
-          <Field>
-            <Label htmlFor="register-category">Category</Label>
+          <Field className="min-w-[10rem] flex-[1_1_10rem]">
+            <Label htmlFor="register-category" className={labelClass}>
+              Category
+            </Label>
             <NativeSelect
               id="register-category"
               value={filters.category}
@@ -538,8 +932,10 @@ export function Register({
             </NativeSelect>
           </Field>
 
-          <Field>
-            <Label htmlFor="register-status">Review status</Label>
+          <Field className="min-w-[11.5rem] flex-[1_1_11.5rem]">
+            <Label htmlFor="register-status" className={labelClass}>
+              Review status
+            </Label>
             <NativeSelect
               id="register-status"
               value={filters.status}
@@ -555,8 +951,10 @@ export function Register({
             </NativeSelect>
           </Field>
 
-          <Field>
-            <Label htmlFor="register-priority">Priority</Label>
+          <Field className="min-w-[8rem] flex-[1_1_8rem]">
+            <Label htmlFor="register-priority" className={labelClass}>
+              Priority
+            </Label>
             <NativeSelect
               id="register-priority"
               value={filters.priority}
@@ -572,8 +970,10 @@ export function Register({
             </NativeSelect>
           </Field>
 
-          <Field>
-            <Label htmlFor="register-date">Due date</Label>
+          <Field className="min-w-[9rem] flex-[1_1_9rem]">
+            <Label htmlFor="register-date" className={labelClass}>
+              Due date
+            </Label>
             <NativeSelect
               id="register-date"
               value={filters.date}
@@ -588,8 +988,10 @@ export function Register({
             </NativeSelect>
           </Field>
 
-          <Field>
-            <Label htmlFor="register-owner">Suggested owner</Label>
+          <Field className="min-w-[10rem] flex-[1_1_10rem]">
+            <Label htmlFor="register-owner" className={labelClass}>
+              Suggested owner
+            </Label>
             <NativeSelect
               id="register-owner"
               value={filters.owner}
@@ -606,47 +1008,10 @@ export function Register({
               {present.missingOwner ? <option value={NO_OWNER}>No owner suggested</option> : null}
             </NativeSelect>
           </Field>
-
-          <Field>
-            <Label htmlFor="register-sort">Sort by</Label>
-            <div className="flex gap-2">
-              <NativeSelect
-                id="register-sort"
-                value={sortKey}
-                onChange={(event) => {
-                  setSortKey(event.currentTarget.value as SortKey);
-                  setSortDirection("asc");
-                }}
-                className={cn(selectClass, "flex-1")}
-              >
-                {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
-                  <option key={key} value={key}>
-                    {SORT_LABELS[key]}
-                  </option>
-                ))}
-              </NativeSelect>
-              <Button
-                type="button"
-                variant="secondary"
-                size="icon"
-                className="h-11 w-11 shrink-0 sm:h-10 sm:w-10"
-                aria-label={`Sort order: ${SORT_DIRECTION_LABELS[sortKey][sortDirection]}. Activate to reverse.`}
-                onClick={() =>
-                  setSortDirection((current) => (current === "asc" ? "desc" : "asc"))
-                }
-              >
-                {sortDirection === "asc" ? (
-                  <ArrowUp className="size-4" aria-hidden="true" />
-                ) : (
-                  <ArrowDown className="size-4" aria-hidden="true" />
-                )}
-              </Button>
-            </div>
-          </Field>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3 border-t border-border pt-3">
-          <p aria-live="polite" className="text-sm text-muted-foreground">
+        <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <p aria-live="polite" className="type-small text-muted-foreground">
             <span className="font-medium text-foreground">
               {visible.length} of {obligations.length}
             </span>{" "}
@@ -668,10 +1033,45 @@ export function Register({
           ) : null}
 
           <div className="ml-auto flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5">
+              <Label htmlFor="register-sort" className={cn(labelClass, "shrink-0")}>
+                Sort by
+              </Label>
+              <NativeSelect
+                id="register-sort"
+                value={sortKey}
+                onChange={(event) => {
+                  setSortKey(event.currentTarget.value as SortKey);
+                  setSortDirection("asc");
+                }}
+                className="h-11 w-auto min-w-[8.5rem] text-[13px] sm:h-9"
+              >
+                {(Object.keys(SORT_LABELS) as SortKey[]).map((key) => (
+                  <option key={key} value={key}>
+                    {SORT_LABELS[key]}
+                  </option>
+                ))}
+              </NativeSelect>
+              <Button
+                type="button"
+                variant="secondary"
+                size="icon"
+                className="size-11 shrink-0 sm:size-9"
+                aria-label={`Sort order: ${SORT_DIRECTION_LABELS[sortKey][sortDirection]}. Activate to reverse.`}
+                onClick={() => setSortDirection((current) => (current === "asc" ? "desc" : "asc"))}
+              >
+                {sortDirection === "asc" ? (
+                  <ArrowUp className="size-4" aria-hidden="true" />
+                ) : (
+                  <ArrowDown className="size-4" aria-hidden="true" />
+                )}
+              </Button>
+            </div>
+
             <div
               role="group"
               aria-label="View mode"
-              className="inline-flex overflow-hidden rounded-md border border-border-strong"
+              className="inline-flex overflow-hidden rounded-md border border-border-control"
             >
               <ViewToggle
                 active={view === "cards"}
@@ -697,27 +1097,19 @@ export function Register({
       ) : visible.length === 0 ? (
         <NoMatches onReset={() => setFilters(DEFAULT_FILTERS)} />
       ) : view === "cards" ? (
-        <div className="mt-5 space-y-8">
+        <div className="mt-5 space-y-7">
           {groups.map((group) => (
             <div key={group.key}>
               {group.label ? (
-                <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {group.label} ({group.items.length})
+                <h3 className="eyebrow mb-2.5 text-muted-foreground">
+                  {group.label}{" "}
+                  <span className="text-border-control">({group.items.length})</span>
                 </h3>
               ) : null}
-              <ul className="space-y-3">
+              <ul className="space-y-2">
                 {group.items.map((obligation) => (
-                  <li
-                    key={obligation.id}
-                    id={`obligation-${obligation.id}`}
-                    className="scroll-mt-20"
-                  >
-                    <EvidenceRail
-                      obligation={obligation}
-                      actions={
-                        <ObligationActions obligation={obligation} awardId={award.id} />
-                      }
-                    />
+                  <li key={obligation.id} id={`obligation-${obligation.id}`} className="scroll-mt-20">
+                    <ObligationRow obligation={obligation} awardId={award.id} />
                   </li>
                 ))}
               </ul>
@@ -725,38 +1117,34 @@ export function Register({
           ))}
         </div>
       ) : (
-        <div className="mt-5 overflow-x-auto rounded-lg border border-border bg-surface">
-          <table className="w-full min-w-[58rem] border-collapse text-sm">
+        <div className="mt-5 overflow-x-auto rounded-lg border border-border bg-surface shadow-resting">
+          <table className="w-full min-w-[58rem] border-collapse text-[13px]">
             <caption className="sr-only">
               Obligations for {award.name}. {visible.length} of {obligations.length} shown, sorted
               by {SORT_LABELS[sortKey].toLowerCase()}, {SORT_DIRECTION_LABELS[sortKey][sortDirection]}
               . Items that have not been confirmed by a person, and items whose source could not be
               verified, are labelled in the status and source columns.
             </caption>
-            <thead className="border-b border-border bg-surface-sunken text-xs uppercase tracking-wide text-muted-foreground">
+            <thead className="border-b border-border bg-surface-sunken text-muted-foreground">
               <tr>
-                <th scope="col" className="px-3 py-2 text-left font-semibold">
+                <th scope="col" className="eyebrow px-3 py-2.5 text-left">
                   Title
                 </th>
                 {sortHeader("category", "Category", "w-44")}
                 {sortHeader("due", "Due", "w-48")}
                 {sortHeader("priority", "Priority", "w-28")}
                 {sortHeader("status", "Status", "w-40")}
-                <th scope="col" className="w-44 px-3 py-2 text-left font-semibold">
+                <th scope="col" className="eyebrow w-44 px-3 py-2.5 text-left">
                   Source
                 </th>
               </tr>
             </thead>
 
             {groups.map((group) => (
-              <tbody key={group.key} className="divide-y divide-border">
+              <tbody key={group.key} className="divide-y divide-border-subtle">
                 {group.label ? (
                   <tr className="bg-surface-sunken/60">
-                    <th
-                      scope="rowgroup"
-                      colSpan={6}
-                      className="px-3 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                    >
+                    <th scope="rowgroup" colSpan={6} className="eyebrow px-3 py-2 text-left text-muted-foreground">
                       {group.label} ({group.items.length})
                     </th>
                   </tr>
@@ -786,20 +1174,9 @@ function TableRow({
   const locator = citedLocator(obligation);
   const manual = obligation.origin === "manual";
 
-  // Mirrors the Evidence Rail spine so the two views agree at a glance. Every
-  // one of these states is also stated in words in the Status or Source column.
-  const spine =
-    obligation.reviewStatus === "confirmed"
-      ? "border-l-success"
-      : obligation.sourceStatus === "unverified"
-        ? "border-l-destructive"
-        : obligation.reviewStatus === "needs_review"
-          ? "border-l-ink-accent"
-          : "border-l-border-strong";
-
   return (
     <tr className="align-top transition-colors hover:bg-muted">
-      <td className={cn("border-l-4 px-3 py-2.5", spine)}>
+      <td className={cn("border-l-[3px] px-3 py-2.5", spineBorder(obligation))}>
         <Link
           href={`/app/awards/${awardId}/review`}
           className="font-medium leading-snug text-foreground hover:text-primary hover:underline"
@@ -819,7 +1196,7 @@ function TableRow({
       <td className="px-3 py-2.5">
         {obligation.dueDate ? (
           <>
-            <span className="font-mono text-xs text-foreground">
+            <span className="tabular font-mono text-xs text-foreground">
               {formatIsoDate(obligation.dueDate, {
                 year: "numeric",
                 month: "short",
@@ -829,8 +1206,12 @@ function TableRow({
             {days !== null ? (
               <span
                 className={cn(
-                  "ml-1.5 font-mono text-xs",
-                  days < 0 ? "text-destructive" : days <= 30 ? "text-warning" : "text-muted-foreground",
+                  "ml-1.5 tabular font-mono text-xs",
+                  days < 0
+                    ? "font-semibold text-destructive"
+                    : days <= 30
+                      ? "text-warning"
+                      : "text-muted-foreground",
                 )}
               >
                 {days < 0 ? `${Math.abs(days)}d overdue` : days === 0 ? "today" : `in ${days}d`}
@@ -847,18 +1228,19 @@ function TableRow({
       </td>
 
       <td className="px-3 py-2.5">
-        <span
-          className={cn(
-            "text-xs font-medium",
-            obligation.priority === "critical"
-              ? "text-destructive"
-              : obligation.priority === "high"
-                ? "text-warning"
-                : "text-foreground-soft",
-          )}
-        >
-          {PRIORITY_LABELS[obligation.priority]}
-        </span>
+        {obligation.priority === "critical" || obligation.priority === "high" ? (
+          <Badge
+            variant={obligation.priority === "critical" ? "destructive" : "warning"}
+            emphasis={obligation.priority === "critical" ? "solid" : "quiet"}
+            size="xs"
+          >
+            {PRIORITY_LABELS[obligation.priority]}
+          </Badge>
+        ) : (
+          <span className="text-xs text-muted-foreground">
+            {PRIORITY_LABELS[obligation.priority]}
+          </span>
+        )}
       </td>
 
       <td className="px-3 py-2.5">
@@ -872,9 +1254,13 @@ function TableRow({
           <span className="flex flex-wrap items-center gap-1.5">
             <span className="font-mono text-xs text-foreground-soft">{locator}</span>
             {obligation.sourceStatus === "unverified" ? (
-              <Badge variant="destructive">needs checking</Badge>
+              <Badge variant="destructive" size="xs">
+                needs checking
+              </Badge>
             ) : obligation.sourceStatus === "partial" ? (
-              <Badge variant="warning">partial match</Badge>
+              <Badge variant="warning" size="xs">
+                partial match
+              </Badge>
             ) : null}
           </span>
         ) : (
@@ -907,7 +1293,7 @@ function ViewToggle({
       aria-pressed={active}
       onClick={onClick}
       className={cn(
-        "inline-flex min-h-11 items-center gap-1.5 px-3 text-sm font-medium transition-colors sm:min-h-9",
+        "inline-flex min-h-11 items-center gap-1.5 px-3 text-[13px] font-medium transition-colors sm:min-h-9",
         active
           ? "bg-primary-subtle text-primary-subtle-foreground"
           : "bg-surface text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -922,35 +1308,44 @@ function ViewToggle({
 
 function EmptyRegister({ awardId }: { awardId: string }) {
   return (
-    <div className="mt-5 rounded-lg border border-dashed border-border-strong bg-surface px-6 py-12 text-center">
-      <h3 className="text-base font-semibold">This award has no obligations yet</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-        Nothing has been extracted from the document, and nothing has been added by hand. If you
-        expected requirements here, the document may not have been analysed successfully — check
-        the award workspace, or add what you know yourself.
-      </p>
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-3">
-        <AddObligationDialog awardId={awardId} />
-        <Button asChild variant="ghost" size="sm" className="min-h-11 sm:min-h-8">
-          <Link href={`/app/awards/${awardId}`}>Back to the award</Link>
-        </Button>
-      </div>
-    </div>
+    <EmptyState
+      className="mt-5"
+      headingLevel={3}
+      icon={<ClipboardCheck aria-hidden="true" />}
+      title="This award has no obligations yet"
+      description="Nothing has been extracted from the document, and nothing has been added by hand. If you expected requirements here, the document may not have been analysed successfully — check the award workspace, or add what you know yourself."
+      actions={
+        <>
+          <AddObligationDialog awardId={awardId} />
+          <Button asChild variant="ghost" size="sm" className="min-h-11 sm:min-h-8">
+            <Link href={`/app/awards/${awardId}`}>Back to the award</Link>
+          </Button>
+        </>
+      }
+    />
   );
 }
 
 function NoMatches({ onReset }: { onReset: () => void }) {
   return (
-    <div className="mt-5 rounded-lg border border-dashed border-border-strong bg-surface px-6 py-12 text-center">
-      <h3 className="text-base font-semibold">No obligations match your filters</h3>
-      <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-        This award does have obligations — none of them match the search and filters you have set
-        right now.
-      </p>
-      <Button type="button" variant="secondary" size="sm" className="mt-5 min-h-11 sm:min-h-8" onClick={onReset}>
-        <RotateCcw className="size-4" aria-hidden="true" />
-        Reset filters
-      </Button>
-    </div>
+    <EmptyState
+      className="mt-5"
+      headingLevel={3}
+      icon={<Search aria-hidden="true" />}
+      title="No obligations match your filters"
+      description="This award does have obligations — none of them match the search and filters you have set right now."
+      actions={
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          className="min-h-11 sm:min-h-8"
+          onClick={onReset}
+        >
+          <RotateCcw className="size-4" aria-hidden="true" />
+          Reset filters
+        </Button>
+      }
+    />
   );
 }

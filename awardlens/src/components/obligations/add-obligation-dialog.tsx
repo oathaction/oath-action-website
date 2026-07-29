@@ -8,6 +8,7 @@ import { addObligationAction } from "@/app/actions/obligations";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogClose,
   DialogContent,
   DialogDescription,
@@ -16,7 +17,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Field, FieldError, FieldHint, Input, Label, NativeSelect, Textarea } from "@/components/ui/field";
+import {
+  Field,
+  FieldError,
+  FieldGroup,
+  FieldHint,
+  FieldRow,
+  Input,
+  Label,
+  NativeSelect,
+  Textarea,
+} from "@/components/ui/field";
 import {
   CATEGORY_GROUP_LABELS,
   CATEGORY_META,
@@ -26,6 +37,12 @@ import {
   type CategoryGroup,
   type ObligationCategory,
 } from "@/lib/domain/types";
+
+/** Section legends set as eyebrows — see the note in `obligation-editor.tsx`. */
+const GROUP = [
+  "[&>legend]:mb-2.5 [&>legend]:text-[11px] [&>legend]:font-semibold [&>legend]:uppercase",
+  "[&>legend]:leading-[1.3] [&>legend]:tracking-[0.085em] [&>legend]:text-muted-foreground",
+].join(" ");
 
 const GROUP_ORDER: CategoryGroup[] = ["deadlines", "money", "programmatic", "compliance"];
 
@@ -85,7 +102,15 @@ export function AddObligationDialog({ awardId }: { awardId: string }) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent aria-describedby={`${fieldId}-intro`}>
+      {/*
+        Same spine as the editor: a fixed frame with the actions pinned, and the
+        fields grouped into named `fieldset`s rather than run together in one
+        scrolling column.
+      */}
+      <DialogContent
+        aria-describedby={`${fieldId}-intro`}
+        className="flex max-w-2xl flex-col overflow-y-hidden"
+      >
         <DialogHeader>
           <DialogTitle>Add an obligation</DialogTitle>
           <DialogDescription id={`${fieldId}-intro`}>
@@ -95,110 +120,133 @@ export function AddObligationDialog({ awardId }: { awardId: string }) {
           </DialogDescription>
         </DialogHeader>
 
-        <p className="rounded-md border border-border bg-surface-sunken px-3 py-2.5 text-xs leading-relaxed text-foreground-soft">
-          <span className="font-semibold">How this will be recorded.</span> An obligation you add
-          yourself is stored as <span className="font-semibold">confirmed</span> and{" "}
-          <span className="font-semibold">entered by you</span>, with no source citation, because
-          there is no passage in the document to point at. That keeps it permanently
-          distinguishable from anything AwardLens extracted from the award, in the register and in
-          every export.
-        </p>
-
-        <form ref={formRef} onSubmit={handleSubmit} className="grid gap-4">
+        <form ref={formRef} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
           <input type="hidden" name="awardId" value={awardId} />
 
-          <Field>
-            <Label htmlFor={`${fieldId}-title`}>Title</Label>
-            <Input
-              id={`${fieldId}-title`}
-              name="title"
-              required
-              minLength={3}
-              maxLength={160}
-              autoComplete="off"
-              placeholder="e.g. Send the funder a mid-year budget variance note"
-            />
-            <FieldHint>A short, recognisable name. 3 to 160 characters.</FieldHint>
-          </Field>
+          <DialogBody className="flex flex-col gap-5 py-px">
+            {/*
+              How a hand-entered item is stored is the whole point of the
+              register, so it is stated up front and in the accent tone the rest
+              of the product uses for provenance — not buried in a hint under
+              the last field.
+            */}
+            <p className="rounded-md border border-ink-accent-border bg-ink-accent-subtle px-3.5 py-3 text-xs leading-relaxed text-foreground-soft">
+              <span className="font-semibold">How this will be recorded.</span> An obligation you
+              add yourself is stored as <span className="font-semibold">confirmed</span> and{" "}
+              <span className="font-semibold">entered by you</span>, with no source citation,
+              because there is no passage in the document to point at. That keeps it permanently
+              distinguishable from anything AwardLens extracted from the award, in the register and
+              in every export.
+            </p>
 
-          <Field>
-            <Label htmlFor={`${fieldId}-description`}>What has to happen</Label>
-            <Textarea
-              id={`${fieldId}-description`}
-              name="description"
-              required
-              minLength={3}
-              maxLength={2000}
-              rows={4}
-              placeholder="Describe the requirement in enough detail that a colleague could act on it without asking you."
-            />
-          </Field>
+            <FieldGroup legend="What this requires" className={GROUP}>
+              <Field>
+                <Label htmlFor={`${fieldId}-title`}>Title</Label>
+                <Input
+                  id={`${fieldId}-title`}
+                  name="title"
+                  required
+                  minLength={3}
+                  maxLength={160}
+                  autoComplete="off"
+                  placeholder="e.g. Send the funder a mid-year budget variance note"
+                />
+                <FieldHint>A short, recognisable name. 3 to 160 characters.</FieldHint>
+              </Field>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <Label htmlFor={`${fieldId}-category`}>Category</Label>
-              <NativeSelect
-                id={`${fieldId}-category`}
-                name="category"
-                required
-                defaultValue=""
-                className="h-11 sm:h-10"
-              >
-                <option value="" disabled>
-                  Choose a category…
-                </option>
-                {categoriesByGroup().map(({ group, categories }) => (
-                  <optgroup key={group} label={CATEGORY_GROUP_LABELS[group]}>
-                    {categories.map((category) => (
-                      <option key={category} value={category}>
-                        {CATEGORY_META[category].label}
+              <Field>
+                <Label htmlFor={`${fieldId}-description`}>What has to happen</Label>
+                <Textarea
+                  id={`${fieldId}-description`}
+                  name="description"
+                  required
+                  minLength={3}
+                  maxLength={2000}
+                  rows={4}
+                  placeholder="Describe the requirement in enough detail that a colleague could act on it without asking you."
+                />
+              </Field>
+            </FieldGroup>
+
+            <div className="rule pt-5">
+              <FieldGroup legend="How it is filed" className={GROUP}>
+                <FieldRow>
+                  <Field>
+                    <Label htmlFor={`${fieldId}-category`}>Category</Label>
+                    <NativeSelect
+                      id={`${fieldId}-category`}
+                      name="category"
+                      required
+                      defaultValue=""
+                      className="h-11 sm:h-10"
+                    >
+                      <option value="" disabled>
+                        Choose a category…
                       </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </NativeSelect>
-            </Field>
+                      {categoriesByGroup().map(({ group, categories }) => (
+                        <optgroup key={group} label={CATEGORY_GROUP_LABELS[group]}>
+                          {categories.map((category) => (
+                            <option key={category} value={category}>
+                              {CATEGORY_META[category].label}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </NativeSelect>
+                  </Field>
 
-            <Field>
-              <Label htmlFor={`${fieldId}-priority`}>Priority</Label>
-              <NativeSelect
-                id={`${fieldId}-priority`}
-                name="priority"
-                defaultValue="medium"
-                className="h-11 sm:h-10"
-              >
-                {OBLIGATION_PRIORITIES.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {PRIORITY_LABELS[priority]}
-                  </option>
-                ))}
-              </NativeSelect>
-            </Field>
-          </div>
+                  <Field>
+                    <Label htmlFor={`${fieldId}-priority`}>Priority</Label>
+                    <NativeSelect
+                      id={`${fieldId}-priority`}
+                      name="priority"
+                      defaultValue="medium"
+                      className="h-11 sm:h-10"
+                    >
+                      {OBLIGATION_PRIORITIES.map((priority) => (
+                        <option key={priority} value={priority}>
+                          {PRIORITY_LABELS[priority]}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                  </Field>
+                </FieldRow>
+              </FieldGroup>
+            </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <Label htmlFor={`${fieldId}-due`}>Due date (optional)</Label>
-              <Input id={`${fieldId}-due`} name="dueDate" type="date" className="h-11 sm:h-10" />
-              <FieldHint>Leave blank if there is no fixed calendar date.</FieldHint>
-            </Field>
+            <div className="rule pt-5">
+              <FieldGroup legend="Timing and ownership" className={GROUP}>
+                <FieldRow>
+                  <Field>
+                    <Label htmlFor={`${fieldId}-due`}>Due date (optional)</Label>
+                    <Input
+                      id={`${fieldId}-due`}
+                      name="dueDate"
+                      type="date"
+                      className="h-11 sm:h-10"
+                    />
+                    <FieldHint>Leave blank if there is no fixed calendar date.</FieldHint>
+                  </Field>
 
-            <Field>
-              <Label htmlFor={`${fieldId}-owner`}>Suggested owner role (optional)</Label>
-              <Input
-                id={`${fieldId}-owner`}
-                name="suggestedOwnerRole"
-                maxLength={80}
-                autoComplete="off"
-                placeholder="e.g. Finance Director"
-                className="h-11 sm:h-10"
-              />
-            </Field>
-          </div>
+                  <Field>
+                    <Label htmlFor={`${fieldId}-owner`}>Suggested owner role (optional)</Label>
+                    <Input
+                      id={`${fieldId}-owner`}
+                      name="suggestedOwnerRole"
+                      maxLength={80}
+                      autoComplete="off"
+                      placeholder="e.g. Finance Director"
+                      className="h-11 sm:h-10"
+                    />
+                  </Field>
+                </FieldRow>
+              </FieldGroup>
+            </div>
 
-          <FieldError>{error}</FieldError>
+            <FieldError>{error}</FieldError>
+          </DialogBody>
 
-          <DialogFooter>
+          <DialogFooter className="rule pt-4">
             <DialogClose asChild>
               <Button type="button" variant="secondary" disabled={pending} className="min-h-11">
                 Cancel

@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowLeft,
   Ban,
   BookOpen,
@@ -35,12 +36,14 @@ import {
 } from "@/lib/domain/types";
 import { cn, formatIsoDate } from "@/lib/utils";
 import {
+  ConfidenceBadge,
   EvidenceRail,
   ReviewStatusBadge,
   SourceStatusBadge,
 } from "@/components/evidence/evidence-rail";
 import { ObligationEditor } from "@/components/obligations/obligation-editor";
 import { SourcePanel } from "@/components/documents/source-panel";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -53,7 +56,7 @@ import {
   DialogTrigger,
   SheetContent,
 } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/misc";
+import { Kbd, Progress } from "@/components/ui/misc";
 
 /**
  * The review workspace — the screen the whole product exists to serve.
@@ -62,6 +65,24 @@ import { Progress } from "@/components/ui/misc";
  * Nothing here confirms itself: every status change is a deliberate act, bulk
  * confirmation is restricted to items whose source we actually verified, and
  * deletion always asks first.
+ *
+ * Three things carry the layout:
+ *
+ *  1. On a wide screen it is a two-pane workspace of a fixed height — document
+ *     left, queue right, each scrolling inside itself. It used to be one long
+ *     page with a sticky document column, which left several hundred pixels of
+ *     empty background beside the lower half of the queue and pushed the filter
+ *     chips out of reach the moment you started reading.
+ *  2. The queue encodes the ordinary case as cheaply as it can. Thirteen rows
+ *     that all say the same thing in a filled pill is ink spent to say nothing,
+ *     so "Needs review" is plain text at the end of the metadata run and the
+ *     loud treatment is kept for the exceptions — an unverified source,
+ *     conflicting dates, critical priority, a low-confidence extraction. The
+ *     coloured rail on the left of a row is silent until a decision is made.
+ *  3. The open item is the one raised object on the screen, and its action row
+ *     is an emphasis ladder rather than six equal buttons: Confirm is the
+ *     action, "Needs clarification" and "Not applicable" are the plausible
+ *     alternatives, Edit and Delete are record-keeping and sit apart.
  */
 
 interface ReviewWorkspaceProps {
@@ -127,6 +148,9 @@ const BULK_ELIGIBLE = (obligation: ObligationWithCitations): boolean =>
   obligation.sourceStatus === "verified" &&
   obligation.confidence >= 0.75 &&
   obligation.dateConflicts.length === 0;
+
+/** Bands where the extraction is not confident enough to stay quiet about it. */
+const CONFIDENCE_ATTENTION = 0.6;
 
 function useIsDesktop(): boolean {
   // Assume desktop for the first paint; only event handlers read this, so the
@@ -521,30 +545,30 @@ export function ReviewWorkspace({
   );
 
   return (
-    <div className="container-page pt-6">
+    <div className="container-page pb-2 pt-5">
       <Link
         href={`/app/awards/${award.id}`}
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1.5 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
-        <ArrowLeft className="size-4" aria-hidden="true" />
+        <ArrowLeft className="size-3.5" aria-hidden="true" />
         Back to {award.name}
       </Link>
 
-      <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
+      <div className="mt-2.5 flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
         <div className="min-w-0">
-          <h1 className="text-2xl font-semibold tracking-tight">Review what this award requires</h1>
-          <p className="mt-1.5 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+          <h1 className="type-title">Review what this award requires</h1>
+          <p className="type-small mt-1.5 max-w-[58ch] text-muted-foreground">
             Work through one item at a time with the document beside it. Nothing counts as agreed
             until you say so.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="cluster shrink-0">
           <Button
             type="button"
             variant="ghost"
             size="sm"
-            className="h-11 sm:h-8"
+            className="h-11 sm:h-9"
             aria-expanded={legendOpen}
             aria-controls="review-shortcut-legend"
             onClick={() => setLegendOpen((open) => !open)}
@@ -556,7 +580,7 @@ export function ReviewWorkspace({
           {outstanding.length > 0 ? (
             <Dialog open={bulkOpen} onOpenChange={setBulkOpen}>
               <DialogTrigger asChild>
-                <Button type="button" variant="secondary" size="sm" className="h-11 sm:h-8">
+                <Button type="button" variant="secondary" size="sm" className="h-11 sm:h-9">
                   <CheckCheck className="size-4" aria-hidden="true" />
                   Confirm all verified items
                 </Button>
@@ -570,8 +594,8 @@ export function ReviewWorkspace({
                   </DialogDescription>
                 </DialogHeader>
 
-                <div className="space-y-3 text-sm">
-                  <div className="rounded-md border border-border bg-surface-sunken p-3">
+                <div className="stack-sm text-sm">
+                  <div className="rounded-md border border-border-subtle bg-surface-sunken px-3.5 py-3">
                     <p className="font-medium text-foreground">
                       It will confirm {bulkEligible.length}{" "}
                       {bulkEligible.length === 1 ? "item" : "items"}
@@ -583,8 +607,9 @@ export function ReviewWorkspace({
                     </ul>
                   </div>
 
-                  <div className="rounded-md border border-warning-border bg-warning-subtle p-3">
-                    <p className="font-medium text-warning">
+                  <div className="rounded-md border border-warning-border bg-warning-subtle px-3.5 py-3">
+                    <p className="flex items-center gap-1.5 font-medium text-warning">
+                      <AlertTriangle className="size-3.5 shrink-0" aria-hidden="true" />
                       It will not touch {bulkSkipped} {bulkSkipped === 1 ? "item" : "items"}
                     </p>
                     <p className="mt-1.5 text-xs leading-relaxed text-warning">
@@ -631,54 +656,57 @@ export function ReviewWorkspace({
       {legendOpen ? (
         <div
           id="review-shortcut-legend"
-          className="mt-4 rounded-lg border border-border bg-surface-sunken px-4 py-3"
+          className="mt-3 rounded-lg border border-border-subtle bg-surface-sunken px-4 py-3"
         >
-          <h2 className="text-sm font-semibold">Keyboard shortcuts</h2>
-          <dl className="mt-2 grid gap-x-8 gap-y-1.5 text-sm sm:grid-cols-2 lg:grid-cols-3">
+          <h2 className="eyebrow text-muted-foreground">Keyboard shortcuts</h2>
+          <dl className="mt-2 grid gap-x-8 gap-y-1.5 text-[13px] sm:grid-cols-2 lg:grid-cols-3">
             <ShortcutRow keys={["j", "↓"]} label="Next item" />
             <ShortcutRow keys={["k", "↑"]} label="Previous item" />
             <ShortcutRow keys={["c"]} label="Confirm the open item" />
             <ShortcutRow keys={["e"]} label="Edit the open item" />
             <ShortcutRow keys={["?"]} label="Show or hide this list" />
           </dl>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2.5 text-xs text-muted-foreground">
             Shortcuts are ignored while you are typing in a field or a dialog is open.
           </p>
         </div>
       ) : null}
 
-      {/* ------------------------------------------------------- progress -- */}
-      <div className="mt-5 rounded-lg border border-border bg-surface px-4 py-3.5">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <p className="text-sm font-medium text-foreground">Review progress</p>
-          <p className="tabular font-mono text-xs text-muted-foreground">
-            {progress.percentComplete}%
-          </p>
-        </div>
-        <Progress
-          className="mt-2"
-          value={progress.percentComplete}
-          aria-label={`Review ${progress.percentComplete} percent complete`}
-        />
-        <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">
-          {progress.total === 0
-            ? "Nothing to review yet."
-            : `${reviewed} of ${progress.total} reviewed · ${outstanding.length} still waiting on you · ${progress.confirmed} confirmed · ${progress.notApplicable} not applicable`}
-        </p>
-      </div>
-
       {active.length === 0 ? (
-        <EmptyState awardId={award.id} />
+        <NothingToReview awardId={award.id} />
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
+        /*
+         * The workspace proper. One fixed-height row at `lg`, so the document
+         * and the queue scroll inside themselves instead of the page scrolling
+         * a sticky column past several hundred pixels of empty background.
+         */
+        <div className="mt-4 lg:grid lg:h-[calc(100dvh-10rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.03fr)] lg:gap-5">
           {/* ------------------------------------------------ source pane -- */}
-          <div className="hidden lg:block">
-            <div className="sticky top-20 h-[calc(100dvh-7rem)]">{sourcePanel}</div>
-          </div>
+          <div className="hidden min-h-0 lg:block">{sourcePanel}</div>
 
           {/* ------------------------------------------------------ queue -- */}
-          <div className="min-w-0">
-            <div className="lg:hidden">
+          <div className="flex min-w-0 flex-col lg:min-h-0">
+            {/* ------------------------------------------------- progress -- */}
+            <div className="shrink-0 rounded-lg border border-border bg-surface px-4 py-3 shadow-resting">
+              <div className="flex items-center gap-3">
+                <p className="eyebrow shrink-0 text-muted-foreground">Review progress</p>
+                <Progress
+                  className="min-w-16 flex-1"
+                  value={progress.percentComplete}
+                  aria-label={`Review ${progress.percentComplete} percent complete`}
+                />
+                <p className="tabular shrink-0 font-mono text-xs font-medium text-foreground-soft">
+                  {progress.percentComplete}%
+                </p>
+              </div>
+              <p className="mt-2 text-[13px] leading-snug text-muted-foreground" aria-live="polite">
+                {progress.total === 0
+                  ? "Nothing to review yet."
+                  : `${reviewed} of ${progress.total} reviewed · ${outstanding.length} still waiting on you · ${progress.confirmed} confirmed · ${progress.notApplicable} not applicable`}
+              </p>
+            </div>
+
+            <div className="mt-3 shrink-0 lg:hidden">
               <Dialog open={sourceDrawerOpen} onOpenChange={setSourceDrawerOpen}>
                 <DialogTrigger asChild>
                   <Button type="button" variant="secondary" className="h-11 w-full">
@@ -698,220 +726,207 @@ export function ReviewWorkspace({
               </Dialog>
             </div>
 
-            <div className="mt-4 lg:mt-0">
-              <h2 className="sr-only">Filter the review queue</h2>
-              <div className="flex flex-wrap gap-2">
-                {FILTERS.map((definition) => {
-                  const count = active.filter(definition.match).length;
-                  const isActive = filter === definition.key;
-                  return (
-                    <button
-                      key={definition.key}
-                      type="button"
-                      aria-pressed={isActive}
-                      title={definition.description}
-                      onClick={() => setFilter(definition.key)}
+            {/* -------------------------------------------------- filters -- */}
+            <h2 className="sr-only">Filter the review queue</h2>
+            <div className="mt-3 flex shrink-0 flex-wrap gap-1.5">
+              {FILTERS.map((definition) => {
+                const count = active.filter(definition.match).length;
+                const isActive = filter === definition.key;
+                return (
+                  <button
+                    key={definition.key}
+                    type="button"
+                    aria-pressed={isActive}
+                    title={definition.description}
+                    onClick={() => setFilter(definition.key)}
+                    className={cn(
+                      "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[13px] font-medium transition-colors sm:min-h-7",
+                      isActive
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : // --border-control is 3.18:1 on white, which is what
+                          // WCAG 1.4.11 asks of a control boundary; the old
+                          // --border-strong managed 1.64:1.
+                          "border-border-control bg-surface text-foreground-soft hover:border-foreground-soft hover:bg-muted",
+                    )}
+                  >
+                    {definition.label}
+                    <span
                       className={cn(
-                        "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] font-medium transition-colors sm:min-h-0",
-                        isActive
-                          ? "border-primary bg-primary text-primary-foreground"
-                          : "border-border-strong bg-surface text-foreground-soft hover:bg-muted",
+                        "tabular rounded-full px-1.5 py-0.5 font-mono text-[11px]",
+                        isActive ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground",
                       )}
                     >
-                      {definition.label}
-                      <span
-                        className={cn(
-                          "tabular rounded-full px-1.5 py-0.5 font-mono text-[11px]",
-                          isActive ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground",
-                        )}
-                      >
-                        {count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            {queueFinished ? (
-              <CompletionState award={award} progress={progress} />
-            ) : null}
+            {/* ---------------------------------------------------- queue -- */}
+            <div className="mt-3 lg:-mx-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-1 lg:pb-1">
+              {queueFinished ? <CompletionState award={award} progress={progress} /> : null}
 
-            {queue.length === 0 ? (
-              <p className="mt-6 rounded-lg border border-dashed border-border-strong bg-surface px-4 py-8 text-center text-sm text-muted-foreground">
-                No items match this filter. Choose <strong className="font-medium">All</strong> to
-                see everything on this award.
-              </p>
-            ) : (
-              <ol
-                ref={queueRef}
-                tabIndex={-1}
-                className="mt-5 space-y-2.5"
-                aria-label="Obligations awaiting review"
-              >
-                {queue.map((obligation, index) => {
-                  const isSelected = selected?.id === obligation.id;
-                  const isPending = pendingId === obligation.id && pending;
+              {queue.length === 0 ? (
+                <p className="rounded-lg border border-dashed border-border-strong bg-surface px-4 py-8 text-center text-sm text-muted-foreground">
+                  No items match this filter. Choose <strong className="font-medium">All</strong> to
+                  see everything on this award.
+                </p>
+              ) : (
+                <ol
+                  ref={queueRef}
+                  tabIndex={-1}
+                  className="space-y-1.5"
+                  aria-label="Obligations awaiting review"
+                >
+                  {queue.map((obligation, index) => {
+                    const isSelected = selected?.id === obligation.id;
+                    const isPending = pendingId === obligation.id && pending;
 
-                  if (!isSelected) {
+                    if (!isSelected) {
+                      return (
+                        <QueueRow
+                          key={obligation.id}
+                          obligation={obligation}
+                          index={index}
+                          rowRef={setItemRef(obligation.id)}
+                          onSelect={() => select(obligation.id, "pointer")}
+                        />
+                      );
+                    }
+
+                    const citations = obligation.citations.filter(
+                      (citation) => citation.documentSegmentId,
+                    );
+
                     return (
-                      <li key={obligation.id}>
-                        <button
-                          type="button"
+                      <li key={obligation.id} className="py-1.5 first:pt-0">
+                        <div
                           ref={setItemRef(obligation.id)}
-                          onClick={() => select(obligation.id, "pointer")}
-                          className="flex w-full scroll-mt-20 items-start gap-3 rounded-lg border border-border bg-surface px-4 py-3 text-left transition-colors hover:border-border-strong hover:bg-muted"
+                          tabIndex={-1}
+                          role="group"
+                          aria-label={`Reviewing item ${index + 1} of ${queue.length}: ${obligation.title}`}
+                          className="scroll-mt-20 rounded-lg lg:scroll-mt-2"
                         >
-                          <span
-                            className="tabular mt-0.5 shrink-0 font-mono text-xs text-muted-foreground"
-                            aria-hidden="true"
-                          >
-                            {index + 1}
-                          </span>
-                          <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium leading-snug text-foreground">
-                              {obligation.title}
-                            </span>
-                            <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-                              <span>{CATEGORY_META[obligation.category].label}</span>
-                              <span aria-hidden="true">·</span>
-                              <span>
-                                {obligation.dueDate
-                                  ? `Due ${formatIsoDate(obligation.dueDate, {
-                                      year: "numeric",
-                                      month: "short",
-                                      day: "numeric",
-                                    })}`
-                                  : "No stated due date"}
-                              </span>
-                            </span>
-                          </span>
-                          <span className="flex shrink-0 flex-col items-end gap-1">
-                            <ReviewStatusBadge status={obligation.reviewStatus} />
-                            {obligation.sourceStatus !== "verified" ? (
-                              <SourceStatusBadge status={obligation.sourceStatus} />
-                            ) : null}
-                          </span>
-                        </button>
+                          <EvidenceRail
+                            obligation={obligation}
+                            selected
+                            actions={
+                              <>
+                                {/* Confirm is the action. Everything else on
+                                    this row is an escape from it, so the ladder
+                                    runs primary → muted → ghost and the two
+                                    record-keeping controls sit apart on the
+                                    right. Nothing is hidden. */}
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="primary"
+                                  className="h-11 px-4 sm:h-9"
+                                  disabled={pending}
+                                  onClick={() => setStatus(obligation, "confirmed", "Confirmed.")}
+                                >
+                                  {isPending ? (
+                                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                                  ) : (
+                                    <Check className="size-4" aria-hidden="true" />
+                                  )}
+                                  Confirm
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="muted"
+                                  className="h-11 sm:h-9"
+                                  disabled={pending}
+                                  onClick={() =>
+                                    setStatus(
+                                      obligation,
+                                      "needs_clarification",
+                                      "Flagged for clarification.",
+                                    )
+                                  }
+                                >
+                                  <MessageCircleQuestion className="size-4" aria-hidden="true" />
+                                  Needs clarification
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="muted"
+                                  className="h-11 sm:h-9"
+                                  disabled={pending}
+                                  onClick={() =>
+                                    setStatus(
+                                      obligation,
+                                      "not_applicable",
+                                      "Marked not applicable.",
+                                    )
+                                  }
+                                >
+                                  <Ban className="size-4" aria-hidden="true" />
+                                  Not applicable
+                                </Button>
+
+                                <span className="flex items-center gap-1 sm:ml-auto">
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-11 sm:h-9"
+                                    disabled={pending}
+                                    onClick={() => openEditor(obligation.id)}
+                                  >
+                                    <Pencil className="size-4" aria-hidden="true" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    size="sm"
+                                    variant="destructiveGhost"
+                                    className="h-11 sm:h-9"
+                                    disabled={pending}
+                                    onClick={() => openDeleteDialog(obligation.id)}
+                                  >
+                                    <Trash2 className="size-4" aria-hidden="true" />
+                                    Delete
+                                  </Button>
+                                </span>
+
+                                {citations.length > 0 ? (
+                                  <span className="rule flex w-full flex-wrap items-center gap-2 pt-2.5">
+                                    {citations.map((citation) => (
+                                      <Button
+                                        key={citation.id}
+                                        type="button"
+                                        size="sm"
+                                        variant={
+                                          activeCitation?.id === citation.id ? "subtle" : "ghost"
+                                        }
+                                        className="h-11 sm:h-8"
+                                        aria-pressed={activeCitation?.id === citation.id}
+                                        onClick={() => openSource(citation)}
+                                      >
+                                        <Quote className="size-4" aria-hidden="true" />
+                                        Open source ·{" "}
+                                        {formatLocator(
+                                          citation.locatorType,
+                                          citation.locatorValue,
+                                        )}
+                                      </Button>
+                                    ))}
+                                  </span>
+                                ) : null}
+                              </>
+                            }
+                          />
+                        </div>
                       </li>
                     );
-                  }
-
-                  const citations = obligation.citations.filter(
-                    (citation) => citation.documentSegmentId,
-                  );
-
-                  return (
-                    <li key={obligation.id}>
-                      <div
-                        ref={setItemRef(obligation.id)}
-                        tabIndex={-1}
-                        role="group"
-                        aria-label={`Reviewing item ${index + 1} of ${queue.length}: ${obligation.title}`}
-                        className="scroll-mt-20 rounded-lg ring-2 ring-primary/25"
-                      >
-                        <EvidenceRail
-                          obligation={obligation}
-                          actions={
-                            <>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="primary"
-                                className="h-11 sm:h-8"
-                                disabled={pending}
-                                onClick={() => setStatus(obligation, "confirmed", "Confirmed.")}
-                              >
-                                {isPending ? (
-                                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                                ) : (
-                                  <Check className="size-4" aria-hidden="true" />
-                                )}
-                                Confirm
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="secondary"
-                                className="h-11 sm:h-8"
-                                disabled={pending}
-                                onClick={() =>
-                                  setStatus(
-                                    obligation,
-                                    "needs_clarification",
-                                    "Flagged for clarification.",
-                                  )
-                                }
-                              >
-                                <MessageCircleQuestion className="size-4" aria-hidden="true" />
-                                Needs clarification
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="secondary"
-                                className="h-11 sm:h-8"
-                                disabled={pending}
-                                onClick={() =>
-                                  setStatus(obligation, "not_applicable", "Marked not applicable.")
-                                }
-                              >
-                                <Ban className="size-4" aria-hidden="true" />
-                                Not applicable
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                className="h-11 sm:h-8"
-                                disabled={pending}
-                                onClick={() => openEditor(obligation.id)}
-                              >
-                                <Pencil className="size-4" aria-hidden="true" />
-                                Edit
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                className="h-11 text-destructive hover:bg-destructive-subtle hover:text-destructive sm:h-8"
-                                disabled={pending}
-                                onClick={() => openDeleteDialog(obligation.id)}
-                              >
-                                <Trash2 className="size-4" aria-hidden="true" />
-                                Delete
-                              </Button>
-
-                              {citations.length > 0 ? (
-                                <span className="flex w-full flex-wrap items-center gap-2 border-t border-border pt-2.5">
-                                  {citations.map((citation) => (
-                                    <Button
-                                      key={citation.id}
-                                      type="button"
-                                      size="sm"
-                                      variant={
-                                        activeCitation?.id === citation.id ? "subtle" : "ghost"
-                                      }
-                                      className="h-11 sm:h-8"
-                                      aria-pressed={activeCitation?.id === citation.id}
-                                      onClick={() => openSource(citation)}
-                                    >
-                                      <Quote className="size-4" aria-hidden="true" />
-                                      Open source ·{" "}
-                                      {formatLocator(citation.locatorType, citation.locatorValue)}
-                                    </Button>
-                                  ))}
-                                </span>
-                              ) : null}
-                            </>
-                          }
-                        />
-                      </div>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
+                  })}
+                </ol>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -970,7 +985,7 @@ export function ReviewWorkspace({
           </DialogHeader>
 
           {deleteTarget ? (
-            <p className="rounded-md border border-border bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground">
+            <p className="rounded-md border border-border-subtle bg-surface-sunken px-3.5 py-2.5 text-sm font-medium text-foreground">
               {deleteTarget.title}
             </p>
           ) : null}
@@ -1012,17 +1027,135 @@ export function ReviewWorkspace({
 
 /* ------------------------------------------------------------- pieces ---- */
 
+/**
+ * A collapsed queue row.
+ *
+ * Everything ordinary about the row is spent as cheaply as it can be: the
+ * status is plain text at the end of the metadata run, and the rail on the left
+ * edge stays transparent until somebody has actually decided something. What
+ * gets a filled pill is only what would change how you read the item —
+ * an unverified source, two dates in the document, critical priority, or an
+ * extraction the model was unsure of.
+ */
+function QueueRow({
+  obligation,
+  index,
+  rowRef,
+  onSelect,
+}: {
+  obligation: ObligationWithCitations;
+  index: number;
+  rowRef: (node: HTMLElement | null) => void;
+  onSelect: () => void;
+}) {
+  const status = obligation.reviewStatus;
+  const undecided = status === "needs_review";
+
+  const rail =
+    status === "confirmed"
+      ? "bg-success"
+      : status === "needs_clarification"
+        ? "bg-warning"
+        : status === "not_applicable" || status === "archived"
+          ? "bg-border-strong"
+          : obligation.sourceStatus === "unverified"
+            ? "bg-destructive"
+            : "bg-transparent";
+
+  const flags: React.ReactNode[] = [];
+  if (obligation.sourceStatus !== "verified") {
+    flags.push(<SourceStatusBadge key="source" status={obligation.sourceStatus} />);
+  }
+  if (obligation.dateConflicts.length > 1) {
+    flags.push(
+      <Badge key="conflict" variant="warning" emphasis="solid" size="xs">
+        <AlertTriangle aria-hidden="true" />
+        Conflicting dates
+      </Badge>,
+    );
+  }
+  if (obligation.priority === "critical") {
+    flags.push(
+      <Badge key="priority" variant="destructive" emphasis="solid" size="xs">
+        Critical priority
+      </Badge>,
+    );
+  }
+  if (obligation.origin !== "manual" && obligation.confidence < CONFIDENCE_ATTENTION) {
+    flags.push(
+      <ConfidenceBadge key="confidence" confidence={obligation.confidence} emphasis="solid" />,
+    );
+  }
+
+  return (
+    <li>
+      <button
+        type="button"
+        ref={rowRef}
+        onClick={onSelect}
+        className={cn(
+          "relative flex w-full scroll-mt-20 items-start gap-3 overflow-hidden rounded-md border",
+          "border-border-subtle bg-surface py-2.5 pl-4 pr-3 text-left",
+          "transition-colors hover:border-border hover:bg-muted lg:scroll-mt-2",
+        )}
+      >
+        <span aria-hidden="true" className={cn("absolute inset-y-0 left-0 w-[3px]", rail)} />
+        <span
+          className="tabular mt-px w-4 shrink-0 text-right font-mono text-[11px] text-muted-foreground"
+          aria-hidden="true"
+        >
+          {index + 1}
+        </span>
+        <span className="min-w-0 flex-1">
+          <span
+            className={cn(
+              "block text-sm leading-snug",
+              undecided ? "font-medium text-foreground" : "text-muted-foreground",
+            )}
+          >
+            {obligation.title}
+          </span>
+          <span className="meta-row mt-0.5 text-xs text-muted-foreground">
+            <span>{CATEGORY_META[obligation.category].label}</span>
+            <span>
+              {obligation.dueDate
+                ? `Due ${formatIsoDate(obligation.dueDate, {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}`
+                : "No stated due date"}
+            </span>
+            {/*
+              Wrapped for two reasons: the badge's own ::before marker would
+              otherwise collide with the separator `.meta-row` draws on each
+              child, and the wrapper is where the ordinary case gets demoted —
+              "Needs review" is the state every row starts in, so it reads as
+              the last item of the metadata run rather than as a label.
+            */}
+            <span
+              className={cn(
+                undecided && "[&>span]:font-normal [&>span]:text-muted-foreground",
+              )}
+            >
+              <ReviewStatusBadge status={status} emphasis={undecided ? "bare" : undefined} />
+            </span>
+          </span>
+        </span>
+        {flags.length > 0 ? (
+          <span className="cluster-tight shrink-0 justify-end pt-px">{flags}</span>
+        ) : null}
+      </button>
+    </li>
+  );
+}
+
 function ShortcutRow({ keys, label }: { keys: string[]; label: string }) {
   return (
     <div className="flex items-center gap-2">
       <dt className="flex shrink-0 items-center gap-1">
         {keys.map((key) => (
-          <kbd
-            key={key}
-            className="rounded border border-border-strong bg-surface px-1.5 py-0.5 font-mono text-xs text-foreground-soft"
-          >
-            {key}
-          </kbd>
+          <Kbd key={key}>{key}</Kbd>
         ))}
       </dt>
       <dd className="text-muted-foreground">{label}</dd>
@@ -1030,17 +1163,17 @@ function ShortcutRow({ keys, label }: { keys: string[]; label: string }) {
   );
 }
 
-function EmptyState({ awardId }: { awardId: string }) {
+function NothingToReview({ awardId }: { awardId: string }) {
   return (
-    <Card className="mt-6">
-      <CardHeader>
+    <Card className="mt-6" elevation="resting">
+      <CardHeader padding="roomy">
         <CardTitle>There is nothing to review on this award</CardTitle>
         <CardDescription>
           No obligations were extracted from the documents attached to this award.
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-3 text-sm leading-relaxed text-foreground-soft">
-        <p>
+      <CardContent padding="roomy" className="stack-md text-sm leading-relaxed text-foreground-soft">
+        <p className="measure-wide">
           That usually means one of two things: the document had no readable text layer, or it
           genuinely does not state any requirements. Neither is a guarantee that you have no
           obligations — read the award yourself before you rely on this being empty.
@@ -1055,40 +1188,38 @@ function EmptyState({ awardId }: { awardId: string }) {
 
 function CompletionState({ award, progress }: { award: Award; progress: ReviewProgress }) {
   return (
-    <Card className="mt-5 border-success-subtle bg-success-subtle/40">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CheckCheck className="size-5 text-success" aria-hidden="true" />
-          Every item has been through a person
-        </CardTitle>
-        <CardDescription className="text-foreground-soft">
-          You confirmed {progress.confirmed} {progress.confirmed === 1 ? "item" : "items"} and
-          marked {progress.notApplicable} as not applicable
-          {progress.needsClarification > 0
-            ? `, with ${progress.needsClarification} still waiting on an answer from the funder`
-            : ""}
-          . {progress.unverifiedSource > 0
-            ? `${progress.unverifiedSource} of them could not be matched to a passage in your document, so check those against the award itself.`
-            : "Every confirmed item is traceable back to a passage in your document."}
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-wrap gap-2">
-        <Button asChild variant="primary" className="h-11 sm:h-10">
+    <div className="mb-3 rounded-lg border border-success-border bg-success-subtle px-4 py-3.5">
+      <h3 className="type-subhead flex items-center gap-2 text-foreground">
+        <CheckCheck className="size-4 shrink-0 text-success" aria-hidden="true" />
+        Every item has been through a person
+      </h3>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-foreground-soft">
+        You confirmed {progress.confirmed} {progress.confirmed === 1 ? "item" : "items"} and marked{" "}
+        {progress.notApplicable} as not applicable
+        {progress.needsClarification > 0
+          ? `, with ${progress.needsClarification} still waiting on an answer from the funder`
+          : ""}
+        . {progress.unverifiedSource > 0
+          ? `${progress.unverifiedSource} of them could not be matched to a passage in your document, so check those against the award itself.`
+          : "Every confirmed item is traceable back to a passage in your document."}
+      </p>
+      <div className="cluster mt-3">
+        <Button asChild variant="primary" size="sm" className="h-11 sm:h-9">
           <Link href={`/app/awards/${award.id}`}>Go to the award workspace</Link>
         </Button>
-        <Button asChild variant="secondary" className="h-11 sm:h-10">
+        <Button asChild variant="secondary" size="sm" className="h-11 sm:h-9">
           <a href={`/api/awards/${award.id}/export/csv`} download>
             <Download className="size-4" aria-hidden="true" />
             Export as CSV
           </a>
         </Button>
-        <Button asChild variant="secondary" className="h-11 sm:h-10">
+        <Button asChild variant="secondary" size="sm" className="h-11 sm:h-9">
           <a href={`/api/awards/${award.id}/export/ics`} download>
             <Download className="size-4" aria-hidden="true" />
             Add deadlines to a calendar
           </a>
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

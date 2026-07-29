@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { FileText, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { updateObligationAction } from "@/app/actions/obligations";
@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogBody,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -26,7 +27,9 @@ import {
 import {
   Field,
   FieldError,
+  FieldGroup,
   FieldHint,
+  FieldRow,
   Input,
   Label,
   NativeSelect,
@@ -71,6 +74,20 @@ interface EditorFields {
 type FieldErrors = Partial<Record<keyof EditorFields, string>>;
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Section legends, set as eyebrows.
+ *
+ * `FieldGroup` sets a legend in `.type-subhead` — the same step `DialogTitle`
+ * uses — and two headings at one size is not a hierarchy. Dropping them to the
+ * eyebrow treatment (the system's only small-caps label) puts them clearly
+ * above the field labels and clearly below the dialog title, which is what
+ * gives the form a spine.
+ */
+const GROUP = [
+  "[&>legend]:mb-2.5 [&>legend]:text-[11px] [&>legend]:font-semibold [&>legend]:uppercase",
+  "[&>legend]:leading-[1.3] [&>legend]:tracking-[0.085em] [&>legend]:text-muted-foreground",
+].join(" ");
 
 function initialFields(obligation: Obligation): EditorFields {
   return {
@@ -196,7 +213,18 @@ export function ObligationEditor({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl" onCloseAutoFocus={onCloseAutoFocus}>
+      {/*
+        A spine, rather than one long scrolling box. The dialog is a fixed
+        frame — title at the top, actions pinned at the bottom — and only the
+        middle moves. Inside it the fields are four named groups, each a real
+        `fieldset` with a `legend`, so the order of the form is legible both to
+        the eye and to a screen reader instead of being eleven controls in a
+        column.
+      */}
+      <DialogContent
+        className="flex max-w-2xl flex-col overflow-y-hidden"
+        onCloseAutoFocus={onCloseAutoFocus}
+      >
         <DialogHeader>
           <DialogTitle>Edit this requirement</DialogTitle>
           <DialogDescription>
@@ -205,174 +233,197 @@ export function ObligationEditor({
           </DialogDescription>
         </DialogHeader>
 
-        {isMachineWritten ? (
-          <p className="flex gap-2.5 rounded-md border border-border bg-muted px-3 py-2.5 text-xs leading-relaxed text-foreground-soft">
-            <Sparkles className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
-            <span>
-              AwardLens drafted this item from your document. Once you edit it, it is recorded as
-              yours rather than as machine output — and the original source citation stays
-              attached, so you can still see exactly where it came from.
-            </span>
-          </p>
-        ) : null}
+        <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
+          <DialogBody className="flex flex-col gap-5 py-px">
+            {isMachineWritten ? (
+              /*
+                Provenance, not magic. This used to carry a sparkle icon, which
+                is exactly the wrong claim for a product whose whole argument is
+                that a machine drafted something and a person has to own it.
+              */
+              <p className="flex gap-2.5 rounded-md border border-ink-accent-border bg-ink-accent-subtle px-3.5 py-3 text-xs leading-relaxed text-foreground-soft">
+                <FileText className="mt-px size-3.5 shrink-0 text-ink-accent" aria-hidden="true" />
+                <span>
+                  AwardLens drafted this item from your document. Once you edit it, it is recorded
+                  as yours rather than as machine output — and the original source citation stays
+                  attached, so you can still see exactly where it came from.
+                </span>
+              </p>
+            ) : null}
 
-        <form onSubmit={handleSubmit} noValidate className="grid gap-4">
-          <FieldError>{formError}</FieldError>
+            <FieldError>{formError}</FieldError>
 
-          <Field>
-            <Label htmlFor={`${titleId}-title-input`}>Title</Label>
-            <Input
-              id={`${titleId}-title-input`}
-              name="title"
-              value={fields.title}
-              onChange={(event) => set("title", event.target.value)}
-              maxLength={160}
-              required
-              aria-invalid={errors.title ? true : undefined}
-              aria-describedby={errors.title ? `${titleId}-title-error` : undefined}
-            />
-            <FieldError id={`${titleId}-title-error`}>{errors.title}</FieldError>
-          </Field>
+            <FieldGroup legend="What this requires" className={GROUP}>
+              <Field>
+                <Label htmlFor={`${titleId}-title-input`}>Title</Label>
+                <Input
+                  id={`${titleId}-title-input`}
+                  name="title"
+                  value={fields.title}
+                  onChange={(event) => set("title", event.target.value)}
+                  maxLength={160}
+                  required
+                  aria-invalid={errors.title ? true : undefined}
+                  aria-describedby={errors.title ? `${titleId}-title-error` : undefined}
+                />
+                <FieldError id={`${titleId}-title-error`}>{errors.title}</FieldError>
+              </Field>
 
-          <Field>
-            <Label htmlFor={`${titleId}-description`}>What has to happen</Label>
-            <Textarea
-              id={`${titleId}-description`}
-              name="description"
-              rows={4}
-              value={fields.description}
-              onChange={(event) => set("description", event.target.value)}
-              maxLength={2000}
-              required
-              aria-invalid={errors.description ? true : undefined}
-              aria-describedby={errors.description ? `${titleId}-description-error` : undefined}
-            />
-            <FieldError id={`${titleId}-description-error`}>{errors.description}</FieldError>
-          </Field>
+              <Field>
+                <Label htmlFor={`${titleId}-description`}>What has to happen</Label>
+                <Textarea
+                  id={`${titleId}-description`}
+                  name="description"
+                  rows={4}
+                  value={fields.description}
+                  onChange={(event) => set("description", event.target.value)}
+                  maxLength={2000}
+                  required
+                  aria-invalid={errors.description ? true : undefined}
+                  aria-describedby={errors.description ? `${titleId}-description-error` : undefined}
+                />
+                <FieldError id={`${titleId}-description-error`}>{errors.description}</FieldError>
+              </Field>
+            </FieldGroup>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <Label htmlFor={`${titleId}-category`}>Category</Label>
-              <NativeSelect
-                id={`${titleId}-category`}
-                name="category"
-                value={fields.category}
-                onChange={(event) => set("category", event.target.value as ObligationCategory)}
-              >
-                {OBLIGATION_CATEGORIES.map((category) => (
-                  <option key={category} value={category}>
-                    {CATEGORY_META[category].label}
-                  </option>
-                ))}
-              </NativeSelect>
-              <FieldHint>{CATEGORY_META[fields.category].description}</FieldHint>
-            </Field>
+            <div className="rule pt-5">
+              <FieldGroup legend="How it is filed" className={GROUP}>
+                <FieldRow>
+                  <Field>
+                    <Label htmlFor={`${titleId}-category`}>Category</Label>
+                    <NativeSelect
+                      id={`${titleId}-category`}
+                      name="category"
+                      value={fields.category}
+                      onChange={(event) => set("category", event.target.value as ObligationCategory)}
+                    >
+                      {OBLIGATION_CATEGORIES.map((category) => (
+                        <option key={category} value={category}>
+                          {CATEGORY_META[category].label}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                    <FieldHint>{CATEGORY_META[fields.category].description}</FieldHint>
+                  </Field>
 
-            <Field>
-              <Label htmlFor={`${titleId}-priority`}>Priority</Label>
-              <NativeSelect
-                id={`${titleId}-priority`}
-                name="priority"
-                value={fields.priority}
-                onChange={(event) => set("priority", event.target.value as ObligationPriority)}
-              >
-                {OBLIGATION_PRIORITIES.map((priority) => (
-                  <option key={priority} value={priority}>
-                    {PRIORITY_LABELS[priority]}
-                  </option>
-                ))}
-              </NativeSelect>
-              <FieldHint>Drives how early reminders start.</FieldHint>
-            </Field>
-          </div>
+                  <Field>
+                    <Label htmlFor={`${titleId}-priority`}>Priority</Label>
+                    <NativeSelect
+                      id={`${titleId}-priority`}
+                      name="priority"
+                      value={fields.priority}
+                      onChange={(event) => set("priority", event.target.value as ObligationPriority)}
+                    >
+                      {OBLIGATION_PRIORITIES.map((priority) => (
+                        <option key={priority} value={priority}>
+                          {PRIORITY_LABELS[priority]}
+                        </option>
+                      ))}
+                    </NativeSelect>
+                    <FieldHint>Drives how early reminders start.</FieldHint>
+                  </Field>
+                </FieldRow>
+              </FieldGroup>
+            </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <Label htmlFor={`${titleId}-due-date`}>Due date</Label>
-              <Input
-                id={`${titleId}-due-date`}
-                name="dueDate"
-                type="date"
-                value={fields.dueDate}
-                onChange={(event) => set("dueDate", event.target.value)}
-                aria-invalid={errors.dueDate ? true : undefined}
-                aria-describedby={`${titleId}-due-date-hint`}
-              />
-              <FieldHint id={`${titleId}-due-date-hint`}>
-                {obligation.originalDateText
-                  ? `The document says: “${obligation.originalDateText}”`
-                  : "Leave empty if the award does not give a date."}
-              </FieldHint>
-              <FieldError>{errors.dueDate}</FieldError>
-            </Field>
+            <div className="rule pt-5">
+              <FieldGroup legend="Timing" className={GROUP}>
+                <FieldRow>
+                  <Field>
+                    <Label htmlFor={`${titleId}-due-date`}>Due date</Label>
+                    <Input
+                      id={`${titleId}-due-date`}
+                      name="dueDate"
+                      type="date"
+                      value={fields.dueDate}
+                      onChange={(event) => set("dueDate", event.target.value)}
+                      aria-invalid={errors.dueDate ? true : undefined}
+                      aria-describedby={`${titleId}-due-date-hint`}
+                    />
+                    <FieldHint id={`${titleId}-due-date-hint`}>
+                      {obligation.originalDateText
+                        ? `The document says: “${obligation.originalDateText}”`
+                        : "Leave empty if the award does not give a date."}
+                    </FieldHint>
+                    <FieldError>{errors.dueDate}</FieldError>
+                  </Field>
 
-            <Field>
-              <Label htmlFor={`${titleId}-internal-date`}>Start work by</Label>
-              <Input
-                id={`${titleId}-internal-date`}
-                name="internalDueDate"
-                type="date"
-                value={fields.internalDueDate}
-                onChange={(event) => set("internalDueDate", event.target.value)}
-                aria-invalid={errors.internalDueDate ? true : undefined}
-                aria-describedby={`${titleId}-internal-date-hint`}
-              />
-              <FieldHint id={`${titleId}-internal-date-hint`}>
-                Your own internal date. Left empty, AwardLens works one out from the due date.
-              </FieldHint>
-              <FieldError>{errors.internalDueDate}</FieldError>
-            </Field>
-          </div>
+                  <Field>
+                    <Label htmlFor={`${titleId}-internal-date`}>Start work by</Label>
+                    <Input
+                      id={`${titleId}-internal-date`}
+                      name="internalDueDate"
+                      type="date"
+                      value={fields.internalDueDate}
+                      onChange={(event) => set("internalDueDate", event.target.value)}
+                      aria-invalid={errors.internalDueDate ? true : undefined}
+                      aria-describedby={`${titleId}-internal-date-hint`}
+                    />
+                    <FieldHint id={`${titleId}-internal-date-hint`}>
+                      Your own internal date. Left empty, AwardLens works one out from the due date.
+                    </FieldHint>
+                    <FieldError>{errors.internalDueDate}</FieldError>
+                  </Field>
+                </FieldRow>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field>
-              <Label htmlFor={`${titleId}-recurrence`}>Repeats</Label>
-              <Input
-                id={`${titleId}-recurrence`}
-                name="recurrence"
-                value={fields.recurrence}
-                onChange={(event) => set("recurrence", event.target.value)}
-                maxLength={80}
-                placeholder="e.g. quarterly"
-                aria-invalid={errors.recurrence ? true : undefined}
-              />
-              <FieldError>{errors.recurrence}</FieldError>
-            </Field>
+                <FieldRow>
+                  <Field>
+                    <Label htmlFor={`${titleId}-recurrence`}>Repeats</Label>
+                    <Input
+                      id={`${titleId}-recurrence`}
+                      name="recurrence"
+                      value={fields.recurrence}
+                      onChange={(event) => set("recurrence", event.target.value)}
+                      maxLength={80}
+                      placeholder="e.g. quarterly"
+                      aria-invalid={errors.recurrence ? true : undefined}
+                    />
+                    <FieldError>{errors.recurrence}</FieldError>
+                  </Field>
+                </FieldRow>
+              </FieldGroup>
+            </div>
 
-            <Field>
-              <Label htmlFor={`${titleId}-owner`}>Suggested owner</Label>
-              <Input
-                id={`${titleId}-owner`}
-                name="suggestedOwnerRole"
-                value={fields.suggestedOwnerRole}
-                onChange={(event) => set("suggestedOwnerRole", event.target.value)}
-                maxLength={80}
-                placeholder="e.g. Finance Director"
-                aria-invalid={errors.suggestedOwnerRole ? true : undefined}
-              />
-              <FieldError>{errors.suggestedOwnerRole}</FieldError>
-            </Field>
-          </div>
+            <div className="rule pt-5">
+              <FieldGroup legend="Ownership and notes" className={GROUP}>
+                <FieldRow>
+                  <Field>
+                    <Label htmlFor={`${titleId}-owner`}>Suggested owner</Label>
+                    <Input
+                      id={`${titleId}-owner`}
+                      name="suggestedOwnerRole"
+                      value={fields.suggestedOwnerRole}
+                      onChange={(event) => set("suggestedOwnerRole", event.target.value)}
+                      maxLength={80}
+                      placeholder="e.g. Finance Director"
+                      aria-invalid={errors.suggestedOwnerRole ? true : undefined}
+                    />
+                    <FieldError>{errors.suggestedOwnerRole}</FieldError>
+                  </Field>
+                </FieldRow>
 
-          <Field>
-            <Label htmlFor={`${titleId}-notes`}>Your notes</Label>
-            <Textarea
-              id={`${titleId}-notes`}
-              name="notes"
-              rows={3}
-              value={fields.notes}
-              onChange={(event) => set("notes", event.target.value)}
-              maxLength={2000}
-              aria-invalid={errors.notes ? true : undefined}
-            />
-            <FieldHint>
-              Anything your team needs to know — who you spoke to, what you agreed, what is still
-              open.
-            </FieldHint>
-            <FieldError>{errors.notes}</FieldError>
-          </Field>
+                <Field>
+                  <Label htmlFor={`${titleId}-notes`}>Your notes</Label>
+                  <Textarea
+                    id={`${titleId}-notes`}
+                    name="notes"
+                    rows={3}
+                    value={fields.notes}
+                    onChange={(event) => set("notes", event.target.value)}
+                    maxLength={2000}
+                    aria-invalid={errors.notes ? true : undefined}
+                  />
+                  <FieldHint>
+                    Anything your team needs to know — who you spoke to, what you agreed, what is
+                    still open.
+                  </FieldHint>
+                  <FieldError>{errors.notes}</FieldError>
+                </Field>
+              </FieldGroup>
+            </div>
+          </DialogBody>
 
-          <DialogFooter>
+          <DialogFooter className="rule pt-4">
             <Button
               type="button"
               variant="secondary"

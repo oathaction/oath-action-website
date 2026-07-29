@@ -230,11 +230,19 @@ export function SourcePanel({
         an anonymous scrollable group. Labelling it by the document heading
         means focus lands somewhere that announces what it is.
       */}
+      {/*
+        `relative` is load-bearing, not decoration. The cited passage carries
+        `sr-only` markers, and `sr-only` is `position:absolute`; with no
+        positioned ancestor those markers resolve against the initial containing
+        block, escape this scroller entirely and add their document offset —
+        several thousand pixels down a long award — to the page's scroll height.
+        Establishing a containing block here keeps them inside the panel.
+      */}
       <div
         role="region"
         aria-labelledby="source-panel-heading"
         tabIndex={0}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
         {segments.length === 0 ? (
           <EmptyState
@@ -299,10 +307,18 @@ function SegmentText({ segment, citation, ref }: SegmentTextProps) {
       ref={ref}
       data-active={isActive ? "true" : undefined}
       className={cn(
-        "scroll-mt-12 rounded-md border-l-2 px-3 py-1.5 transition-colors",
-        // --highlight-rule is 3.32:1 on --paper, so the active edge clears the
-        // 3:1 asked of a non-text boundary.
-        isActive ? "border-highlight-rule bg-highlight-wash" : "border-transparent",
+        "scroll-mt-12 border-l-2 px-3 py-1 transition-colors",
+        /*
+         * A marginal rule, not a wash. A stored segment is often a whole page,
+         * and tinting a page of body text to say "the sentence you want is
+         * somewhere in here" spends the colour budget on the haystack. The
+         * needle gets the colour instead: `.evidence-mark` on the sentence, and
+         * a change-bar down the margin of the passage it sits in.
+         *
+         * --highlight-rule is 3.32:1 on --paper, clearing the 3:1 WCAG 1.4.11
+         * asks of a non-text boundary.
+         */
+        isActive ? "border-highlight-rule" : "border-transparent",
       )}
     >
       {isActive ? (
