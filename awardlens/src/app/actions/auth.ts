@@ -27,9 +27,8 @@ export interface AuthState {
   devCode?: string;
 }
 
-// [E2E SCRATCH PATCH — TO BE REVERTED] moved out of the "use server" module.
-const initialAuthState: AuthState = { status: "idle", email: "", message: null };
-void initialAuthState;
+// A "use server" module may only export async functions, so the form's initial
+// state lives with the form rather than here.
 
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address.");
 const codeSchema = z.string().trim().regex(/^\d{6}$/, "Enter the six-digit code.");

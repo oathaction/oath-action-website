@@ -13,7 +13,6 @@ import {
   type AuthState,
 } from "@/app/actions/auth";
 
-// [E2E SCRATCH PATCH — TO BE REVERTED]
 const initialAuthState: AuthState = { status: "idle", email: "", message: null };
 
 function SubmitButton({ children }: { children: React.ReactNode }) {
