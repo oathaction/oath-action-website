@@ -180,6 +180,14 @@ export function ReviewWorkspace({
     setLastEditorTargetId(obligationId);
   }, []);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
+  // Kept after the dialog closes, for the same reason as `lastEditorTargetId`:
+  // `onCloseAutoFocus` runs once the id has already been cleared.
+  const [lastDeleteTargetId, setLastDeleteTargetId] = React.useState<string | null>(null);
+
+  const openDeleteDialog = React.useCallback((obligationId: string) => {
+    setDeleteTargetId(obligationId);
+    setLastDeleteTargetId(obligationId);
+  }, []);
   const [bulkOpen, setBulkOpen] = React.useState(false);
   const [sourceDrawerOpen, setSourceDrawerOpen] = React.useState(false);
   const [legendOpen, setLegendOpen] = React.useState(false);
@@ -261,16 +269,30 @@ export function ReviewWorkspace({
   }, []);
 
   /**
-   * Returns focus after a dialog closes without a server round trip — Escape,
-   * Cancel, an overlay click. Radix has already finished tearing down its focus
-   * scope by the time this runs, and no re-render is coming, so focusing
-   * immediately is both correct and stable.
+   * Returns focus when a dialog closes with no server round trip — Escape,
+   * Cancel, an overlay click.
+   *
+   * This MUST be called from Radix's `onCloseAutoFocus`, not from
+   * `onOpenChange`. `onOpenChange` fires when Radix decides to close, before
+   * the focus scope tears down; `FocusScope` restores focus in its unmount
+   * cleanup afterwards, so anything focused in `onOpenChange` is immediately
+   * overwritten and focus lands on <body>. `onCloseAutoFocus` is the point
+   * Radix is about to move focus itself, which is exactly where we want to take
+   * over — so the handler also calls `preventDefault()`.
    */
   const restoreFocusTo = React.useCallback(
     (obligationId: string | null) => {
       focusRow(obligationId);
     },
     [focusRow],
+  );
+
+  const handleCloseAutoFocus = React.useCallback(
+    (obligationId: string | null) => (event: Event) => {
+      event.preventDefault();
+      restoreFocusTo(obligationId);
+    },
+    [restoreFocusTo],
   );
 
   /**
@@ -854,7 +876,7 @@ export function ReviewWorkspace({
                                 variant="ghost"
                                 className="h-11 text-destructive hover:bg-destructive-subtle hover:text-destructive sm:h-8"
                                 disabled={pending}
-                                onClick={() => setDeleteTargetId(obligation.id)}
+                                onClick={() => openDeleteDialog(obligation.id)}
                               >
                                 <Trash2 className="size-4" aria-hidden="true" />
                                 Delete
@@ -915,15 +937,13 @@ export function ReviewWorkspace({
           open={editorTargetId !== null}
           onOpenChange={(open) => {
             if (open) return;
-            const returnTo = editorTargetId;
             setEditorTargetId(null);
-            // The editor closes both ways: Escape or Cancel (no server call)
-            // and a successful save (which revalidates). Do both — focus now
-            // for the first case, and again after the refresh for the second.
-            // The row survives either way, so the two land in the same place.
-            restoreFocusTo(returnTo);
-            focusAfterRefresh(returnTo);
+            // Save also revalidates the route, so re-apply focus once the
+            // refreshed list renders. `onCloseAutoFocus` below covers the
+            // Escape and Cancel paths, where no re-render is coming.
+            focusAfterRefresh(lastEditorTargetId);
           }}
+          onCloseAutoFocus={handleCloseAutoFocus(lastEditorTargetId)}
         />
       ) : null}
 
@@ -931,12 +951,15 @@ export function ReviewWorkspace({
         open={deleteTarget !== null}
         onOpenChange={(open) => {
           if (open) return;
-          const returnTo = deleteTargetId;
           setDeleteTargetId(null);
-          restoreFocusTo(returnTo);
         }}
       >
-        <DialogContent>
+        {/*
+          Cancelling returns to the row. Confirming is handled separately in
+          `handleDelete`, which knows the row is gone and hands the next one to
+          the render-driven path.
+        */}
+        <DialogContent onCloseAutoFocus={handleCloseAutoFocus(lastDeleteTargetId)}>
           <DialogHeader>
             <DialogTitle>Delete this item?</DialogTitle>
             <DialogDescription>

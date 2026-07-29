@@ -47,6 +47,13 @@ interface ObligationEditorProps {
   onOpenChange: (open: boolean) => void;
   /** Called after a successful save, so the queue can move on. */
   onSaved?: () => void;
+  /**
+   * Radix's own hook for "the dialog is closing and is about to move focus".
+   * Callers that opened this dialog programmatically have no trigger for Radix
+   * to restore to, so they pass this to place focus themselves. It is the only
+   * point that reliably runs *after* the focus scope tears down.
+   */
+  onCloseAutoFocus?: (event: Event) => void;
 }
 
 interface EditorFields {
@@ -118,6 +125,7 @@ export function ObligationEditor({
   open,
   onOpenChange,
   onSaved,
+  onCloseAutoFocus,
 }: ObligationEditorProps) {
   const [fields, setFields] = React.useState<EditorFields>(() => initialFields(obligation));
   const [errors, setErrors] = React.useState<FieldErrors>({});
@@ -188,7 +196,7 @@ export function ObligationEditor({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl" onCloseAutoFocus={onCloseAutoFocus}>
         <DialogHeader>
           <DialogTitle>Edit this requirement</DialogTitle>
           <DialogDescription>

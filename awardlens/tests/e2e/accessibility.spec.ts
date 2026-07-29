@@ -284,22 +284,22 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
 
+    // Polled, not sampled once: restoring focus can legitimately take a render.
+    // Bounded at five seconds, because a restore a user would sit and wait for
+    // is not a restore. The end state is what the guarantee is about — focus
+    // must come back to the item, not to <body> and not to somewhere unrelated.
     const queue = page.getByRole("list", { name: "Obligations awaiting review" });
+    await expect
+      .poll(() => describeFocus(page), {
+        timeout: 5_000,
+        message: "focus did not return to the item that was being edited",
+      })
+      .toContain(obligationTitle);
+
     await expect(
       queue.locator(":focus"),
-      "focus did not return to the review queue after the editor closed",
+      "focus landed on the right label but outside the review queue",
     ).toHaveCount(1);
-
-    const restored = await page.evaluate(() => {
-      const active = document.activeElement as HTMLElement | null;
-      if (!active || active === document.body) return null;
-      return active.getAttribute("aria-label") ?? active.textContent?.trim().slice(0, 80) ?? "";
-    });
-    expect(restored, "focus fell to <body> when the editor closed").not.toBeNull();
-    expect(
-      restored,
-      "focus returned somewhere unrelated to the item that was being edited",
-    ).toContain(obligationTitle);
 
     /* ------------------------------------------------- delete, and after -- */
 
@@ -316,10 +316,13 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
     // First, back out: the row is still there, so focus goes back to it.
     await page.keyboard.press("Escape");
     await expect(deleteDialog.getByRole("heading", { name: "Delete this item?" })).toBeHidden();
-    await expect(
-      queue.locator(":focus"),
-      "focus did not return to the queue after cancelling a delete",
-    ).toHaveCount(1);
+    await expect
+      .poll(() => describeFocus(page), {
+        timeout: 5_000,
+        message: "focus did not return to the queue after cancelling a delete",
+      })
+      .not.toBe(NO_FOCUS);
+    await expect(queue.locator(":focus")).toHaveCount(1);
 
     // Now go through with it. The row disappears underneath the dialog.
     await rail.getByRole("button", { name: "Delete" }).click();
