@@ -398,12 +398,15 @@ export function EvidenceRail({
               isMachineWritten ? (
                 <ConfidenceBadge key="confidence" confidence={obligation.confidence} />
               ) : null,
-              obligation.suggestedOwnerRole ? (
-                <span key="owner" className="text-xs text-ink-document-soft">
-                  Suggested owner: {obligation.suggestedOwnerRole}
-                </span>
-              ) : null,
             ])}
+            {/* basis-full: the owner always takes its own line rather than
+                sometimes trailing the provenance run and sometimes wrapping
+                under it, which made narrow columns look accidental. */}
+            {obligation.suggestedOwnerRole ? (
+              <span className="basis-full text-xs text-ink-document-soft">
+                Suggested owner: {obligation.suggestedOwnerRole}
+              </span>
+            ) : null}
           </div>
         </div>
 
