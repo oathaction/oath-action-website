@@ -9,7 +9,9 @@ import { analysePastedAward, signIn, uniqueEmail } from "./helpers";
  * the people an organisation serves. Every authenticated route resolves through
  * `requireSession()` and then scopes its query by organisation id; this spec
  * attacks that boundary directly with a real award id belonging to somebody
- * else, and checks not just the status code but the bytes that come back.
+ * else, and checks both halves of the guarantee: a genuine 404 status, and — the
+ * half that actually protects a tenant — no trace of the award in the bytes that
+ * come back.
  */
 
 const CANARY = `CANARY-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -105,19 +107,20 @@ test("the owner can see their own award", async () => {
 });
 
 test("another organisation cannot open the award workspace", async () => {
-  await intruderPage.goto(`/app/awards/${awardId}`);
+  const response = await intruderPage.goto(`/app/awards/${awardId}`);
 
+  expect(response?.status(), "an award belonging to someone else was served").toBe(404);
   await expect(
     intruderPage.getByRole("heading", { name: /We couldn’t find that/ }),
-    "an award belonging to someone else was served",
   ).toBeVisible();
 
   expectNoLeak(await intruderPage.content(), "the award workspace");
 });
 
 test("another organisation cannot open the review queue", async () => {
-  await intruderPage.goto(`/app/awards/${awardId}/review`);
+  const response = await intruderPage.goto(`/app/awards/${awardId}/review`);
 
+  expect(response?.status()).toBe(404);
   await expect(intruderPage.getByRole("heading", { name: /We couldn’t find that/ })).toBeVisible();
   await expect(
     intruderPage.getByRole("heading", { name: "Review what this award requires" }),
@@ -130,8 +133,9 @@ test("another organisation cannot open the review queue", async () => {
 });
 
 test("another organisation cannot open the obligation register", async () => {
-  await intruderPage.goto(`/app/awards/${awardId}/obligations`);
+  const response = await intruderPage.goto(`/app/awards/${awardId}/obligations`);
 
+  expect(response?.status()).toBe(404);
   await expect(intruderPage.getByRole("heading", { name: /We couldn’t find that/ })).toBeVisible();
   await expect(intruderPage.getByRole("article")).toHaveCount(0);
   await expect(intruderPage.getByRole("table")).toHaveCount(0);
@@ -142,10 +146,10 @@ test("another organisation cannot open the obligation register", async () => {
 test("the other authenticated views of the award are closed too", async () => {
   // Ask and the printable operating plan read the same workspace.
   for (const suffix of ["/ask", "/plan"]) {
-    await intruderPage.goto(`/app/awards/${awardId}${suffix}`);
+    const response = await intruderPage.goto(`/app/awards/${awardId}${suffix}`);
+    expect(response?.status(), `${suffix} was served to another organisation`).toBe(404);
     await expect(
       intruderPage.getByRole("heading", { name: /We couldn’t find that/ }),
-      `${suffix} was served to another organisation`,
     ).toBeVisible();
     expectNoLeak(await intruderPage.content(), suffix);
   }

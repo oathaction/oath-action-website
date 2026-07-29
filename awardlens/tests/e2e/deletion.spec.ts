@@ -127,7 +127,8 @@ test("deleting the award requires typing the word, then removes it everywhere", 
   await expect(page.getByText(sampleTitle)).toHaveCount(0);
 
   // And the award is genuinely gone, not merely hidden.
-  await page.goto(`/app/awards/${awardId}`);
+  const response = await page.goto(`/app/awards/${awardId}`);
+  expect(response?.status(), "a deleted award still resolves").toBe(404);
   await expect(page.getByRole("heading", { name: /We couldn’t find that/ })).toBeVisible();
 
   const gone = await page.request.get(`/api/awards/${awardId}/export/json`);
