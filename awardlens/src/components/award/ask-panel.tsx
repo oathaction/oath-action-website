@@ -74,9 +74,7 @@ export function AskPanel({ awardId }: { awardId: string }) {
                 disabled={pending}
                 placeholder="e.g. Does this award require prior approval before we move money between budget lines?"
               />
-              <FieldHint>
-                Answered only from this award&rsquo;s documents. Press Enter to ask.
-              </FieldHint>
+              <FieldHint>Answered only from this award&rsquo;s own documents.</FieldHint>
             </Field>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
@@ -84,7 +82,7 @@ export function AskPanel({ awardId }: { awardId: string }) {
                 <Search className="size-4" aria-hidden="true" />
                 {pending ? "Searching the document…" : "Ask"}
               </Button>
-              <p aria-hidden="true" className="type-caption font-normal text-muted-foreground">
+              <p className="type-caption font-normal text-muted-foreground">
                 <Kbd>Enter</Kbd> to ask · <Kbd>Shift</Kbd> <Kbd>Enter</Kbd> for a new line
               </p>
             </div>

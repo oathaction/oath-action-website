@@ -87,8 +87,11 @@ export default async function AskPage(props: {
                         ))}
                       </div>
 
+                      {/* Labelled, because "Uncertain" as an answer type and
+                          "Uncertain" as a basis are different claims and would
+                          otherwise read as the same word printed twice. */}
                       <p className="type-caption mt-3 font-normal text-muted-foreground">
-                        {INTERPRETATION_LABELS[exchange.interpretationLevel]}
+                        Basis: {INTERPRETATION_LABELS[exchange.interpretationLevel]}
                       </p>
                     </div>
 

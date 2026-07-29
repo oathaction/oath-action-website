@@ -577,7 +577,10 @@ function ObligationRow({
         hidden={!open}
         className="border-t border-border-subtle px-4 pb-4 pt-3.5 sm:pl-5 sm:pr-4"
       >
-        <div className="stack-md">
+        {/* Indented into the title's column so the detail reads as belonging to
+            the requirement rather than to the row. */}
+        <div className="sm:grid sm:grid-cols-[7.5rem_minmax(0,1fr)] sm:gap-x-4">
+          <div className="stack-md sm:col-start-2">
           <p className="type-small max-w-[74ch] text-foreground-soft">{obligation.description}</p>
 
           {obligation.originalDateText && !obligation.dueDate ? (
@@ -615,7 +618,7 @@ function ObligationRow({
           {/* The provenance panel: warm paper, serif at reading size, a mono
               locator. It should look like a piece of the document lifted into
               the row rather than more interface. */}
-          <div className="overflow-hidden rounded-md border border-paper-border bg-paper">
+          <div className="max-w-3xl overflow-hidden rounded-md border border-paper-border bg-paper">
             {hasCitation && primaryCitation ? (
               <figure>
                 <figcaption className="flex items-center gap-1.5 px-4 pb-1.5 pt-2.5">
@@ -696,7 +699,8 @@ function ObligationRow({
             </p>
           ) : null}
 
-          <ObligationEscapes obligation={obligation} awardId={awardId} />
+            <ObligationEscapes obligation={obligation} awardId={awardId} />
+          </div>
         </div>
       </div>
     </article>
