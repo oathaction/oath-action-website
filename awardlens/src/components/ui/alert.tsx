@@ -70,11 +70,9 @@ export interface AlertProps
 export function Alert({ className, variant, size, icon, children, ...props }: AlertProps) {
   if (!icon) {
     return (
-      <div
-        role="alert"
-        className={cn(alertVariants({ variant, size }), className)}
-        {...props}
-      />
+      <div role="alert" className={cn(alertVariants({ variant, size }), className)} {...props}>
+        {children}
+      </div>
     );
   }
 

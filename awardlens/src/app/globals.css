@@ -50,8 +50,8 @@
    * document with the amber alert colour. That combination — a warm wash under
    * cool slate ink — is exactly what made the review workspace read muddy.
    */
-  --paper: #fdfcf8;
-  --paper-border: #eae5da;
+  --paper: #fbf9f3; /* --ink-document 13.36:1, --ink-document-soft 7.30:1, --muted-foreground 5.68:1 */
+  --paper-border: #e8e2d4;
 
   /* --------------------------------------------------------------- Ink --- */
   --foreground: #12181f; /* deep ink, 17.11:1 on background */
@@ -62,8 +62,8 @@
    * cream page is the specific pairing that reads dirty; matching the ink's
    * temperature to the paper's is what makes a quote look printed.
    */
-  --ink-document: #2f2b25; /* 13.70:1 on --paper, 14.06:1 on --surface */
-  --ink-document-soft: #59524a; /* 7.49:1 on --paper, 7.69:1 on --surface */
+  --ink-document: #2f2b25; /* 13.36:1 on --paper, 14.06:1 on --surface */
+  --ink-document-soft: #59524a; /* 7.30:1 on --paper, 7.69:1 on --surface */
 
   /* ------------------------------------------------------------ Action --- */
   --primary: #0f5c4a; /* evergreen, 7.92:1 on white */

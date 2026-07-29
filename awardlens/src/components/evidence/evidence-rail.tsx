@@ -43,6 +43,28 @@ import { cn, daysUntil, formatIsoDate, truncate } from "@/lib/utils";
 /** Bands where the model is not confident enough to be quiet about it. */
 const CONFIDENCE_ATTENTION = 0.6;
 
+/**
+ * Joins inline metadata with hairline separators.
+ *
+ * The separators are real elements rather than a CSS `::before`, because some
+ * of these items are pills with their own `::before` marker, and because an
+ * `aria-hidden` span keeps "middle dot" out of the screen-reader stream. Nulls
+ * are dropped first so an absent item never leaves a dangling dot.
+ */
+function separated(nodes: React.ReactNode[]): React.ReactNode[] {
+  const present = nodes.filter(Boolean);
+  return present.flatMap((node, index) =>
+    index === 0
+      ? [node]
+      : [
+          <span key={`sep-${index}`} aria-hidden="true" className="text-border-strong">
+            ·
+          </span>,
+          node,
+        ],
+  );
+}
+
 export function ConfidenceBadge({
   confidence,
   emphasis,
@@ -362,17 +384,23 @@ export function EvidenceRail({
             Quiet by default: this line is identical on most items, and it only
             earns colour when something is actually off.
           */}
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-paper-border/70 bg-paper px-4 py-2 text-xs">
-            <SourceStatusBadge status={obligation.sourceStatus} />
-            <Badge variant="neutral" emphasis="bare">
-              {isMachineWritten ? INTERPRETATION_LABELS[obligation.interpretationLevel] : "Added by you"}
-            </Badge>
-            {isMachineWritten ? <ConfidenceBadge confidence={obligation.confidence} /> : null}
-            {obligation.suggestedOwnerRole ? (
-              <span className="text-xs text-ink-document-soft">
-                Suggested owner: {obligation.suggestedOwnerRole}
-              </span>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-paper-border/70 bg-paper px-4 py-2 text-xs">
+            {separated([
+              <SourceStatusBadge key="source" status={obligation.sourceStatus} />,
+              <Badge key="basis" variant="neutral" emphasis="bare">
+                {isMachineWritten
+                  ? INTERPRETATION_LABELS[obligation.interpretationLevel]
+                  : "Added by you"}
+              </Badge>,
+              isMachineWritten ? (
+                <ConfidenceBadge key="confidence" confidence={obligation.confidence} />
+              ) : null,
+              obligation.suggestedOwnerRole ? (
+                <span key="owner" className="text-xs text-ink-document-soft">
+                  Suggested owner: {obligation.suggestedOwnerRole}
+                </span>
+              ) : null,
+            ])}
           </div>
         </div>
 

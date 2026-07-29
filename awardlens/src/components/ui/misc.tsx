@@ -71,7 +71,9 @@ export function Progress({
   return (
     <ProgressPrimitive.Root
       className={cn(
-        "relative h-1.5 w-full overflow-hidden rounded-full bg-muted shadow-[inset_0_1px_1px_rgb(44_36_22/0.06)]",
+        // A translucent warm groove rather than a solid fill, so the track still
+        // reads as a track on a tinted panel and not only on white.
+        "relative h-1.5 w-full overflow-hidden rounded-full bg-[rgb(44_36_22/0.1)]",
         className,
       )}
       value={value}
