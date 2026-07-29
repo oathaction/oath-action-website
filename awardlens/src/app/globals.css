@@ -99,10 +99,10 @@
    */
   --highlight-subtle: #fcf0d2; /* mark fill; --foreground on it is 15.76:1 */
   --highlight-wash: #fdf8ee; /* the active segment's background */
-  --highlight-rule: #c08a1e; /* underline / edge, 3.02:1 on --highlight-subtle */
+  --highlight-rule: #b57f18; /* underline / edge — 3.08:1 on --highlight-subtle, 3.49:1 on white */
 
   /* -------------------------------------------------------------- Risk --- */
-  --destructive: #b3261e; /* 6.61:1 on white, 5.72:1 on --destructive-subtle */
+  --destructive: #b3261e; /* 6.54:1 on white, 5.72:1 on --destructive-subtle */
   --destructive-hover: #8f1d17;
   --destructive-foreground: #ffffff;
   --destructive-subtle: #fdecea;

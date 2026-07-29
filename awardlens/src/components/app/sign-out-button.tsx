@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, UserRound } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 import { signOutAction } from "@/app/actions/auth";
 import {
@@ -12,19 +12,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/navigation";
 
-export function SignOutButton({ email }: { email: string }) {
+/**
+ * The account control in the application header.
+ *
+ * The trigger draws the initial of the signed-in address rather than a generic
+ * person glyph: on a product where two people at the same nonprofit share a
+ * laptop, "who am I signed in as" is a question the chrome should answer
+ * without being opened. The accessible name still carries the full address, so
+ * nothing is lost to anyone reading the page rather than looking at it.
+ */
+export function SignOutButton({
+  email,
+  organizationName,
+}: {
+  email: string;
+  organizationName?: string;
+}) {
+  const initial = (email.trim()[0] ?? "?").toUpperCase();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex size-9 items-center justify-center rounded-full border border-border bg-surface text-foreground-soft transition-colors hover:bg-muted"
+        className="flex size-9 items-center justify-center rounded-full border border-border-control bg-surface text-[13px] font-semibold text-foreground-soft shadow-xs transition-colors hover:bg-muted hover:text-foreground"
         aria-label={`Account menu for ${email}`}
       >
-        <UserRound className="size-4" aria-hidden="true" />
+        <span aria-hidden="true">{initial}</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuLabel className="max-w-52 truncate font-normal text-foreground">
-          {email}
-        </DropdownMenuLabel>
+        {organizationName ? (
+          <DropdownMenuLabel>{organizationName}</DropdownMenuLabel>
+        ) : null}
+        <div className="max-w-56 truncate px-2.5 pb-2 pt-1 text-sm text-foreground">{email}</div>
         <DropdownMenuSeparator />
 
         {/*

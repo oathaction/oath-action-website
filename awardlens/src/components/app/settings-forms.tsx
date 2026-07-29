@@ -37,6 +37,13 @@ function useAction() {
   return { pending, run };
 }
 
+/*
+ * Both of these used to be `flex items-end`, which put Save on the baseline of
+ * whatever the field happened to end with — level with the input in one form
+ * and level with the hint text in the other, so the same control landed at two
+ * different heights on one page. Stacking the action under the field is one
+ * rule that holds for every form here, hint or no hint.
+ */
 export function ProfileForm({ fullName }: { fullName: string }) {
   const { pending, run } = useAction();
   return (
@@ -45,13 +52,13 @@ export function ProfileForm({ fullName }: { fullName: string }) {
         event.preventDefault();
         run(updateProfileAction, new FormData(event.currentTarget));
       }}
-      className="flex flex-wrap items-end gap-3"
+      className="stack-md"
     >
-      <Field className="min-w-56 flex-1">
+      <Field className="max-w-sm">
         <Label htmlFor="fullName">Your name</Label>
         <Input id="fullName" name="fullName" defaultValue={fullName} maxLength={120} />
       </Field>
-      <Button type="submit" variant="secondary" disabled={pending}>
+      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
         Save
       </Button>
     </form>
@@ -66,14 +73,14 @@ export function OrganizationForm({ name }: { name: string }) {
         event.preventDefault();
         run(updateOrganizationAction, new FormData(event.currentTarget));
       }}
-      className="flex flex-wrap items-end gap-3"
+      className="stack-md"
     >
-      <Field className="min-w-56 flex-1">
+      <Field className="max-w-sm">
         <Label htmlFor="orgName">Organisation name</Label>
         <Input id="orgName" name="name" defaultValue={name} maxLength={120} required />
         <FieldHint>Appears on exports and the printable operating plan.</FieldHint>
       </Field>
-      <Button type="submit" variant="secondary" disabled={pending}>
+      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
         Save
       </Button>
     </form>
@@ -102,7 +109,7 @@ export function NotificationForm({
         for (const offset of selected) data.append("offsets", String(offset));
         run(updateNotificationPreferencesAction, data);
       }}
-      className="space-y-4"
+      className="stack-lg"
     >
       <div className="flex items-center gap-2.5">
         <Checkbox
@@ -113,9 +120,12 @@ export function NotificationForm({
         <Label htmlFor="reminders-enabled">Email me before confirmed deadlines</Label>
       </div>
 
-      <fieldset disabled={!isEnabled} className="disabled:opacity-50">
-        <legend className="text-sm font-medium">Send reminders</legend>
-        <div className="mt-2 flex flex-wrap gap-4">
+      <fieldset
+        disabled={!isEnabled}
+        className="rounded-md border border-border-subtle bg-surface-sunken/60 px-4 py-3.5 transition-opacity disabled:opacity-55"
+      >
+        <legend className="eyebrow px-1 text-muted-foreground">Send reminders</legend>
+        <div className="flex flex-wrap gap-x-5 gap-y-2.5">
           {allOffsets.map((offset) => (
             <div key={offset} className="flex items-center gap-2">
               <Checkbox
@@ -129,7 +139,7 @@ export function NotificationForm({
                   )
                 }
               />
-              <Label htmlFor={`offset-${offset}`} className="font-normal">
+              <Label htmlFor={`offset-${offset}`} className="text-[13px] font-normal">
                 {offset} {offset === 1 ? "day" : "days"} before
               </Label>
             </div>
@@ -137,7 +147,7 @@ export function NotificationForm({
         </div>
       </fieldset>
 
-      <Button type="submit" variant="secondary" disabled={pending}>
+      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
         Save reminder settings
       </Button>
     </form>
@@ -148,10 +158,16 @@ export function PlanButton({ planId, planName }: { planId: PlanId; planName: str
   const [pending, startTransition] = useTransition();
 
   return (
+    /*
+     * Secondary, not primary. Three filled evergreen bars down a plan grid
+     * spend the action colour on a choice nobody came to this page to make;
+     * the tint on the *current* plan is what should be carrying colour here.
+     */
     <Button
       type="button"
+      variant="secondary"
       size="sm"
-      className="mt-3 w-full"
+      className="w-full"
       disabled={pending}
       onClick={() => {
         const data = new FormData();

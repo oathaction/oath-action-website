@@ -3,16 +3,20 @@ import Link from "next/link";
 import {
   AlertTriangle,
   ArrowRight,
+  BookMarked,
   CalendarClock,
+  CheckCheck,
   CircleHelp,
+  Download,
   FileSearch,
+  ListChecks,
   Plus,
   ShieldAlert,
 } from "lucide-react";
 
 import { requireSession } from "@/lib/auth";
 import { getDashboardData, type DeadlineEntry } from "@/lib/awards/queries";
-import { Button } from "@/components/ui/button";
+import { Button, ButtonRow } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CATEGORY_META } from "@/lib/domain/types";
@@ -25,20 +29,22 @@ export default async function DashboardPage() {
   const data = await getDashboardData(session.organization.id);
 
   if (data.awards.length === 0) {
-    return <EmptyState organizationName={session.organization.name} />;
+    return <FirstRun organizationName={session.organization.name} />;
   }
 
   return (
     <div className="container-page pt-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {session.organization.name}
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {data.activeAwards.length} active{" "}
-            {data.activeAwards.length === 1 ? "award" : "awards"} ·{" "}
-            {data.awaitingReview} {data.awaitingReview === 1 ? "item" : "items"} awaiting review
+        <div className="stack-xs">
+          <h1 className="type-heading">{session.organization.name}</h1>
+          <p className="meta-row type-small text-muted-foreground">
+            <span>
+              {data.activeAwards.length} active{" "}
+              {data.activeAwards.length === 1 ? "award" : "awards"}
+            </span>
+            <span>
+              {data.awaitingReview} {data.awaitingReview === 1 ? "item" : "items"} awaiting review
+            </span>
           </p>
         </div>
         <Button asChild>
@@ -50,18 +56,16 @@ export default async function DashboardPage() {
       </div>
 
       {data.awaitingReview > 0 ? (
-        <div className="mt-6 rounded-lg border border-ink-accent-subtle bg-ink-accent-subtle px-4 py-3">
-          <p className="text-sm text-ink-accent">
-            <span className="font-semibold">
-              {data.awaitingReview} extracted {data.awaitingReview === 1 ? "item has" : "items have"}{" "}
-              not been reviewed yet.
-            </span>{" "}
-            Nothing is treated as confirmed until you check it against the award document.
-          </p>
-        </div>
+        <p className="mt-6 rounded-lg border border-ink-accent-border bg-ink-accent-subtle px-4 py-3 text-sm leading-relaxed text-ink-accent">
+          <span className="font-semibold">
+            {data.awaitingReview} extracted {data.awaitingReview === 1 ? "item has" : "items have"}{" "}
+            not been reviewed yet.
+          </span>{" "}
+          Nothing is treated as confirmed until you check it against the award document.
+        </p>
       ) : null}
 
-      <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Overdue"
           value={data.overdue.length}
@@ -86,22 +90,22 @@ export default async function DashboardPage() {
           tone={data.unverifiedSources > 0 ? "warning" : "neutral"}
           icon={<ShieldAlert className="size-4" aria-hidden="true" />}
         />
-      </div>
+      </dl>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1.6fr_1fr]">
         <section aria-labelledby="upcoming-heading">
-          <h2 id="upcoming-heading" className="text-lg font-semibold tracking-tight">
+          <h2 id="upcoming-heading" className="type-subhead">
             What&rsquo;s coming up
           </h2>
 
           {data.overdue.length + data.dueIn30.length + data.dueIn60.length + data.dueIn90.length ===
           0 ? (
-            <p className="mt-3 rounded-lg border border-dashed border-border-strong bg-surface px-4 py-6 text-sm text-muted-foreground">
+            <p className="measure mt-3 rounded-lg border border-dashed border-border-strong bg-surface/60 px-5 py-8 text-sm leading-relaxed text-muted-foreground">
               No dated deadlines in the next 90 days. Requirements without a fixed calendar date
               still appear in each award&rsquo;s register.
             </p>
           ) : (
-            <div className="mt-3 space-y-6">
+            <div className="mt-4 stack-lg">
               <DeadlineGroup title="Overdue" entries={data.overdue} tone="destructive" />
               <DeadlineGroup title="Next 30 days" entries={data.dueIn30} tone="warning" />
               <DeadlineGroup title="31–60 days" entries={data.dueIn60} tone="neutral" />
@@ -110,9 +114,9 @@ export default async function DashboardPage() {
           )}
         </section>
 
-        <div className="space-y-6">
+        <div className="stack-xl">
           <section aria-labelledby="questions-heading">
-            <h2 id="questions-heading" className="text-lg font-semibold tracking-tight">
+            <h2 id="questions-heading" className="type-subhead">
               Open questions
             </h2>
             {data.openQuestions.length === 0 ? (
@@ -120,26 +124,25 @@ export default async function DashboardPage() {
                 No unresolved questions right now.
               </p>
             ) : (
-              <ul className="mt-3 space-y-3">
+              <ul className="mt-4 space-y-2.5">
                 {data.openQuestions.map(({ obligation, award }) => (
-                  <li
-                    key={obligation.id}
-                    className="rounded-lg border border-border bg-surface p-3.5"
-                  >
-                    <p className="flex items-start gap-2 text-sm leading-relaxed text-foreground-soft">
-                      <CircleHelp
-                        className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                        aria-hidden="true"
-                      />
-                      {obligation.clarificationQuestion}
-                    </p>
-                    <Link
-                      href={`/app/awards/${award.id}/review`}
-                      className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
-                    >
-                      {award.name}
-                      <ArrowRight className="size-3" aria-hidden="true" />
-                    </Link>
+                  <li key={obligation.id}>
+                    <Card className="card-pad-tight">
+                      <p className="flex items-start gap-2.5 text-sm leading-relaxed text-foreground-soft">
+                        <CircleHelp
+                          className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                          aria-hidden="true"
+                        />
+                        {obligation.clarificationQuestion}
+                      </p>
+                      <Link
+                        href={`/app/awards/${award.id}/review`}
+                        className="mt-2 inline-flex items-center gap-1 pl-[26px] text-xs font-medium text-primary hover:underline"
+                      >
+                        {award.name}
+                        <ArrowRight className="size-3" aria-hidden="true" />
+                      </Link>
+                    </Card>
                   </li>
                 ))}
               </ul>
@@ -147,15 +150,15 @@ export default async function DashboardPage() {
           </section>
 
           <section aria-labelledby="awards-heading">
-            <h2 id="awards-heading" className="text-lg font-semibold tracking-tight">
+            <h2 id="awards-heading" className="type-subhead">
               Your awards
             </h2>
-            <ul className="mt-3 space-y-2">
+            <ul className="mt-4 space-y-2">
               {data.awards.map((award) => (
                 <li key={award.id}>
                   <Link
                     href={`/app/awards/${award.id}`}
-                    className="block rounded-lg border border-border bg-surface p-3.5 transition-colors hover:border-border-strong hover:bg-muted"
+                    className="card-pad-tight block rounded-lg border border-border bg-surface shadow-resting transition-[box-shadow,border-color] duration-150 hover:border-border-strong hover:shadow-raised"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -165,14 +168,20 @@ export default async function DashboardPage() {
                         </p>
                       </div>
                       {award.status === "failed" ? (
-                        <Badge variant="destructive">Failed</Badge>
+                        <Badge variant="destructive" size="xs">
+                          Failed
+                        </Badge>
                       ) : award.status === "processing" ? (
-                        <Badge variant="warning">Processing</Badge>
+                        <Badge variant="warning" size="xs">
+                          Processing
+                        </Badge>
                       ) : null}
                     </div>
-                    <p className="mt-2 font-mono text-xs text-muted-foreground">
+                    <p className="tabular mt-2 font-mono text-xs text-muted-foreground">
                       {formatCurrency(award.awardAmount, award.currency)}
-                      {award.endDate ? ` · ends ${formatIsoDate(award.endDate, { year: "numeric", month: "short", day: "numeric" })}` : ""}
+                      {award.endDate
+                        ? ` · ends ${formatIsoDate(award.endDate, { year: "numeric", month: "short", day: "numeric" })}`
+                        : ""}
                     </p>
                   </Link>
                 </li>
@@ -196,40 +205,26 @@ function MetricCard({
   tone: "neutral" | "warning" | "destructive";
   icon: React.ReactNode;
 }) {
+  const active = value > 0;
+  const ink =
+    !active
+      ? "text-muted-foreground"
+      : tone === "destructive"
+        ? "text-destructive"
+        : tone === "warning"
+          ? "text-warning"
+          : "text-foreground";
+
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          <span
-            className={
-              tone === "destructive"
-                ? "text-destructive"
-                : tone === "warning"
-                  ? "text-warning"
-                  : "text-muted-foreground"
-            }
-          >
-            {icon}
-          </span>
-          {label}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p
-          className={`font-mono text-3xl font-semibold ${
-            value === 0
-              ? "text-muted-foreground"
-              : tone === "destructive"
-                ? "text-destructive"
-                : tone === "warning"
-                  ? "text-warning"
-                  : "text-foreground"
-          }`}
-        >
-          {value}
-        </p>
-      </CardContent>
-    </Card>
+    <div className="card-pad-tight rounded-lg border border-border bg-surface shadow-resting">
+      <dt className="eyebrow flex items-center gap-2 text-muted-foreground">
+        <span aria-hidden="true" className={active ? ink : "text-border-control"}>
+          {icon}
+        </span>
+        {label}
+      </dt>
+      <dd className={`metric tabular mt-2.5 text-[28px] ${ink}`}>{value}</dd>
+    </div>
   );
 }
 
@@ -246,29 +241,35 @@ function DeadlineGroup({
 
   return (
     <div>
-      <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-        {title} ({entries.length})
+      <h3 className="eyebrow flex items-baseline gap-2 text-muted-foreground">
+        {title}
+        <span className="tabular font-normal">{entries.length}</span>
       </h3>
-      <ul className="mt-2 divide-y divide-border overflow-hidden rounded-lg border border-border bg-surface">
+      <ul className="mt-2.5 divide-y divide-border-subtle overflow-hidden rounded-lg border border-border bg-surface shadow-resting">
         {entries.slice(0, 12).map(({ obligation, award, daysAway }) => (
           <li key={obligation.id}>
             <Link
               href={`/app/awards/${award.id}/obligations#obligation-${obligation.id}`}
-              className="flex items-start gap-3 p-3.5 transition-colors hover:bg-muted"
+              className="flex items-start gap-4 px-4 py-3.5 transition-colors hover:bg-muted"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium leading-snug">{obligation.title}</p>
-                <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                  {award.name} · {CATEGORY_META[obligation.category].label}
-                  {obligation.reviewStatus === "needs_review" ? " · not yet reviewed" : ""}
+                <p className="meta-row mt-1 text-xs text-muted-foreground">
+                  <span className="truncate">{award.name}</span>
+                  <span>{CATEGORY_META[obligation.category].label}</span>
+                  {obligation.reviewStatus === "needs_review" ? <span>not yet reviewed</span> : null}
                 </p>
               </div>
               <div className="shrink-0 text-right">
-                <p className="font-mono text-xs font-medium">
-                  {formatIsoDate(obligation.dueDate, { month: "short", day: "numeric", year: "numeric" })}
+                <p className="tabular font-mono text-xs font-medium">
+                  {formatIsoDate(obligation.dueDate, {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
+                  })}
                 </p>
                 <p
-                  className={`font-mono text-xs ${
+                  className={`tabular mt-0.5 font-mono text-xs ${
                     tone === "destructive"
                       ? "text-destructive"
                       : tone === "warning"
@@ -287,45 +288,128 @@ function DeadlineGroup({
   );
 }
 
-function EmptyState({ organizationName }: { organizationName: string }) {
+/**
+ * The first screen of a new organisation.
+ *
+ * It used to be a heading, two buttons and one card pinned to the top of a
+ * 900px viewport, with about 300px of nothing under it and the footer stranded
+ * at the bottom. An empty state is the only screen every single customer is
+ * guaranteed to see, so it is worth composing: the invitation on the left at
+ * full weight, what actually happens next set as three numbered steps, and what
+ * comes out of it in the one raised object on the page.
+ *
+ * Step three is the product's whole posture and is why it is here rather than
+ * in a tooltip: nothing AwardLens extracts counts until a person has checked it.
+ */
+const OUTPUTS = [
+  {
+    icon: <ListChecks aria-hidden="true" />,
+    text: "An obligation register with due dates, owners and priorities",
+  },
+  {
+    icon: <BookMarked aria-hidden="true" />,
+    text: "A source citation for every extracted item, down to the page",
+  },
+  {
+    icon: <CheckCheck aria-hidden="true" />,
+    text: "A review queue so you confirm or correct each one",
+  },
+  {
+    icon: <Download aria-hidden="true" />,
+    text: "Calendar, CSV and JSON exports you can use outside AwardLens",
+  },
+] as const;
+
+const STEPS = [
+  {
+    title: "Upload the document",
+    body: "A PDF, a Word file, or text pasted straight out of an email. One award at a time.",
+  },
+  {
+    title: "AwardLens reads it",
+    body: "It pulls out deadlines, deliverables, restrictions and reporting requirements, and records the sentence each one came from.",
+  },
+  {
+    title: "You confirm every item",
+    body: "Nothing is treated as confirmed until you have checked it against the document yourself.",
+  },
+] as const;
+
+function FirstRun({ organizationName }: { organizationName: string }) {
   return (
-    <div className="container-page pt-16">
-      <div className="mx-auto max-w-xl text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">Welcome to {organizationName}</h1>
-        <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">
-          Upload a grant agreement, award letter or notice of award. AwardLens will read it and
-          build a register of deadlines, deliverables, restrictions and reporting requirements —
-          each one linked back to the page it came from.
-        </p>
+    <div className="container-page pt-12 sm:pt-16">
+      <div className="grid items-start gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+        <div>
+          <p className="eyebrow text-primary">Getting started</p>
+          <h1 className="type-title mt-2.5">Welcome to {organizationName}</h1>
+          <p className="type-lede measure mt-4 text-foreground-soft">
+            Upload a grant agreement, award letter or notice of award. AwardLens will read it and
+            build a register of deadlines, deliverables, restrictions and reporting requirements —
+            each one linked back to the page it came from.
+          </p>
 
-        <div className="mt-7 flex flex-wrap items-center justify-center gap-3">
-          <Button asChild size="lg">
-            <Link href="/app/awards/new">
-              <Plus className="size-4" aria-hidden="true" />
-              Analyse your first award
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/demo">See a worked sample</Link>
-          </Button>
+          <ButtonRow className="mt-7 gap-3">
+            <Button asChild size="lg">
+              <Link href="/app/awards/new">
+                <Plus className="size-4" aria-hidden="true" />
+                Analyse your first award
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="secondary">
+              <Link href="/demo">See a worked sample</Link>
+            </Button>
+          </ButtonRow>
+
+          <section aria-labelledby="steps-heading" className="mt-12">
+            <h2 id="steps-heading" className="eyebrow text-muted-foreground">
+              What happens next
+            </h2>
+            <ol className="mt-4 border-t border-border-subtle">
+              {STEPS.map((step, index) => (
+                <li
+                  key={step.title}
+                  className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4 border-b border-border-subtle py-4"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="tabular font-mono text-[13px] font-medium text-primary"
+                  >
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <div className="stack-xs">
+                    <p className="text-sm font-semibold text-foreground">{step.title}</p>
+                    <p className="measure text-sm leading-relaxed text-muted-foreground">
+                      {step.body}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </section>
         </div>
 
-        <div className="mt-10 rounded-lg border border-border bg-surface p-5 text-left">
-          <h2 className="text-sm font-semibold">What you&rsquo;ll get</h2>
-          <ul className="mt-3 space-y-2 text-sm text-foreground-soft">
-            {[
-              "An obligation register with due dates, owners and priorities",
-              "A source citation for every extracted item, down to the page",
-              "A review queue so you confirm or correct each one",
-              "Calendar, CSV and JSON exports you can use outside AwardLens",
-            ].map((item) => (
-              <li key={item} className="flex items-start gap-2">
-                <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-primary" aria-hidden="true" />
-                {item}
-              </li>
-            ))}
-          </ul>
-        </div>
+        <Card elevation="raised" className="lg:mt-9">
+          <CardHeader padding="roomy" className="pb-4">
+            <CardTitle>What you&rsquo;ll get</CardTitle>
+          </CardHeader>
+          <CardContent padding="roomy">
+            <ul className="stack-md">
+              {OUTPUTS.map((output) => (
+                <li key={output.text} className="flex items-start gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="mt-px flex size-7 shrink-0 items-center justify-center rounded-full bg-primary-subtle text-primary-subtle-foreground [&>svg]:size-[15px]"
+                  >
+                    {output.icon}
+                  </span>
+                  <span className="text-sm leading-relaxed text-foreground-soft">
+                    {output.text}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

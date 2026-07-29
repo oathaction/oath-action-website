@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Check } from "lucide-react";
 
 import { requireSession } from "@/lib/auth";
@@ -6,8 +7,8 @@ import * as db from "@/lib/db";
 import { describeConfig } from "@/lib/env";
 import { PLAN_ORDER, PLANS, planFor } from "@/lib/billing/plans";
 import { REMINDER_OFFSETS } from "@/lib/domain/types";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge, StatusDot } from "@/components/ui/badge";
+import { Card, CardContent, CardDivider } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   DeleteEverythingForm,
@@ -18,6 +19,22 @@ import {
 } from "@/components/app/settings-forms";
 
 export const metadata: Metadata = { title: "Settings" };
+
+/**
+ * The spine. Six unrelated things live on this page and it used to present them
+ * as six identical stacked boxes in a 780px column hard against the left edge
+ * of a 1280px screen, with no way to tell what was below the fold or to get
+ * there. A named index that stays put while the column scrolls is the cheapest
+ * possible fix and the one a reference book would use.
+ */
+const SECTIONS = [
+  { id: "profile", label: "Your profile" },
+  { id: "organisation", label: "Organisation" },
+  { id: "notifications", label: "Deadline reminders" },
+  { id: "billing", label: "Plan" },
+  { id: "privacy", label: "Your data" },
+  { id: "system-status", label: "System status" },
+] as const;
 
 export default async function SettingsPage(props: {
   searchParams: Promise<{ checkout?: string }>;
@@ -36,234 +53,378 @@ export default async function SettingsPage(props: {
   const credits = subscription?.awardCredits ?? 0;
   const limit = currentPlan.awardLimit === null ? null : currentPlan.awardLimit + credits;
 
+  /**
+   * Every configuration fact on the page, in one place.
+   *
+   * This card used to compete with three other amber notices — the global mode
+   * banner, "no email provider", "CRON_SECRET is not set" — spread across two
+   * unrelated sections. Four alarms on one page is the same as none, so the
+   * facts moved here, where they can be read as a set, and the sections that
+   * used to shout them now point at this one.
+   */
+  const systemRows = [
+    {
+      label: "Extraction",
+      ok: config.aiMode === "live",
+      value:
+        config.aiMode === "live"
+          ? `Live model (${config.aiModel})`
+          : "Deterministic (no model configured)",
+      note:
+        config.aiMode === "live"
+          ? null
+          : "Extraction runs from a fixed rule set instead of a model. It is repeatable, and it will not read a document the way a live model would.",
+    },
+    {
+      label: "Storage",
+      ok: config.storageMode === "postgres",
+      value: config.storageMode === "postgres" ? "Postgres" : "Local file store (ephemeral)",
+      note:
+        config.storageMode === "postgres"
+          ? null
+          : "Awards and documents are held in a local file store. They will not survive a redeploy. Set DATABASE_URL to persist them.",
+    },
+    {
+      label: "Billing",
+      ok: config.billingMode === "stripe",
+      value: config.billingMode === "stripe" ? "Stripe" : "Development mode",
+      note:
+        config.billingMode === "stripe"
+          ? null
+          : "Plans are granted without payment and no card is collected. This mode refuses to grant anything in a production build.",
+    },
+    {
+      label: "Email",
+      ok: config.emailMode === "resend",
+      value: config.emailMode === "resend" ? "Resend" : "Server log only",
+      note:
+        config.emailMode === "resend"
+          ? null
+          : "No email provider is configured, so reminders are written to the server log instead of being delivered. Set RESEND_API_KEY and EMAIL_FROM to send real email.",
+    },
+    {
+      label: "Reminder schedule",
+      ok: config.cronProtected,
+      value: config.cronProtected ? "Protected" : "Disabled",
+      note: config.cronProtected
+        ? null
+        : "CRON_SECRET is not set, so the scheduled reminder job is disabled. Reminders will be scheduled but not sent.",
+    },
+  ];
+
+  const remindersDegraded = config.emailMode !== "resend" || !config.cronProtected;
+
   return (
-    <div className="container-page pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight">Settings</h1>
+    <div className="container-page pt-8 sm:pt-10">
+      <div className="mx-auto max-w-[70rem] lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:gap-14">
+        <div className="lg:sticky lg:top-20 lg:pb-10">
+          <h1 className="type-heading">Settings</h1>
+          <p className="type-small measure mt-1.5 text-muted-foreground">
+            Your account, your organisation, and how this deployment is configured.
+          </p>
 
-      {checkout === "success" ? (
-        <Alert variant="primary" className="mt-4">
-          <AlertDescription>
-            Payment received. Your plan is updated — it may take a few seconds to appear.
-          </AlertDescription>
-        </Alert>
-      ) : checkout === "cancelled" ? (
-        <Alert variant="info" className="mt-4">
-          <AlertDescription>Checkout cancelled. Nothing was charged.</AlertDescription>
-        </Alert>
-      ) : null}
+          <nav aria-label="Settings sections" className="mt-7 hidden lg:block">
+            <ul className="border-l border-border">
+              {SECTIONS.map((section) => (
+                <li key={section.id}>
+                  <a
+                    href={`#${section.id}`}
+                    className="-ml-px block border-l-2 border-transparent py-1.5 pl-4 text-[13px] font-medium text-muted-foreground transition-colors hover:border-primary hover:text-foreground"
+                  >
+                    {section.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
 
-      <div className="mt-6 grid max-w-4xl gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your profile</CardTitle>
-            <CardDescription>
-              Signed in as <span className="font-mono">{session.profile.email}</span>
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ProfileForm fullName={session.profile.fullName ?? ""} />
-          </CardContent>
-        </Card>
+        <div className="mt-8 stack-xl lg:mt-0">
+          {checkout === "success" ? (
+            <Alert variant="primary">
+              <AlertDescription>
+                Payment received. Your plan is updated — it may take a few seconds to appear.
+              </AlertDescription>
+            </Alert>
+          ) : checkout === "cancelled" ? (
+            <Alert variant="info">
+              <AlertDescription>Checkout cancelled. Nothing was charged.</AlertDescription>
+            </Alert>
+          ) : null}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Organisation</CardTitle>
-            <CardDescription>
-              Awards, documents and obligations belong to this organisation. Nobody outside it can
-              see them.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <OrganizationForm name={session.organization.name} />
-          </CardContent>
-        </Card>
+          {/* ------------------------------------------------------ profile -- */}
+          <Section
+            id="profile"
+            title="Your profile"
+            description={
+              <>
+                Signed in as <span className="font-mono text-foreground-soft">{session.profile.email}</span>
+              </>
+            }
+          >
+            <Card>
+              <CardContent className="pt-5">
+                <ProfileForm fullName={session.profile.fullName ?? ""} />
+              </CardContent>
+            </Card>
+          </Section>
 
-        <Card id="notifications">
-          <CardHeader>
-            <CardTitle>Deadline reminders</CardTitle>
-            <CardDescription>
-              Emails go out only for obligations you have confirmed and that have a date. Nothing
-              unreviewed is ever emailed to you.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {currentPlan.emailReminders ? (
-              <NotificationForm
-                enabled={preferences.enabled}
-                offsets={preferences.offsets}
-                allOffsets={[...REMINDER_OFFSETS]}
-              />
-            ) : (
-              <Alert variant="info">
-                <AlertDescription>
-                  Email reminders are included from the {PLANS.single_award.name} upwards. Your
-                  register, calendar export and review workflow work on every plan.
-                </AlertDescription>
-              </Alert>
-            )}
+          {/* ------------------------------------------------- organisation -- */}
+          <Section
+            id="organisation"
+            title="Organisation"
+            description="Awards, documents and obligations belong to this organisation. Nobody outside it can see them."
+          >
+            <Card>
+              <CardContent className="pt-5">
+                <OrganizationForm name={session.organization.name} />
+              </CardContent>
+            </Card>
+          </Section>
 
-            {config.emailMode === "console" ? (
-              <Alert variant="warning" className="mt-4">
-                <AlertDescription className="text-xs">
-                  No email provider is configured, so reminders are written to the server log
-                  instead of being delivered. Set RESEND_API_KEY and EMAIL_FROM to send real email.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-            {!config.cronProtected ? (
-              <Alert variant="warning" className="mt-4">
-                <AlertDescription className="text-xs">
-                  CRON_SECRET is not set, so the scheduled reminder job is disabled. Reminders will
-                  be scheduled but not sent.
-                </AlertDescription>
-              </Alert>
-            ) : null}
-          </CardContent>
-        </Card>
+          {/* -------------------------------------------------- reminders --- */}
+          <Section
+            id="notifications"
+            title="Deadline reminders"
+            description="Emails go out only for obligations you have confirmed and that have a date. Nothing unreviewed is ever emailed to you."
+          >
+            <Card>
+              <CardContent className="pt-5">
+                {currentPlan.emailReminders ? (
+                  <NotificationForm
+                    enabled={preferences.enabled}
+                    offsets={preferences.offsets}
+                    allOffsets={[...REMINDER_OFFSETS]}
+                  />
+                ) : (
+                  <Alert variant="info" role="note">
+                    <AlertDescription>
+                      Email reminders are included from the {PLANS.single_award.name} upwards. Your
+                      register, calendar export and review workflow work on every plan.
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-        <Card id="billing">
-          <CardHeader>
-            <CardTitle>Plan</CardTitle>
-            <CardDescription>
-              You are on <strong>{currentPlan.name}</strong> — {awards.length} of{" "}
-              {limit ?? "unlimited"} awards used.
-              {credits > 0 ? ` Includes ${credits} purchased award ${credits === 1 ? "pack" : "packs"}.` : ""}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+                {/*
+                 * One quiet line where there used to be two amber boxes. The
+                 * environment variables that fix it are operator instructions,
+                 * and they now live with every other operator instruction, in
+                 * System status.
+                 */}
+                {remindersDegraded ? (
+                  <>
+                    <CardDivider />
+                    <p className="text-[13px] leading-relaxed text-muted-foreground">
+                      Reminders are scheduled but not delivered in this deployment.{" "}
+                      <Link
+                        href="#system-status"
+                        className="font-medium text-primary underline decoration-primary/35 underline-offset-2 hover:decoration-primary"
+                      >
+                        See System status
+                      </Link>{" "}
+                      for what is missing.
+                    </p>
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
+          </Section>
+
+          {/* ------------------------------------------------------- plan --- */}
+          <Section
+            id="billing"
+            title="Plan"
+            description={
+              <>
+                You are on <strong className="font-semibold text-foreground-soft">{currentPlan.name}</strong> —{" "}
+                {awards.length} of {limit ?? "unlimited"} awards used.
+                {credits > 0
+                  ? ` Includes ${credits} purchased award ${credits === 1 ? "pack" : "packs"}.`
+                  : ""}
+              </>
+            }
+          >
+            {/*
+             * The one genuine warning on this page, and it sits where the
+             * decision is made rather than in a banner at the top of every
+             * screen: these buttons hand out entitlements without taking money.
+             */}
             {config.billingMode === "development" ? (
-              <Alert variant="warning" className="mb-4">
+              <Alert variant="warning" className="mb-4" role="note">
                 <AlertTitle>Development billing mode</AlertTitle>
-                <AlertDescription className="text-xs">
-                  Plans are granted immediately without payment, and no card is collected. This
-                  mode refuses to grant anything in a production build. Configure Stripe before
-                  charging anyone.
+                <AlertDescription className="text-[13px] leading-relaxed">
+                  Plans are granted immediately without payment, and no card is collected. This mode
+                  refuses to grant anything in a production build. Configure Stripe before charging
+                  anyone.
                 </AlertDescription>
               </Alert>
             ) : null}
 
-            <div className="grid gap-3 sm:grid-cols-2">
+            <ul className="grid gap-3 sm:grid-cols-2">
               {PLAN_ORDER.map((planId) => {
                 const plan = PLANS[planId];
                 const isCurrent = plan.id === currentPlan.id;
                 return (
-                  <div
-                    key={plan.id}
-                    className={`rounded-lg border p-4 ${
-                      isCurrent ? "border-primary bg-primary-subtle" : "border-border bg-surface"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-semibold">{plan.name}</h3>
-                      {isCurrent ? <Badge variant="primary">Current</Badge> : null}
+                  <li key={plan.id} className="flex">
+                    <Card
+                      tone={isCurrent ? "primary" : "default"}
+                      elevation={isCurrent ? "resting" : "flat"}
+                      className="card-pad flex w-full flex-col"
+                    >
+                      <div className="flex items-baseline justify-between gap-2">
+                        <h3 className="type-subhead text-[15px]">{plan.name}</h3>
+                        {isCurrent ? (
+                          <Badge variant="primary" size="xs">
+                            Current
+                          </Badge>
+                        ) : null}
+                      </div>
+                      <p className="metric mt-1.5 text-2xl text-foreground">
+                        {plan.price}
+                        <span className="ml-1.5 font-mono text-xs font-normal tracking-normal text-muted-foreground">
+                          {plan.cadence}
+                        </span>
+                      </p>
+                      <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                        {plan.tagline}
+                      </p>
+                      <ul className="mt-3.5 space-y-1.5">
+                        {plan.features.map((feature) => (
+                          <li key={feature} className="flex items-start gap-2 text-xs leading-relaxed">
+                            <Check
+                              className="mt-0.5 size-3 shrink-0 text-primary"
+                              aria-hidden="true"
+                            />
+                            {feature}
+                          </li>
+                        ))}
+                      </ul>
+                      {!isCurrent && plan.id !== "demo" ? (
+                        <div className="mt-auto pt-4">
+                          <PlanButton planId={plan.id} planName={plan.name} />
+                        </div>
+                      ) : null}
+                    </Card>
+                  </li>
+                );
+              })}
+            </ul>
+          </Section>
+
+          {/* ------------------------------------------------- your data ---- */}
+          <Section
+            id="privacy"
+            title="Your data"
+            description="Documents are held in private storage and are never publicly reachable. They are not used to train any model."
+          >
+            <Card>
+              <CardContent className="pt-5">
+                <h3 className="eyebrow text-muted-foreground">What AwardLens stores</h3>
+                <ul className="mt-2.5 space-y-1.5 text-[13px] leading-relaxed text-foreground-soft">
+                  <li>The documents you upload, and the text extracted from them.</li>
+                  <li>The obligations extracted, your edits, and your review decisions.</li>
+                  <li>An activity log of actions taken, which never contains document text.</li>
+                </ul>
+
+                <CardDivider />
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="measure text-[13px] leading-relaxed text-muted-foreground">
+                    Deleting removes every award, document, obligation and citation. It cannot be
+                    undone.
+                  </p>
+                  <DeleteEverythingForm organizationName={session.organization.name} />
+                </div>
+              </CardContent>
+            </Card>
+          </Section>
+
+          {/* ---------------------------------------------- system status --- */}
+          <Section
+            id="system-status"
+            title="System status"
+            description="How this deployment is configured. These are properties of the server, not of your account."
+          >
+            <Card tone="sunken" elevation="flat">
+              <CardContent className="pt-5">
+                <dl className="divide-y divide-border-subtle">
+                  {systemRows.map((row) => (
+                    <div
+                      key={row.label}
+                      className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-x-6"
+                    >
+                      <dt className="text-[13px] font-medium text-foreground-soft">{row.label}</dt>
+                      <dd className="min-w-0">
+                        {/* --success 5.80:1 and --warning 5.39:1 on --surface-sunken */}
+                        <p
+                          className={`flex items-center gap-2 text-[13px] font-medium ${
+                            row.ok ? "text-success" : "text-warning"
+                          }`}
+                        >
+                          <StatusDot variant={row.ok ? "success" : "warning"} />
+                          {row.value}
+                        </p>
+                        {row.note ? (
+                          <p className="measure-wide mt-1 text-xs leading-relaxed text-muted-foreground">
+                            {row.note}
+                          </p>
+                        ) : null}
+                      </dd>
                     </div>
-                    <p className="mt-1 font-mono text-lg font-semibold">
-                      {plan.price}
-                      <span className="ml-1 text-xs font-normal text-muted-foreground">
-                        {plan.cadence}
-                      </span>
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">{plan.tagline}</p>
-                    <ul className="mt-3 space-y-1">
-                      {plan.features.map((feature) => (
-                        <li key={feature} className="flex items-start gap-1.5 text-xs">
-                          <Check
-                            className="mt-0.5 size-3 shrink-0 text-primary"
-                            aria-hidden="true"
-                          />
-                          {feature}
+                  ))}
+                </dl>
+
+                {config.warnings.length > 0 ? (
+                  <>
+                    <CardDivider />
+                    <h3 className="eyebrow text-muted-foreground">Configuration notes</h3>
+                    <ul className="mt-2.5 space-y-2">
+                      {config.warnings.map((warning) => (
+                        <li
+                          key={warning}
+                          className="flex items-start gap-2.5 text-xs leading-relaxed text-foreground-soft"
+                        >
+                          <StatusDot variant="warning" className="mt-[7px]" />
+                          {warning}
                         </li>
                       ))}
                     </ul>
-                    {!isCurrent && plan.id !== "demo" ? (
-                      <PlanButton planId={plan.id} planName={plan.name} />
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card id="privacy">
-          <CardHeader>
-            <CardTitle>Your data</CardTitle>
-            <CardDescription>
-              Documents are held in private storage and are never publicly reachable. They are not
-              used to train any model.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-md bg-muted px-4 py-3 text-sm text-foreground-soft">
-              <p className="font-medium text-foreground">What AwardLens stores</p>
-              <ul className="mt-2 space-y-1 text-xs leading-relaxed">
-                <li>The documents you upload, and the text extracted from them.</li>
-                <li>The obligations extracted, your edits, and your review decisions.</li>
-                <li>An activity log of actions taken, which never contains document text.</li>
-              </ul>
-            </div>
-
-            <DeleteEverythingForm organizationName={session.organization.name} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>System status</CardTitle>
-            <CardDescription>How this deployment is configured.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <dl className="grid gap-2 text-sm sm:grid-cols-2">
-              <StatusRow
-                label="Extraction"
-                value={config.aiMode === "live" ? `Live model (${config.aiModel})` : "Deterministic (no model configured)"}
-                ok={config.aiMode === "live"}
-              />
-              <StatusRow
-                label="Storage"
-                value={
-                  config.storageMode === "postgres"
-                    ? "Postgres"
-                    : "Local file store (ephemeral)"
-                }
-                ok={config.storageMode === "postgres"}
-              />
-              <StatusRow
-                label="Billing"
-                value={config.billingMode === "stripe" ? "Stripe" : "Development mode"}
-                ok={config.billingMode === "stripe"}
-              />
-              <StatusRow
-                label="Email"
-                value={config.emailMode === "resend" ? "Resend" : "Server log only"}
-                ok={config.emailMode === "resend"}
-              />
-            </dl>
-
-            {config.warnings.length > 0 ? (
-              <Alert variant="warning" className="mt-4">
-                <AlertTitle>Configuration notes</AlertTitle>
-                <AlertDescription>
-                  <ul className="mt-1 list-disc space-y-1 pl-4 text-xs leading-relaxed">
-                    {config.warnings.map((warning) => (
-                      <li key={warning}>{warning}</li>
-                    ))}
-                  </ul>
-                </AlertDescription>
-              </Alert>
-            ) : null}
-          </CardContent>
-        </Card>
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
+          </Section>
+        </div>
       </div>
     </div>
   );
 }
 
-function StatusRow({ label, value, ok }: { label: string; value: string; ok: boolean }) {
+/**
+ * Heading and description sit on the page, not inside the card. The card then
+ * holds only the things you can operate, which is what stops six unrelated
+ * settings from reading as six identical boxes.
+ */
+function Section({
+  id,
+  title,
+  description,
+  children,
+}: {
+  id: string;
+  title: string;
+  description: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex items-baseline justify-between gap-3 rounded-md border border-border px-3 py-2">
-      <dt className="text-xs font-medium text-muted-foreground">{label}</dt>
-      <dd className={`text-xs font-medium ${ok ? "text-success" : "text-warning"}`}>{value}</dd>
-    </div>
+    <section id={id} aria-labelledby={`${id}-heading`} className="scroll-mt-24">
+      <h2 id={`${id}-heading`} className="type-subhead">
+        {title}
+      </h2>
+      <p className="measure-wide mt-1 text-[13px] leading-relaxed text-muted-foreground">
+        {description}
+      </p>
+      <div className="mt-4">{children}</div>
+    </section>
   );
 }

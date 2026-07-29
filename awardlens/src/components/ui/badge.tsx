@@ -38,15 +38,15 @@ const badgeVariants = cva(
         warning: "border-warning-border bg-warning-subtle text-warning",
         destructive: "border-destructive-border bg-destructive-subtle text-destructive",
       },
-      /*
-       * Declared after `size` on purpose: cva emits variant classes in key
-       * order, and `quiet` has to be able to strip the padding that `size`
-       * applied.
-       */
       size: {
         sm: "gap-1.5 px-2.5 py-0.5 text-xs",
         xs: "gap-1 px-2 py-px text-[11px]",
       },
+      /*
+       * `emphasis` is declared after `size` on purpose: cva emits variant
+       * classes in key order, so this is the only ordering in which `quiet`
+       * can strip the padding that `size` just applied.
+       */
       emphasis: {
         solid: "rounded-full border font-medium",
         quiet:
@@ -71,10 +71,6 @@ const badgeVariants = cva(
       { emphasis: "bare", variant: "success", class: "text-success" },
       { emphasis: "bare", variant: "warning", class: "text-warning" },
       { emphasis: "bare", variant: "destructive", class: "text-destructive" },
-      /* The pill's horizontal padding is uneven on purpose: a rounded-full
-       * cap adds optical space on the right of the last glyph, so the two look
-       * balanced only when the box is not. */
-      { emphasis: "solid", size: "sm", class: "pr-[0.65rem]" },
     ],
     defaultVariants: {
       variant: "neutral",

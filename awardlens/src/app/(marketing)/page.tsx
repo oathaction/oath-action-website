@@ -20,13 +20,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Accordion,
   AccordionContent,
@@ -45,10 +39,31 @@ export const metadata: Metadata = {
 
 /* ------------------------------------------------------------------ data -- */
 
+/**
+ * The hero's specification block. Stating the boundary — what AwardLens is not
+ * — in the same voice and at the same size as what it does is the point: the
+ * disclaimer is a feature of the product, so it is typeset as one rather than
+ * shrunk into a footnote.
+ */
+const HERO_SPEC = [
+  {
+    term: "What goes in",
+    body: "An award letter or grant agreement: a text-based PDF, a DOCX, or the text pasted straight in.",
+  },
+  {
+    term: "What comes out",
+    body: "Every deadline, deliverable, restriction and reporting requirement as a register row, each citing the page or section it came from.",
+  },
+  {
+    term: "What it is not",
+    body: "Not legal, accounting, tax or compliance advice. AwardLens shows you what your award says and where it says it; what that means for your organisation stays your decision.",
+  },
+];
+
 const HERO_TRUST = [
-  "Text-based PDF, DOCX or pasted text",
   "Your document stays private to your organisation",
   "Every item cites the page or section it came from",
+  "Nothing is confirmed until a person confirms it",
 ];
 
 const STEPS = [
@@ -230,71 +245,97 @@ function awardLimitLabel(plan: Plan): string {
 
 /* ------------------------------------------------------------------ page -- */
 
+/**
+ * The marketing home page.
+ *
+ * The page is written as five movements rather than a run of equal sections,
+ * because a page where every band is the same height, width and surface has no
+ * argument — only a table of contents.
+ *
+ *   1. The claim         hero, ivory, `.section-loose`, display type.
+ *   2. The proof         "what one obligation looks like", recessed stone band,
+ *                        `.section-loose`. The only `raised` card on the page.
+ *   3. The specification how it works / what you get / who / privacy. Narrow
+ *                        side heads, `.type-small` bodies, `.section-tight`.
+ *                        These support the argument; they do not make it.
+ *   4. The undertaking   "two rules", on white inside a reading measure — the
+ *                        one place the page slows down and sets prose.
+ *   5. The ask           pricing, questions, then the ink band.
+ */
 export default function MarketingHomePage() {
   return (
     <>
-      {/* ------------------------------------------------------------ hero */}
+      {/* ============================================================ 1. claim */}
       <section>
-        <div className="container-page py-16 md:py-24 lg:py-28">
-          <div className="max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-              Post-award grant management
-            </p>
-            <h1 className="mt-5 font-serif text-[2.125rem] font-semibold leading-[1.1] tracking-[-0.02em] text-balance sm:text-5xl lg:text-[3.375rem]">
-              Every grant comes with promises. AwardLens helps you keep them.
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-foreground-soft">
-              Turn award letters and grant agreements into a source-linked register of
-              deadlines, deliverables, restrictions and reporting requirements.
-            </p>
+        <div className="container-page section-loose">
+          <div className="grid gap-x-12 gap-y-10 lg:grid-cols-12 lg:items-start">
+            <div className="lg:col-span-7">
+              <p className="eyebrow text-primary">Post-award grant management</p>
+              <h1 className="type-display mt-5">
+                Every grant comes with promises. AwardLens helps you keep them.
+              </h1>
+              <p className="type-lede measure mt-6 text-foreground-soft">
+                Turn award letters and grant agreements into a source-linked register of
+                deadlines, deliverables, restrictions and reporting requirements.
+              </p>
 
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button asChild size="lg">
-                <Link href="/app/awards/new">Analyse an award</Link>
-              </Button>
-              <Button asChild size="lg" variant="secondary">
-                <Link href="/demo">View a sample</Link>
-              </Button>
+              <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <Button asChild size="lg">
+                  <Link href="/app/awards/new">Analyse an award</Link>
+                </Button>
+                <Button asChild size="lg" variant="secondary">
+                  <Link href="/demo">View a sample</Link>
+                </Button>
+              </div>
             </div>
 
-            <ul className="mt-10 flex flex-col gap-2.5 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:flex-wrap sm:gap-x-8">
-              {HERO_TRUST.map((item) => (
-                <li key={item} className="flex items-start gap-2">
-                  <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
+            {/*
+              The specification block. Same type, same weight, three terms —
+              including the one that says what the product will not do for you.
+            */}
+            <div className="lg:col-span-5">
+              <dl className="divide-y divide-border-subtle overflow-hidden rounded-lg border border-border bg-surface shadow-resting">
+                {HERO_SPEC.map((row) => (
+                  <div key={row.term} className="card-pad">
+                    <dt className="eyebrow text-muted-foreground">{row.term}</dt>
+                    <dd className="type-small mt-2 text-foreground-soft">{row.body}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
           </div>
+
+          <ul className="mt-12 grid gap-x-10 gap-y-3 border-t border-border pt-6 sm:grid-cols-3 lg:mt-14">
+            {HERO_TRUST.map((item) => (
+              <li key={item} className="type-small flex items-start gap-2.5 text-muted-foreground">
+                <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 
-      {/* --------------------------------------------- product demonstration */}
+      {/* ============================================================ 2. proof */}
       <section id="example" className="scroll-mt-16 border-y border-border bg-surface-sunken">
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              The unit of work
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              What one obligation looks like
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground-soft">
+        <div className="container-page section-loose">
+          <div className="measure-wide">
+            <p className="eyebrow text-muted-foreground">The unit of work</p>
+            <h2 className="type-title mt-3">What one obligation looks like</h2>
+            <p className="type-lede mt-5 text-foreground-soft">
               AwardLens does not hand you a summary of your award. It takes the document apart
               one requirement at a time and keeps a line back to the sentence each requirement
               came from.
             </p>
           </div>
 
-          <figure className="mt-10 md:mt-14">
+          <figure className="mt-12 md:mt-16">
             <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
               {/* the document ------------------------------------------- */}
               <div className="lg:col-span-5">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  The document
-                </p>
-                <div className="mt-3 rounded-xl border border-border bg-surface p-5 shadow-sm sm:p-6">
-                  <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+                <p className="eyebrow text-muted-foreground">The document</p>
+                <Card tone="paper" className="mt-3 overflow-hidden">
+                  <div className="flex items-center justify-between gap-3 border-b border-paper-border px-5 py-3">
                     <span className="font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground">
                       Page 7 of 24
                     </span>
@@ -303,50 +344,66 @@ export default function MarketingHomePage() {
                     </span>
                   </div>
 
-                  <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.12em] text-foreground">
-                    5. Reporting requirements
-                  </p>
+                  <div className="card-pad-roomy">
+                    <p className="eyebrow text-ink-document-soft">5. Reporting requirements</p>
 
-                  <div className="mt-3 space-y-3 font-serif text-[13.5px] leading-[1.7] text-foreground-soft">
-                    <p>
-                      <span className="mr-2 font-mono text-[11px] text-muted-foreground">5.1</span>
-                      The Recipient shall maintain records sufficient to document the expenditure
-                      of all Grant Funds.
-                    </p>
+                    <div className="evidence-quote stack-md mt-4">
+                      <p>
+                        <span className="mr-2 font-mono text-[11px] text-ink-document-soft">
+                          5.1
+                        </span>
+                        The Recipient shall maintain records sufficient to document the
+                        expenditure of all Grant Funds.
+                      </p>
 
-                    <p className="rounded-r-sm border-l-2 border-primary bg-primary-subtle px-3 py-2.5 text-primary-subtle-foreground">
-                      {/*
-                        No opacity here. At 11px there is no contrast headroom:
-                        opacity-70 blended --primary-subtle-foreground toward the
-                        highlight background and measured 4.27:1, under the 4.5:1
-                        that WCAG AA requires at this size. The token passes on
-                        its own.
-                      */}
-                      <span className="mr-2 font-mono text-[11px]">5.2</span>
-                      The Recipient shall submit quarterly narrative reports describing progress
-                      toward the performance measures set out in Exhibit A.
-                      <span className="mt-2 block font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">
-                        Quoted in the register
-                      </span>
-                    </p>
+                      <p>
+                        <span className="mr-2 font-mono text-[11px] text-ink-document-soft">
+                          5.2
+                        </span>
+                        {/*
+                          The marking pen, not the alert colour. A cited passage
+                          is not an error, and --highlight-subtle exists so the
+                          two never get confused. --foreground on it is 15.76:1.
+                        */}
+                        <span className="evidence-mark box-decoration-clone">
+                          The Recipient shall submit quarterly narrative reports describing
+                          progress toward the performance measures set out in Exhibit A.
+                        </span>
+                        <span className="type-caption mt-3 block font-sans text-muted-foreground">
+                          Quoted in the register &rarr;
+                        </span>
+                      </p>
 
-                    <p>
-                      <span className="mr-2 font-mono text-[11px] text-muted-foreground">5.3</span>
-                      Reports are due within fifteen (15) days of the end of each calendar
-                      quarter.
-                    </p>
+                      <p>
+                        <span className="mr-2 font-mono text-[11px] text-ink-document-soft">
+                          5.3
+                        </span>
+                        Reports are due within fifteen (15) days of the end of each calendar
+                        quarter.
+                      </p>
+
+                      <p>
+                        <span className="mr-2 font-mono text-[11px] text-ink-document-soft">
+                          5.4
+                        </span>
+                        A final narrative and financial report shall be submitted within ninety
+                        (90) days of the end of the Grant Period.
+                      </p>
+                    </div>
                   </div>
-                </div>
+                </Card>
               </div>
 
               {/* the register item -------------------------------------- */}
               <div className="lg:col-span-7">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                  The register item
-                </p>
-                <div className="mt-3 overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
-                  <div className="px-5 pb-5 pt-5 sm:px-6">
-                    <div className="flex flex-wrap items-center gap-2">
+                <p className="eyebrow text-muted-foreground">The register item</p>
+                {/*
+                  The one `raised` card on the page. Elevation is the hierarchy
+                  signal here: this is the object the whole page is about.
+                */}
+                <Card elevation="raised" className="mt-3 overflow-hidden">
+                  <div className="card-pad-roomy">
+                    <div className="cluster">
                       <Badge variant="ink">Reporting</Badge>
                       <Badge variant="outline">Repeats quarterly</Badge>
                       <span className="ml-auto font-mono text-[11px] text-muted-foreground">
@@ -354,16 +411,14 @@ export default function MarketingHomePage() {
                       </span>
                     </div>
 
-                    <h3 className="mt-4 text-lg font-semibold tracking-[-0.015em] sm:text-xl">
-                      Quarterly narrative report
-                    </h3>
-                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                    <h3 className="type-heading mt-4">Quarterly narrative report</h3>
+                    <p className="type-body mt-2 text-foreground-soft">
                       Submit a narrative report describing progress against the performance
                       measures listed in Exhibit A, within 15 days of each quarter end.
                     </p>
 
-                    <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm">
-                      <span className="inline-flex items-center gap-2 font-mono font-medium text-ink-accent">
+                    <div className="meta-row type-small mt-5">
+                      <span className="inline-flex items-center gap-2 font-medium text-ink-accent">
                         <CalendarDays aria-hidden="true" className="size-4" />
                         Due 15 October 2026
                       </span>
@@ -373,51 +428,54 @@ export default function MarketingHomePage() {
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 border-y border-border bg-background px-5 py-3 sm:px-6">
-                    <Badge variant="neutral">High confidence</Badge>
-                    <Badge variant="warning">Needs review</Badge>
-                    <Badge variant="primary">Explicit in award</Badge>
-                  </div>
-
-                  <div className="px-5 py-5 sm:px-6">
-                    <div className="border-l-2 border-ink-accent/30 pl-4">
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                        <span className="font-mono text-xs font-medium text-ink-accent">
-                          Source: Page 7
-                        </span>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          Section 5.2
-                        </span>
-                        <Badge variant="ink" className="ml-auto">
-                          <ShieldCheck aria-hidden="true" className="size-3.5" />
-                          Source verified
-                        </Badge>
-                      </div>
-                      <blockquote className="evidence-quote mt-3">
-                        &ldquo;The Recipient shall submit quarterly narrative reports describing
-                        progress toward the performance measures set out in Exhibit A.&rdquo;
-                      </blockquote>
+                  {/*
+                    Provenance sits on paper, inside the same card as the claim.
+                    It is not a link to somewhere else; it is part of the item.
+                  */}
+                  <div className="card-pad-roomy border-y border-paper-border bg-paper">
+                    <div className="meta-row font-mono text-xs">
+                      <span className="font-medium text-ink-accent">Source: Page 7</span>
+                      <span className="text-muted-foreground">Section 5.2</span>
+                    </div>
+                    <blockquote className="evidence-quote evidence-quote-hang mt-3">
+                      &ldquo;The Recipient shall submit quarterly narrative reports describing
+                      progress toward the performance measures set out in Exhibit A.&rdquo;
+                    </blockquote>
+                    <div className="cluster mt-4 border-t border-paper-border pt-3.5">
+                      <Badge variant="ink" emphasis="quiet" size="xs">
+                        Source verified
+                      </Badge>
+                      <Badge variant="primary" emphasis="quiet" size="xs">
+                        Explicit in award
+                      </Badge>
+                      <Badge variant="neutral" emphasis="quiet" size="xs">
+                        High confidence
+                      </Badge>
                     </div>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2 border-t border-border px-5 py-4 sm:px-6">
-                    <span className="inline-flex h-9 items-center gap-2 rounded-md border border-border-strong px-3.5 text-sm font-medium text-muted-foreground">
-                      <FileSearch aria-hidden="true" className="size-4" />
-                      Open source
-                    </span>
-                    <span className="inline-flex h-9 items-center gap-2 rounded-md bg-primary-subtle px-3.5 text-sm font-medium text-primary-subtle-foreground">
+                  {/*
+                    A still of the review row: one action, one escape. Rendered
+                    as text rather than buttons because nothing here is live.
+                  */}
+                  <div className="cluster card-pad">
+                    <span className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3.5 text-sm font-medium text-primary-foreground">
                       <Check aria-hidden="true" className="size-4" />
                       Confirm
                     </span>
-                    <span className="ml-auto text-xs text-muted-foreground">
+                    <span className="inline-flex h-9 items-center gap-2 rounded-md px-3.5 text-sm font-medium text-foreground-soft">
+                      <FileSearch aria-hidden="true" className="size-4" />
+                      Open source
+                    </span>
+                    <span className="type-caption ml-auto text-muted-foreground">
                       Static example
                     </span>
                   </div>
-                </div>
+                </Card>
               </div>
             </div>
 
-            <figcaption className="mt-6 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+            <figcaption className="type-small measure-wide mt-8 text-muted-foreground">
               A single item from a sample register. Every item carries the same four things: what
               is required, when it is due, how much interpretation was involved, and the words it
               came from.
@@ -426,114 +484,120 @@ export default function MarketingHomePage() {
         </div>
       </section>
 
-      {/* -------------------------------------------------------- workflow */}
+      {/* ==================================================== 3. specification */}
       <section id="how-it-works" className="scroll-mt-16">
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              How it works
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              From award document to operating plan
-            </h2>
-          </div>
+        <div className="container-page section-tight">
+          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <p className="eyebrow text-muted-foreground">How it works</p>
+              <h2 className="type-heading measure mt-3">
+                From award document to operating plan
+              </h2>
+            </div>
 
-          <ol className="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
-            {STEPS.map((step) => (
-              <li key={step.number} className="border-t border-border-strong pt-5">
-                <span className="font-mono text-xs font-medium tracking-[0.08em] text-primary">
-                  {step.number}
-                </span>
-                <h3 className="mt-3 text-base font-semibold tracking-[-0.01em]">{step.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </section>
-
-      {/* --------------------------------------------------------- outputs */}
-      <section id="outputs" className="scroll-mt-16">
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              What you get
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              Six things you can take away from one award
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground-soft">
-              All of it built from items you have reviewed, and all of it exportable — AwardLens
-              is somewhere to do the work, not somewhere your work gets locked in.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {OUTPUTS.map((output) => (
-              <Card key={output.title} className="shadow-sm">
-                <CardHeader>
-                  <span className="mb-2 inline-flex size-9 items-center justify-center rounded-md bg-primary-subtle text-primary">
-                    <output.icon aria-hidden="true" className="size-[18px]" />
+            <ol className="grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:col-span-8">
+              {STEPS.map((step) => (
+                <li key={step.number} className="flex gap-4">
+                  <span className="tabular mt-px shrink-0 font-mono text-xs font-medium tracking-[0.08em] text-primary">
+                    {step.number}
                   </span>
-                  <CardTitle>{output.title}</CardTitle>
-                  <CardDescription className="leading-relaxed">{output.body}</CardDescription>
-                </CardHeader>
-              </Card>
-            ))}
+                  <div>
+                    <h3 className="type-subhead">{step.title}</h3>
+                    <p className="type-small mt-1.5 text-muted-foreground">{step.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------ source-linked trust */}
-      <section id="evidence" className="scroll-mt-16 border-y border-border bg-surface-sunken">
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Why you can act on it
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              Two rules the product does not bend
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground-soft">
+      <section id="outputs" className="scroll-mt-16">
+        <div className="container-page">
+          {/* A rule rather than a new band: this belongs to the section above. */}
+          <div className="rule section-tight">
+            <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
+              <div className="lg:col-span-4">
+                <p className="eyebrow text-muted-foreground">What you get</p>
+                <h2 className="type-heading measure mt-3">
+                  Six things you can take away from one award
+                </h2>
+                <p className="type-small mt-4 text-muted-foreground">
+                  All of it built from items you have reviewed, and all of it exportable —
+                  AwardLens is somewhere to do the work, not somewhere your work gets locked in.
+                </p>
+              </div>
+
+              <ul className="grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:col-span-8">
+                {OUTPUTS.map((output) => (
+                  <li key={output.title} className="flex gap-3.5">
+                    <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-primary-subtle text-primary">
+                      <output.icon aria-hidden="true" className="size-4" />
+                    </span>
+                    <div>
+                      <h3 className="type-subhead">{output.title}</h3>
+                      <p className="type-small mt-1.5 text-muted-foreground">{output.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ====================================================== 4. undertaking */}
+      <section id="evidence" className="scroll-mt-16 border-y border-border bg-surface">
+        <div className="container-page section">
+          <div className="mx-auto max-w-3xl">
+            <p className="eyebrow text-muted-foreground">Why you can act on it</p>
+            <h2 className="type-title mt-3">Two rules the product does not bend</h2>
+            <p className="type-lede mt-5 text-foreground-soft">
               Source linking and human confirmation are not settings you switch on. They are how
               the register is built, and they are the reason a register is worth trusting to a
               board or a funder conversation.
             </p>
-          </div>
 
-          <div className="mt-10 grid gap-6 lg:grid-cols-2 lg:gap-8">
-            <div className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8">
-              <span className="font-mono text-xs font-medium text-muted-foreground">Rule one</span>
-              <h3 className="mt-3 text-lg font-semibold tracking-[-0.01em]">
-                Every material item is traced to a page or section
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-foreground-soft">
-                Each obligation carries the quotation it was drawn from and the location of that
-                quotation in your document — a page, a section, or a paragraph. You can open the
-                source and read the surrounding text before you decide anything. A register you
-                cannot check against the agreement is just another opinion about the agreement.
-              </p>
-            </div>
+            <ol className="stack-xl mt-12">
+              <li className="grid gap-3 sm:grid-cols-[4rem_1fr] sm:gap-8">
+                <span className="metric tabular font-mono text-2xl text-muted-foreground">01</span>
+                <div>
+                  <h3 className="type-heading">
+                    Every material item is traced to a page or section
+                  </h3>
+                  <p className="type-body mt-3 text-foreground-soft">
+                    Each obligation carries the quotation it was drawn from and the location of
+                    that quotation in your document — a page, a section, or a paragraph. You can
+                    open the source and read the surrounding text before you decide anything. A
+                    register you cannot check against the agreement is just another opinion about
+                    the agreement.
+                  </p>
+                </div>
+              </li>
 
-            <div className="rounded-xl border border-border bg-surface p-6 shadow-sm sm:p-8">
-              <span className="font-mono text-xs font-medium text-muted-foreground">Rule two</span>
-              <h3 className="mt-3 text-lg font-semibold tracking-[-0.01em]">
-                Nothing is confirmed until a person confirms it
-              </h3>
-              <p className="mt-3 text-sm leading-relaxed text-foreground-soft">
-                Items arrive as <span className="font-medium text-foreground">Needs review</span>.
-                You decide whether each becomes confirmed, needs clarification from the funder, or
-                does not apply to your organisation. Every item also states how much
-                interpretation was involved, so &ldquo;the award says this&rdquo; is never
-                confused with &ldquo;we inferred this&rdquo;. Calendar exports carry confirmed
-                items by default.
-              </p>
-            </div>
-          </div>
+              <li className="grid gap-3 sm:grid-cols-[4rem_1fr] sm:gap-8">
+                <span className="metric tabular font-mono text-2xl text-muted-foreground">02</span>
+                <div>
+                  <h3 className="type-heading">Nothing is confirmed until a person confirms it</h3>
+                  <p className="type-body mt-3 text-foreground-soft">
+                    Items arrive as{" "}
+                    <span className="font-medium text-foreground">Needs review</span>. You decide
+                    whether each becomes confirmed, needs clarification from the funder, or does
+                    not apply to your organisation. Every item also states how much interpretation
+                    was involved, so &ldquo;the award says this&rdquo; is never confused with
+                    &ldquo;we inferred this&rdquo;. Calendar exports carry confirmed items by
+                    default.
+                  </p>
+                </div>
+              </li>
+            </ol>
 
-          <Alert variant="warning" className="mt-6 flex gap-3">
-            <TriangleAlert aria-hidden="true" className="mt-0.5" />
-            <div>
+            <Alert
+              variant="warningQuiet"
+              role="note"
+              icon={<TriangleAlert />}
+              className="mt-12"
+            >
               <AlertTitle>When a source cannot be verified</AlertTitle>
               <AlertDescription>
                 <p>
@@ -544,152 +608,134 @@ export default function MarketingHomePage() {
                   more comfortable choice and the wrong one.
                 </p>
               </AlertDescription>
-            </div>
-          </Alert>
+            </Alert>
+          </div>
         </div>
       </section>
 
-      {/* -------------------------------------------------------- personas */}
+      {/* ---------------------------------------------------------- personas */}
       <section>
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Who it is for
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              Built for the people who have to answer for the award
-            </h2>
-          </div>
+        <div className="container-page section-tight">
+          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
+            <div className="lg:col-span-4">
+              <p className="eyebrow text-muted-foreground">Who it is for</p>
+              <h2 className="type-heading measure mt-3">
+                Built for the people who have to answer for the award
+              </h2>
+            </div>
 
-          <dl className="mt-10 max-w-4xl">
-            {PERSONAS.map((persona) => (
-              <div
-                key={persona.role}
-                className="grid gap-1.5 border-t border-border py-5 md:grid-cols-[15rem_1fr] md:gap-10"
-              >
-                <dt className="text-[15px] font-medium tracking-[-0.01em]">{persona.role}</dt>
-                <dd className="text-sm leading-relaxed text-muted-foreground">{persona.body}</dd>
-              </div>
-            ))}
-          </dl>
-        </div>
-      </section>
-
-      {/* -------------------------------------------------------- security */}
-      <section id="privacy" className="scroll-mt-16">
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Security and privacy
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              Your award documents are yours
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground-soft">
-              A grant agreement often contains budget detail, staff names and information about
-              the people you serve. It is treated accordingly.
-            </p>
-          </div>
-
-          <ul className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {SECURITY.map((item) => (
-              <li key={item.title} className="flex gap-3.5">
-                <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-ink-accent-subtle text-ink-accent">
-                  <item.icon aria-hidden="true" className="size-4" />
-                </span>
-                <div>
-                  <h3 className="text-[15px] font-medium tracking-[-0.01em]">{item.title}</h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {item.body}
-                  </p>
+            <dl className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:col-span-8">
+              {PERSONAS.map((persona) => (
+                <div key={persona.role} className="border-t border-border pt-4">
+                  <dt className="type-subhead">{persona.role}</dt>
+                  <dd className="type-small mt-1.5 text-muted-foreground">{persona.body}</dd>
                 </div>
-              </li>
-            ))}
-          </ul>
-
-          <div className="mt-10 max-w-2xl rounded-lg border border-border bg-surface-sunken p-5">
-            <h3 className="text-sm font-semibold">What we do not claim</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              AwardLens holds no SOC 2, ISO, HIPAA or FedRAMP certification, and we will not imply
-              otherwise on a marketing page. If your funder or your board requires a certified
-              vendor, AwardLens is not that vendor today.
-            </p>
+              ))}
+            </dl>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------- pricing preview */}
-      <section className="border-y border-border bg-surface-sunken">
-        <div className="container-page py-16 md:py-24">
-          <div className="max-w-2xl">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-              Pricing
-            </p>
-            <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-              Start with one award, at no cost
-            </h2>
-            <p className="mt-4 text-base leading-relaxed text-foreground-soft">
-              The free tier analyses one award end to end, with the full register, source
-              citations and exports. Paid plans add more awards and email deadline reminders.
-            </p>
-          </div>
+      {/* ---------------------------------------------------------- security */}
+      <section id="privacy" className="scroll-mt-16">
+        <div className="container-page">
+          <div className="rule section-tight">
+            <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
+              <div className="lg:col-span-4">
+                <p className="eyebrow text-muted-foreground">Security and privacy</p>
+                <h2 className="type-heading measure mt-3">Your award documents are yours</h2>
+                <p className="type-small mt-4 text-muted-foreground">
+                  A grant agreement often contains budget detail, staff names and information
+                  about the people you serve. It is treated accordingly.
+                </p>
+              </div>
 
-          <div className="mt-10 grid gap-5 md:grid-cols-3">
-            {PREVIEW_PLANS.map((plan) => (
-              <Card key={plan.id} className="flex flex-col shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-[15px]">{plan.name}</CardTitle>
-                  <p className="mt-1 flex items-baseline gap-1.5">
-                    <span className="text-3xl font-semibold tracking-[-0.02em] tabular">
-                      {plan.price}
+              <ul className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:col-span-8">
+                {SECURITY.map((item) => (
+                  <li key={item.title} className="flex gap-3.5">
+                    <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-ink-accent-subtle text-ink-accent">
+                      <item.icon aria-hidden="true" className="size-4" />
                     </span>
+                    <div>
+                      <h3 className="type-subhead">{item.title}</h3>
+                      <p className="type-small mt-1.5 text-muted-foreground">{item.body}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/*
+              Not a footnote. The absence of a certification is a fact a buyer
+              needs early, so it is set at reading size behind an emphasis edge
+              rather than tucked under the fold in grey 12px.
+            */}
+            <div className="card-pad-roomy mt-12 rounded-lg border border-border-strong bg-surface">
+              <div className="grid gap-4 md:grid-cols-[15rem_1fr] md:gap-10">
+                <h3 className="type-heading">What we do not claim</h3>
+                <p className="type-lede text-foreground-soft">
+                  AwardLens holds no SOC 2, ISO, HIPAA or FedRAMP certification, and we will not
+                  imply otherwise on a marketing page. If your funder or your board requires a
+                  certified vendor, AwardLens is not that vendor today.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================================== 5. ask */}
+      <section className="border-y border-border bg-surface-sunken">
+        <div className="container-page section-tight">
+          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12 lg:items-end">
+            <div className="lg:col-span-4">
+              <p className="eyebrow text-muted-foreground">Pricing</p>
+              <h2 className="type-heading measure mt-3">Start with one award, at no cost</h2>
+              <p className="type-small mt-4 text-muted-foreground">
+                The free tier analyses one award end to end, with the full register, source
+                citations and exports. Paid plans add more awards and email deadline reminders.
+              </p>
+            </div>
+
+            <ul className="grid gap-x-10 gap-y-8 sm:grid-cols-3 lg:col-span-8">
+              {PREVIEW_PLANS.map((plan) => (
+                <li key={plan.id} className="border-t border-border-strong pt-5">
+                  <h3 className="type-subhead">{plan.name}</h3>
+                  <p className="mt-3 flex items-baseline gap-1.5">
+                    <span className="metric tabular text-[2.25rem]">{plan.price}</span>
                     {plan.cadence ? (
-                      <span className="text-sm text-muted-foreground">{plan.cadence}</span>
+                      <span className="type-small text-muted-foreground">{plan.cadence}</span>
                     ) : null}
                   </p>
-                  <CardDescription className="mt-1">{plan.tagline}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1">
-                  <p className="border-t border-border pt-4 font-mono text-xs text-ink-accent">
+                  <p className="type-caption mt-3 font-mono text-ink-accent">
                     {awardLimitLabel(plan)}
                   </p>
-                  <ul className="mt-4 space-y-2.5">
-                    {plan.features.map((feature) => (
-                      <li key={feature} className="flex gap-2.5 text-sm text-foreground-soft">
-                        <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
-                        <span>{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-              </Card>
-            ))}
+                  <p className="type-small mt-2 text-muted-foreground">{plan.tagline}</p>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-xl text-sm leading-relaxed text-muted-foreground">
+          <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <p className="type-small measure-wide text-muted-foreground">
               {PLANS.team.name} is {PLANS.team.price} {PLANS.team.cadence}.{" "}
               {PLANS.team.tagline}
             </p>
-            <Button asChild variant="secondary">
+            <Button asChild variant="secondary" className="shrink-0">
               <Link href="/pricing">Compare every plan</Link>
             </Button>
           </div>
         </div>
       </section>
 
-      {/* ------------------------------------------------------------- faq */}
+      {/* --------------------------------------------------------------- faq */}
       <section id="faq" className="scroll-mt-16">
-        <div className="container-page py-16 md:py-24">
-          <div className="grid gap-10 lg:grid-cols-12 lg:gap-16">
+        <div className="container-page section">
+          <div className="grid gap-x-16 gap-y-8 lg:grid-cols-12">
             <div className="lg:col-span-4">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                Questions
-              </p>
-              <h2 className="mt-4 text-2xl font-semibold tracking-[-0.02em] sm:text-[2rem] sm:leading-tight">
-                Straight answers, including the unflattering ones
-              </h2>
-              <p className="mt-4 text-base leading-relaxed text-foreground-soft">
+              <p className="eyebrow text-muted-foreground">Questions</p>
+              <h2 className="type-heading mt-3">Straight answers, including the unflattering ones</h2>
+              <p className="type-small mt-4 text-muted-foreground">
                 Where AwardLens has a limit, it is written down here rather than discovered later.
               </p>
             </div>
@@ -708,19 +754,19 @@ export default function MarketingHomePage() {
         </div>
       </section>
 
-      {/* ------------------------------------------------------ closing cta */}
+      {/* -------------------------------------------------------- closing cta */}
       <section className="bg-ink-accent">
-        <div className="container-page py-16 md:py-20">
-          <div className="max-w-2xl">
-            <h2 className="font-serif text-[1.75rem] font-semibold leading-tight tracking-[-0.02em] text-white sm:text-4xl">
+        <div className="container-page section-loose">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="type-title text-white">
               Start with the award that worries you most.
             </h2>
-            <p className="mt-5 text-base leading-relaxed text-white/75">
+            <p className="type-lede mx-auto mt-6 max-w-2xl text-white/80">
               Upload it, read the register against the document, confirm what is right, and see
               whether the next twelve months look clearer than they did this morning. The first
               award analysis is free.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:justify-center">
               <Button
                 asChild
                 size="lg"

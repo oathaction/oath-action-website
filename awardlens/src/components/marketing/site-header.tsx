@@ -51,9 +51,15 @@ export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
+  /*
+   * Opaque, and separated by `--shadow-header` rather than a border: the token
+   * draws the same hairline plus a very short falloff, so content scrolling
+   * underneath reads as *under* the bar instead of butting against a line. No
+   * blur — a translucent header ghosts document text through itself.
+   */
   return (
     <header
-      className="sticky top-0 z-50 border-b border-border bg-background"
+      className="sticky top-0 z-50 bg-background shadow-header"
       onKeyDown={(event) => {
         if (event.key === "Escape") close();
       }}
@@ -66,7 +72,7 @@ export function SiteHeader() {
           aria-label="AwardLens — home"
         >
           <AwardLensMark className="size-7 text-primary" />
-          <span className="text-[17px] font-semibold tracking-[-0.02em]">AwardLens</span>
+          <span className="type-subhead">AwardLens</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center md:flex">
@@ -113,7 +119,7 @@ export function SiteHeader() {
       <div
         id="site-mobile-nav"
         hidden={!open}
-        className="fixed inset-x-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-surface shadow-sm md:hidden"
+        className="fixed inset-x-0 top-16 max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-border bg-surface shadow-popover md:hidden"
       >
         <nav aria-label="Primary, mobile" className="container-page py-2">
           <ul>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, FileText } from "lucide-react";
+import { ArrowRight, FileText, UserCheck } from "lucide-react";
 
 import { parsePlainText } from "@/lib/documents/parse";
 import { segmentBlocks } from "@/lib/documents/segment";
@@ -12,7 +12,7 @@ import { SAMPLE_AWARD_TEXT } from "@/lib/samples/sample-award";
 import type { ObligationWithCitations } from "@/lib/domain/types";
 import { EvidenceRail } from "@/components/evidence/evidence-rail";
 import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { formatCurrency, formatIsoDate } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -100,91 +100,121 @@ export default function DemoPage() {
   const dated = obligations.filter((obligation) => obligation.dueDate).length;
 
   return (
-    <div className="container-page py-12 sm:py-16">
-      <div className="max-w-3xl">
-        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-          Worked sample
-        </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">
-          What AwardLens produces from a grant agreement
-        </h1>
-        <p className="mt-4 text-lg leading-relaxed text-muted-foreground">
-          Below is the actual output of running AwardLens over a synthetic{" "}
-          {pageCount}-page foundation grant agreement. Every item was extracted by the same
-          pipeline your own documents go through, and every quotation was matched back to the
-          source text before it was allowed to appear.
-        </p>
-      </div>
+    <>
+      <section>
+        <div className="container-page section-tight">
+          <div className="measure-wide">
+            <p className="eyebrow text-primary">Worked sample</p>
+            <h1 className="type-title mt-4">What AwardLens produces from a grant agreement</h1>
+            <p className="type-lede mt-5 text-foreground-soft">
+              Below is the actual output of running AwardLens over a synthetic{" "}
+              {pageCount}-page foundation grant agreement. Every item was extracted by the same
+              pipeline your own documents go through, and every quotation was matched back to the
+              source text before it was allowed to appear.
+            </p>
+          </div>
 
-      <div className="mt-8 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-lg border border-border bg-surface p-5">
-        <SampleFact label="Funder" value={profile.funder ?? "Not stated"} />
-        <SampleFact label="Amount" value={formatCurrency(profile.awardAmount, profile.currency ?? "USD")} />
-        <SampleFact
-          label="Period"
-          value={
-            profile.startDate
-              ? `${formatIsoDate(profile.startDate, { month: "short", year: "numeric" })} – ${formatIsoDate(profile.endDate, { month: "short", year: "numeric" })}`
-              : "Not stated"
-          }
-        />
-        <SampleFact label="Obligations found" value={String(obligations.length)} />
-        <SampleFact label="With a firm date" value={String(dated)} />
-      </div>
+          <dl className="card-pad-roomy mt-10 grid gap-x-8 gap-y-6 rounded-lg border border-border bg-surface shadow-resting sm:grid-cols-3 lg:grid-cols-5">
+            <SampleFact label="Funder" value={profile.funder ?? "Not stated"} />
+            <SampleFact
+              label="Amount"
+              value={formatCurrency(profile.awardAmount, profile.currency ?? "USD")}
+            />
+            <SampleFact
+              label="Period"
+              value={
+                profile.startDate
+                  ? `${formatIsoDate(profile.startDate, { month: "short", year: "numeric" })} – ${formatIsoDate(profile.endDate, { month: "short", year: "numeric" })}`
+                  : "Not stated"
+              }
+            />
+            <SampleFact label="Obligations found" value={String(obligations.length)} />
+            <SampleFact label="With a firm date" value={String(dated)} />
+          </dl>
 
-      <Alert variant="info" className="mt-6 max-w-3xl">
-        <AlertDescription className="text-sm leading-relaxed">
-          Notice that every item says <strong>Needs review</strong>. AwardLens never marks its own
-          output as confirmed — a person checks each one against the source passage shown beneath
-          it. Items whose wording is relative rather than a fixed date keep the document&rsquo;s
-          own words instead of being converted into a deadline we cannot justify.
-        </AlertDescription>
-      </Alert>
-
-      <section className="mt-10" aria-labelledby="sample-register">
-        <h2 id="sample-register" className="text-xl font-semibold tracking-tight">
-          The obligation register
-        </h2>
-        <div className="mt-4 grid gap-3 lg:grid-cols-2">
-          {obligations.map((obligation) => (
-            <EvidenceRail key={obligation.id} obligation={obligation} />
-          ))}
+          <Alert
+            variant="info"
+            role="note"
+            icon={<UserCheck />}
+            className="measure-wide mt-6"
+          >
+            <AlertTitle>Every item still says Needs review</AlertTitle>
+            <AlertDescription>
+              <p>
+                AwardLens never marks its own output as confirmed — a person checks each one
+                against the source passage shown beneath it. Items whose wording is relative
+                rather than a fixed date keep the document&rsquo;s own words instead of being
+                converted into a deadline we cannot justify.
+              </p>
+            </AlertDescription>
+          </Alert>
         </div>
       </section>
 
-      <section className="mt-12 rounded-lg border border-border bg-surface p-6 sm:p-8">
-        <h2 className="text-xl font-semibold tracking-tight">
-          Run this on your own award
-        </h2>
-        <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
-          Upload a text-based PDF, a Word document, or paste the text. Your first award is free,
-          and your document stays private to your organisation.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Button asChild size="lg">
-            <Link href="/app/awards/new">
-              Analyse an award
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </Link>
-          </Button>
-          <Button asChild size="lg" variant="secondary">
-            <Link href="/pricing">See pricing</Link>
-          </Button>
+      <section aria-labelledby="sample-register" className="border-t border-border bg-surface-sunken">
+        <div className="container-page section-tight">
+          <h2 id="sample-register" className="type-heading">
+            The obligation register
+          </h2>
+          <p className="type-small measure-wide mt-3 text-muted-foreground">
+            {obligations.length} items, each one shown with the passage it was drawn from.
+          </p>
+          <div className="mt-8 grid gap-5 lg:grid-cols-2">
+            {obligations.map((obligation) => (
+              <EvidenceRail key={obligation.id} obligation={obligation} />
+            ))}
+          </div>
         </div>
-        <p className="mt-4 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
-          <FileText className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
-          This sample is fictional. Any resemblance to a real funder, recipient or award number is
-          coincidental.
-        </p>
       </section>
-    </div>
+
+      <section className="bg-ink-accent">
+        <div className="container-page section">
+          <div className="flex flex-col gap-7 md:flex-row md:items-center md:justify-between md:gap-12">
+            <div className="max-w-2xl">
+              <h2 className="type-title text-white">Run this on your own award</h2>
+              <p className="type-lede mt-4 text-white/80">
+                Upload a text-based PDF, a Word document, or paste the text. Your first award is
+                free, and your document stays private to your organisation.
+              </p>
+            </div>
+            <div className="flex shrink-0 flex-col gap-3 sm:flex-row">
+              <Button
+                asChild
+                size="lg"
+                className="bg-surface text-ink-accent hover:bg-muted focus-visible:outline-white"
+              >
+                <Link href="/app/awards/new">
+                  Analyse an award
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="ghost"
+                className="border border-white/25 text-white hover:bg-white/10 hover:text-white focus-visible:outline-white"
+              >
+                <Link href="/pricing">See pricing</Link>
+              </Button>
+            </div>
+          </div>
+
+          <p className="type-caption mt-10 flex items-start gap-2 border-t border-white/15 pt-5 text-white/70">
+            <FileText className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
+            This sample is fictional. Any resemblance to a real funder, recipient or award number
+            is coincidental.
+          </p>
+        </div>
+      </section>
+    </>
   );
 }
 
 function SampleFact({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-0.5 font-mono text-sm font-medium">{value}</p>
+      <dt className="eyebrow text-muted-foreground">{label}</dt>
+      <dd className="metric tabular mt-2 text-xl">{value}</dd>
     </div>
   );
 }

@@ -40,9 +40,9 @@ export function SiteFooter() {
           <div className="max-w-sm">
             <div className="flex items-center gap-2.5 text-foreground">
               <AwardLensMark className="size-6 text-primary" />
-              <span className="text-[15px] font-semibold tracking-[-0.02em]">AwardLens</span>
+              <span className="type-subhead">AwardLens</span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+            <p className="type-small mt-3 text-muted-foreground">
               Post-award grant management for small nonprofits. Upload an award, get a
               source-linked register of what was promised, and confirm every item yourself.
             </p>
@@ -50,15 +50,13 @@ export function SiteFooter() {
 
           {COLUMNS.map((column) => (
             <nav key={column.heading} aria-label={column.heading}>
-              <h2 className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                {column.heading}
-              </h2>
+              <h2 className="eyebrow text-muted-foreground">{column.heading}</h2>
               <ul className="mt-4 space-y-2.5">
                 {column.links.map((link) => (
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="rounded-sm text-sm text-foreground-soft transition-colors hover:text-primary"
+                      className="type-small rounded-sm text-foreground-soft transition-colors hover:text-primary"
                     >
                       {link.label}
                     </Link>
@@ -69,14 +67,19 @@ export function SiteFooter() {
           ))}
         </div>
 
-        <div className="mt-12 flex flex-col gap-4 border-t border-border pt-6 md:flex-row md:items-start md:justify-between">
-          <p className="text-xs text-muted-foreground">
-            &copy; {year} AwardLens. Every extracted item cites its source; a person confirms it.
-          </p>
-          <p className="max-w-md text-xs leading-relaxed text-muted-foreground">
+        {/*
+          The limits of the product are the last thing a visitor reads, and they
+          are set at reading size in body ink rather than as 12px grey fine
+          print. A disclaimer nobody can read is not a disclaimer.
+        */}
+        <div className="mt-14 grid gap-5 border-t border-border pt-7 md:grid-cols-[1fr_auto] md:items-start md:gap-12">
+          <p className="type-small measure-wide text-foreground-soft">
             AwardLens organises what your award documents say and shows you where it says it.
             It is not legal, financial or compliance advice, and it does not guarantee that an
             award has been read completely or complied with.
+          </p>
+          <p className="type-caption text-muted-foreground md:text-right">
+            &copy; {year} AwardLens. Every extracted item cites its source; a person confirms it.
           </p>
         </div>
       </div>
