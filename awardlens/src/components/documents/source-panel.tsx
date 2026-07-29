@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { FileText } from "lucide-react";
+import { AlertTriangle, FileText } from "lucide-react";
 
 import type { DocumentSegment, ObligationCitation } from "@/lib/domain/types";
 import { formatLocator } from "@/lib/documents/segment";
 import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/ui/misc";
 
 /**
  * The source panel — the other half of the promise the Evidence Rail makes.
@@ -19,6 +20,14 @@ import { cn } from "@/lib/utils";
  *     of the original PDF — and the header says so.
  *  3. If we cannot find the quoted passage in the stored text we say that,
  *     rather than highlighting a nearby sentence and implying it is the source.
+ *
+ * Visually it is a *document object*, not another card: `--paper` under
+ * `--ink-document`, chrome reduced to two hairlines, and the marked sentence as
+ * the only thing on the panel allowed to carry colour. The panel used to wash
+ * the active passage in `--warning-subtle`, which borrowed the alert colour for
+ * something that is not an alert and left the whole column reading muddy;
+ * `--highlight-wash` / `--highlight-subtle` exist precisely so a citation looks
+ * marked rather than broken.
  */
 
 interface SourcePanelProps {
@@ -157,23 +166,45 @@ export function SourcePanel({
   return (
     <div
       className={cn(
-        "flex min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-surface",
+        // Paper, not surface. This is the one panel on the screen that is a
+        // document rather than a piece of interface, and it should read that way
+        // against the warm ivory page.
+        "flex min-h-0 flex-col overflow-hidden rounded-lg border border-paper-border bg-paper shadow-resting",
         className,
       )}
     >
-      <div className="flex shrink-0 items-start gap-3 border-b border-border bg-surface-sunken px-4 py-3">
-        <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      {/*
+        Chrome, reduced to what it has to say: which file this is, and the
+        standing caveat that it is our stored text rather than the original.
+        Previously a filled sunken bar with 14px semibold over two lines of
+        12px — heavier than the document it frames.
+      */}
+      <div className="flex shrink-0 items-start gap-2.5 border-b border-paper-border px-4 py-2.5">
+        <FileText
+          className="mt-[3px] size-3.5 shrink-0 text-ink-document-soft"
+          aria-hidden="true"
+        />
         <div className="min-w-0 flex-1">
-          <h2 id="source-panel-heading" className="truncate text-sm font-semibold text-foreground">
+          <h2
+            id="source-panel-heading"
+            className="truncate text-[13px] font-semibold tracking-[-0.011em] text-ink-document"
+          >
             {documentName ?? "Source document"}
           </h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
+          <p className="mt-0.5 text-[11.5px] leading-[1.5] text-ink-document-soft">
             {segments.length > 0 ? (
               <>
-                {groups.length} {locatorNoun}
-                {typeof pageCount === "number" && pageCount > 0
-                  ? ` · ${pageCount} ${pageCount === 1 ? "page" : "pages"} in the file`
-                  : null}
+                <span className="tabular font-mono">
+                  {groups.length} {locatorNoun}
+                </span>
+                {typeof pageCount === "number" && pageCount > 0 ? (
+                  <>
+                    {" · "}
+                    <span className="tabular font-mono">
+                      {pageCount} {pageCount === 1 ? "page" : "pages"} in the file
+                    </span>
+                  </>
+                ) : null}
                 {" · "}
               </>
             ) : null}
@@ -206,32 +237,35 @@ export function SourcePanel({
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
       >
         {segments.length === 0 ? (
-          <div className="px-4 py-10 text-center">
-            <p className="text-sm font-medium text-foreground">No stored text for this award</p>
-            <p className="mx-auto mt-1.5 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              We could not read any text out of the uploaded file, so there is nothing to compare
-              these items against. Check the document against the award yourself before relying on
-              anything below.
-            </p>
-          </div>
+          <EmptyState
+            bordered={false}
+            headingLevel={3}
+            className="min-h-[14rem]"
+            title="No stored text for this award"
+            description="We could not read any text out of the uploaded file, so there is nothing to compare these items against. Check the document against the award yourself before relying on anything below."
+          />
         ) : (
           <>
             {activeSegmentMissing ? (
-              <p className="border-b border-warning-border bg-warning-subtle px-4 py-2.5 text-xs leading-relaxed text-warning">
+              <p className="flex items-start gap-2 border-b border-warning-border bg-warning-subtle px-4 py-2 text-xs leading-relaxed text-warning">
+                <AlertTriangle className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
                 The passage cited by this item is not in the document shown here.
               </p>
             ) : null}
             {groups.map((group) => (
               <section key={group.key} aria-label={group.label}>
-                <h3 className="sticky top-0 z-10 flex items-baseline gap-2 border-y border-border bg-surface/95 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground backdrop-blur">
-                  <span className="font-mono normal-case tracking-normal text-foreground-soft">
+                {/*
+                  Opaque paper, not a translucent blur. Blurring a document a
+                  person is checking a claim against is a legibility cost the
+                  product cannot justify.
+                */}
+                <h3 className="sticky top-0 z-10 flex items-baseline gap-2 border-b border-paper-border bg-paper px-4 py-1.5 text-[11.5px] text-ink-document-soft">
+                  <span className="tabular shrink-0 font-mono font-medium tracking-[-0.01em] text-ink-document">
                     {group.label}
                   </span>
-                  {group.heading ? (
-                    <span className="truncate normal-case tracking-normal">{group.heading}</span>
-                  ) : null}
+                  {group.heading ? <span className="truncate">{group.heading}</span> : null}
                 </h3>
-                <div className="space-y-4 px-4 py-4">
+                <div className="space-y-3 px-3 py-3.5">
                   {group.segments.map((segment) => (
                     <SegmentText
                       key={segment.id}
@@ -265,23 +299,31 @@ function SegmentText({ segment, citation, ref }: SegmentTextProps) {
       ref={ref}
       data-active={isActive ? "true" : undefined}
       className={cn(
-        "scroll-mt-16 rounded-md border-l-2 pl-3 transition-colors",
-        isActive ? "border-warning bg-warning-subtle/25" : "border-transparent",
+        "scroll-mt-12 rounded-md border-l-2 px-3 py-1.5 transition-colors",
+        // --highlight-rule is 3.32:1 on --paper, so the active edge clears the
+        // 3:1 asked of a non-text boundary.
+        isActive ? "border-highlight-rule bg-highlight-wash" : "border-transparent",
       )}
     >
       {isActive ? (
-        <p className="mb-1.5 text-xs font-medium text-warning">
-          {highlight
-            ? "Cited passage, marked below"
-            : "We could not locate this passage in the stored text — nothing is marked below."}
-        </p>
+        highlight ? (
+          <p className="eyebrow mb-1.5 flex items-center gap-1.5 text-ink-document-soft">
+            <span aria-hidden="true" className="h-[3px] w-3.5 rounded-full bg-highlight-rule" />
+            Cited passage, marked below
+          </p>
+        ) : (
+          <p className="mb-1.5 flex items-start gap-1.5 text-xs font-medium leading-relaxed text-warning">
+            <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+            We could not locate this passage in the stored text — nothing is marked below.
+          </p>
+        )
       ) : null}
 
       <p className="evidence-quote whitespace-pre-wrap break-words">
         {highlight ? (
           <>
             {segment.text.slice(0, highlight.start)}
-            <mark className="box-decoration-clone rounded-sm bg-warning-subtle px-0.5 text-foreground underline decoration-warning decoration-2 underline-offset-2">
+            <mark className="evidence-mark box-decoration-clone px-0.5">
               <span className="sr-only">Start of cited passage. </span>
               {segment.text.slice(highlight.start, highlight.end)}
               <span className="sr-only"> End of cited passage.</span>
