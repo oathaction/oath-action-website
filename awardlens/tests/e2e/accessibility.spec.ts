@@ -23,7 +23,7 @@ interface ViolationSummary {
   id: string;
   impact: string;
   help: string;
-  nodes: string[];
+  nodes: { target: string; why: string }[];
 }
 
 /**
@@ -37,7 +37,12 @@ async function expectNoViolations(page: Page, label: string, testInfo: TestInfo)
     id: violation.id,
     impact: violation.impact ?? "unknown",
     help: violation.help,
-    nodes: violation.nodes.map((node) => node.target.join(" ")),
+    nodes: violation.nodes.map((node) => ({
+      target: node.target.join(" "),
+      // The measured reason — contrast ratios, missing attributes — so a report
+      // says what is wrong, not merely that something is.
+      why: (node.failureSummary ?? "").replace(/\s*\n\s*/g, " ").trim(),
+    })),
   }));
 
   // Recorded on every run, pass or fail, so the report is evidence rather than
@@ -62,10 +67,62 @@ async function expectNoViolations(page: Page, label: string, testInfo: TestInfo)
     `[axe] ${label}: ${violations.length} violations, ${results.passes.length} checks passed`,
   );
 
-  expect(
+  // Soft: one bad page must not stop the scan, or the run reports the first
+  // defect and hides every page after it. The test still fails at the end.
+  expect.soft(
     violations,
     `${label} has WCAG violations:\n${violations
-      .map((v) => `  · [${v.impact}] ${v.id} — ${v.help}\n      ${v.nodes.join("\n      ")}`)
+      .map(
+        (v) =>
+          `  · [${v.impact}] ${v.id} — ${v.help}\n${v.nodes
+            .map((node) => `      ${node.target}\n        ${node.why}`)
+            .join("\n")}`,
+      )
+      .join("\n")}`,
+  ).toEqual([]);
+}
+
+/**
+ * Every region that actually overflows must be scrollable without a mouse.
+ *
+ * A scroll container reaches the keyboard one of two ways: it is focusable
+ * itself, or it contains something focusable to tab into. A container with
+ * neither is content a keyboard-only user simply cannot read past the fold —
+ * WCAG 2.1.1 — and on this product the worst offender would be the panel that
+ * shows the passage an obligation was drawn from.
+ */
+async function expectScrollableRegionsAreKeyboardAccessible(
+  page: Page,
+  label: string,
+): Promise<void> {
+  const unreachable = await page.evaluate(() => {
+    const focusableSelector =
+      'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+    return [...document.querySelectorAll<HTMLElement>("*")]
+      .filter((element) => {
+        const overflowY = getComputedStyle(element).overflowY;
+        if (overflowY !== "auto" && overflowY !== "scroll") return false;
+        if (element.scrollHeight <= element.clientHeight + 1) return false;
+        if (element.tabIndex >= 0) return false;
+        return element.querySelectorAll(focusableSelector).length === 0;
+      })
+      .map((element) => ({
+        tag: element.tagName.toLowerCase(),
+        className: element.className?.toString().slice(0, 80) ?? "",
+        scrollHeight: element.scrollHeight,
+        clientHeight: element.clientHeight,
+      }));
+  });
+
+  expect.soft(
+    unreachable,
+    `${label} has scrollable regions a keyboard user cannot scroll:\n${unreachable
+      .map(
+        (region) =>
+          `      <${region.tag} class="${region.className}"> ` +
+          `${region.scrollHeight}px of content in a ${region.clientHeight}px window`,
+      )
       .join("\n")}`,
   ).toEqual([]);
 }
@@ -124,10 +181,17 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
 
     awardId = await analyseSample(page);
 
+    // Scanned after a real navigation rather than straight off the post-ingest
+    // client-side redirect: during a soft transition Next has not yet applied the
+    // route's metadata, so `document-title` fires on the transition rather than
+    // on the page. The delivered page is what a user reads and what axe should
+    // judge.
+    await page.goto(`/app/awards/${awardId}/review`);
     await expect(
       page.getByRole("heading", { name: "Review what this award requires", level: 1 }),
     ).toBeVisible();
     await expectNoViolations(page, "review", testInfo);
+    await expectScrollableRegionsAreKeyboardAccessible(page, "review");
 
     await page.goto(`/app/awards/${awardId}`);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
@@ -273,14 +337,17 @@ test.describe("keyboard operability", () => {
   test("the review queue can be driven with its documented shortcuts", async ({ page }) => {
     test.setTimeout(300_000);
 
-    await signIn(page, uniqueEmail("a11y-shortcuts"));
+    await signIn(page, uniqueEmail("a11y-keys"));
     const awardId = await analyseSample(page);
     await page.goto(`/app/awards/${awardId}/review`);
 
     // The shortcuts are advertised in the UI, so they are part of the contract.
-    await page.getByRole("button", { name: "Shortcuts" }).click();
+    const shortcutsToggle = page.getByRole("button", { name: "Shortcuts", exact: true });
+    await shortcutsToggle.click();
     await expect(page.getByRole("heading", { name: "Keyboard shortcuts" })).toBeVisible();
-    await page.getByRole("button", { name: "Shortcuts" }).click();
+    await expect(shortcutsToggle).toHaveAttribute("aria-expanded", "true");
+    await shortcutsToggle.click();
+    await expect(page.getByRole("heading", { name: "Keyboard shortcuts" })).toBeHidden();
 
     const queue = page.getByRole("list", { name: "Obligations awaiting review" });
     const firstTitle = await queue.getByRole("article").first().getByRole("heading").innerText();

@@ -222,11 +222,11 @@ export default async function SettingsPage(props: {
               <StatusRow
                 label="Storage"
                 value={
-                  config.storageMode === "supabase"
-                    ? "Supabase Postgres"
+                  config.storageMode === "postgres"
+                    ? "Postgres"
                     : "Local file store (ephemeral)"
                 }
-                ok={config.storageMode === "supabase"}
+                ok={config.storageMode === "postgres"}
               />
               <StatusRow
                 label="Billing"

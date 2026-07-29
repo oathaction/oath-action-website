@@ -164,7 +164,7 @@ export function SourcePanel({
       <div className="flex shrink-0 items-start gap-3 border-b border-border bg-surface-sunken px-4 py-3">
         <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
         <div className="min-w-0 flex-1">
-          <h2 className="truncate text-sm font-semibold text-foreground">
+          <h2 id="source-panel-heading" className="truncate text-sm font-semibold text-foreground">
             {documentName ?? "Source document"}
           </h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
@@ -183,7 +183,28 @@ export function SourcePanel({
         {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+      {/*
+        Focusable and named on purpose.
+
+        This region scrolls through the whole stored document — often many
+        screens — and contains no interactive elements, so without tabIndex
+        there is nothing for a keyboard user to focus and no way to scroll it.
+        That would make the source panel mouse-only, and this panel is where a
+        user goes to check that an obligation really does come from the page the
+        Evidence Rail claims. Verifying the citation is the product's core
+        promise; it cannot be reserved for people with a pointer.
+
+        The accessible name matters as much as the focusability: a bare
+        tabIndex={0} satisfies the tooling but drops a screen-reader user into
+        an anonymous scrollable group. Labelling it by the document heading
+        means focus lands somewhere that announces what it is.
+      */}
+      <div
+        role="region"
+        aria-labelledby="source-panel-heading"
+        tabIndex={0}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+      >
         {segments.length === 0 ? (
           <div className="px-4 py-10 text-center">
             <p className="text-sm font-medium text-foreground">No stored text for this award</p>

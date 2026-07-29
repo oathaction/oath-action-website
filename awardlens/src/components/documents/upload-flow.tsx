@@ -183,10 +183,20 @@ export function UploadFlow() {
               <p className="mt-3 text-sm font-medium">
                 {file ? file.name : "Drag your award document here"}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p id="award-file-hint" className="mt-1 text-xs text-muted-foreground">
                 Text-based PDF, DOCX, TXT or Markdown · up to 15 MB
               </p>
 
+              {/*
+                Visually hidden rather than `hidden`, because `display: none`
+                breaks the programmatic `.click()` below in some browsers. That
+                keeps it in the accessibility tree and the tab order, so it
+                needs a real label of its own — the visible "Choose a file"
+                button is a separate element and does not name this input.
+              */}
+              <label htmlFor="award-file" className="sr-only">
+                Award document file (PDF, DOCX, TXT or Markdown, up to 15 MB)
+              </label>
               <input
                 ref={inputRef}
                 id="award-file"
@@ -194,6 +204,7 @@ export function UploadFlow() {
                 name="file"
                 accept={ACCEPT}
                 className="sr-only"
+                aria-describedby="award-file-hint"
                 onChange={(event) => setFile(event.currentTarget.files?.[0] ?? null)}
               />
               <Button

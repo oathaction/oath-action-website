@@ -23,6 +23,7 @@ const rawSchema = z.object({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalString,
   SUPABASE_SERVICE_ROLE_KEY: optionalString,
   SUPABASE_STORAGE_BUCKET: optionalString,
+  DATABASE_URL: optionalString,
 
   AI_GATEWAY_API_KEY: optionalString,
   AI_MODEL: optionalString,
@@ -51,7 +52,7 @@ function readBoolean(value: string | undefined, fallback: boolean): boolean {
   return ["1", "true", "yes", "on"].includes(value.trim().toLowerCase());
 }
 
-export type StorageMode = "supabase" | "local";
+export type StorageMode = "postgres" | "local";
 export type AiMode = "live" | "fixtures";
 export type BillingMode = "stripe" | "development";
 export type EmailMode = "resend" | "console";
@@ -90,6 +91,8 @@ export interface ServerConfig {
   };
   cronSecret?: string;
   authSecret?: string;
+  /** Postgres connection string. Its presence selects the Postgres adapter. */
+  databaseUrl?: string;
   /** Non-fatal configuration problems worth surfacing to an operator. */
   warnings: string[];
 }
@@ -109,32 +112,17 @@ export function getServerConfig(): ServerConfig {
       parsed.SUPABASE_SERVICE_ROLE_KEY,
   );
 
-  // storageMode reports the adapter the application ACTUALLY uses, not the one
-  // its environment variables suggest. `@/lib/db` resolves to the file-backed
-  // store; no Supabase client is constructed anywhere in src/. Deriving the
-  // mode from env vars alone would show an operator "Supabase Postgres" with a
-  // green tick while every private grant document sat in a JSON file on an
-  // ephemeral disk — turning a documented limitation into a false assurance
-  // that row-level security was protecting their tenants.
-  //
-  // Flip this to `supabaseConfigured ? "supabase" : "local"` in the same commit
-  // that wires a real adapter into src/lib/db/index.ts, and not before.
-  const SUPABASE_ADAPTER_IMPLEMENTED = false;
-  const storageMode: StorageMode =
-    SUPABASE_ADAPTER_IMPLEMENTED && supabaseConfigured ? "supabase" : "local";
+  // storageMode reports the adapter the application ACTUALLY uses, never what
+  // the environment merely hints at. DATABASE_URL is the switch, because it is
+  // the variable the adapter genuinely reads. Reporting "Postgres" for a
+  // configuration that still wrote to a JSON file would turn a documented
+  // limitation into a false assurance that row-level security was protecting
+  // an operator's tenants.
+  const storageMode: StorageMode = parsed.DATABASE_URL ? "postgres" : "local";
 
-  if (supabaseConfigured && !SUPABASE_ADAPTER_IMPLEMENTED) {
+  if (supabaseConfigured && !parsed.DATABASE_URL) {
     warnings.push(
-      "Supabase credentials are set but AwardLens is NOT using them. No Supabase client is wired in yet, so all data — including uploaded grant documents — is stored in the local file store, and the row-level security policies in supabase/migrations are not in effect. Do not treat this deployment as multi-tenant-safe storage.",
-    );
-  } else if (
-    !supabaseConfigured &&
-    (parsed.NEXT_PUBLIC_SUPABASE_URL ||
-      parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-      parsed.SUPABASE_SERVICE_ROLE_KEY)
-  ) {
-    warnings.push(
-      "Supabase is partially configured. NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are all required.",
+      "Supabase API credentials are set but DATABASE_URL is not, so AwardLens is still using the local file store. Set DATABASE_URL to your project's Postgres connection string (Project settings → Database) to persist data properly.",
     );
   }
 
@@ -225,7 +213,7 @@ export function describeConfig() {
     aiModel: config.aiMode === "live" ? config.ai.model : null,
     billingMode: config.billingMode,
     emailMode: config.emailMode,
-    supabaseConfigured: config.storageMode === "supabase",
+    databaseConfigured: config.storageMode === "postgres",
     stripeConfigured: Boolean(config.stripe.secretKey),
     resendConfigured: Boolean(config.email.apiKey),
     cronProtected: Boolean(config.cronSecret),

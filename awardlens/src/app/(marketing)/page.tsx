@@ -315,7 +315,14 @@ export default function MarketingHomePage() {
                     </p>
 
                     <p className="rounded-r-sm border-l-2 border-primary bg-primary-subtle px-3 py-2.5 text-primary-subtle-foreground">
-                      <span className="mr-2 font-mono text-[11px] opacity-70">5.2</span>
+                      {/*
+                        No opacity here. At 11px there is no contrast headroom:
+                        opacity-70 blended --primary-subtle-foreground toward the
+                        highlight background and measured 4.27:1, under the 4.5:1
+                        that WCAG AA requires at this size. The token passes on
+                        its own.
+                      */}
+                      <span className="mr-2 font-mono text-[11px]">5.2</span>
                       The Recipient shall submit quarterly narrative reports describing progress
                       toward the performance measures set out in Exhibit A.
                       <span className="mt-2 block font-sans text-[10px] font-semibold uppercase tracking-[0.12em] text-primary">
