@@ -16,6 +16,7 @@ Verification record and release recommendation.
 | CI (GitHub Actions, hermetic) | Green |
 | End-to-end (Playwright, real browser) | **52 passing / 52** — 48 desktop, 4 mobile |
 | Accessibility (`@axe-core/playwright`, WCAG 2.1 A + AA) | **0 violations** across 16 surfaces |
+| Re-verified after the visual redesign | 52/52 e2e, 0 axe violations, build across 17 routes |
 | Extraction evaluation, 12 synthetic awards | 77.4% recall, **100% citation coverage**, **0% unsupported claims** |
 | Row-level security, live Postgres 16 | 16/16 public tables with RLS, 51 policies, all negative tests pass |
 | Independent security review | No Critical, **no cross-organisation access path** |
@@ -207,6 +208,38 @@ surfaces in total. **Zero violations, with nothing excluded and no rule
 suppressed.** Scanning the dialogs matters more than scanning the pages: the
 edit, add and shortcut dialogs are where focus management, labelling and escape
 behaviour actually get exercised.
+
+| Surface | Violations | Checks passed |
+|---|---|---|
+| home (`/`) | 0 | 24 |
+| pricing (`/pricing`) | 0 | 26 |
+| demo (`/demo`) | 0 | 23 |
+| sign-in (`/auth/sign-in`) | 0 | 26 |
+| sign-in, code step | 0 | 27 |
+| dashboard (empty) | 0 | 24 |
+| new award | 0 | 28 |
+| review | 0 | 26 |
+| award workspace | 0 | 28 |
+| obligation register (cards) | 0 | 27 |
+| obligation register (table) | 0 | 28 |
+| dashboard (populated) | 0 | 26 |
+| settings | 0 | 29 |
+| obligation editor dialog | 0 | 24 |
+| add obligation dialog | 0 | 25 |
+| bulk confirm dialog | 0 | 22 |
+
+Three keyboard-operability tests sit alongside the scans, because axe cannot see
+whether a control is *reachable*: the skip link is the first tab stop and works,
+every action on the review screen is reachable and shows focus, and the review
+queue can be driven with its documented shortcuts.
+
+**This was re-run after a full visual redesign of every surface and the result
+did not move.** The redesign also fixed two accessibility defects that predated
+it: `--border-control` on inputs, selects, checkboxes and outlined buttons was
+1.64:1 where WCAG 1.4.11 asks for 3:1 (an unfilled control's border *is* its
+affordance), and the light-only palette never declared `color-scheme: light`, so
+an operating system in dark mode rendered dark native date pickers and select
+popups inside the obligation editor.
 
 The end-to-end suite found ten defects the unit and integration layers could not
 see, several of them accessibility defects — a source panel that could not be

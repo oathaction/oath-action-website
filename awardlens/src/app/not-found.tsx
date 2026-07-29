@@ -17,7 +17,7 @@ export default function NotFound() {
           <FileSearch />
         </span>
 
-        <p className="mt-6 font-mono text-[13px] tracking-[0.18em] text-muted-foreground">404</p>
+        <p className="mt-6 font-mono text-[13px] tracking-[0.12em] text-muted-foreground">404</p>
         <h1 className="type-title mt-2.5 text-foreground">We couldn&rsquo;t find that</h1>
         <p className="type-lede mt-3 text-muted-foreground">
           The page may have moved, or the award may have been deleted.
@@ -36,11 +36,11 @@ export default function NotFound() {
           </p>
         </div>
 
-        <ButtonRow className="mt-7 justify-center">
-          <Button asChild>
+        <ButtonRow className="mt-7 flex-col justify-center sm:flex-row">
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/app">Go to your dashboard</Link>
           </Button>
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="w-full sm:w-auto">
             <Link href="/">Back to the home page</Link>
           </Button>
         </ButtonRow>

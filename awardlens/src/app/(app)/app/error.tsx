@@ -40,12 +40,12 @@ export default function AppError({
           </p>
         </div>
 
-        <ButtonRow className="mt-7 justify-center">
-          <Button onClick={reset}>
+        <ButtonRow className="mt-7 flex-col justify-center sm:flex-row">
+          <Button onClick={reset} className="w-full sm:w-auto">
             <RotateCw aria-hidden="true" />
             Try again
           </Button>
-          <Button asChild variant="secondary">
+          <Button asChild variant="secondary" className="w-full sm:w-auto">
             <Link href="/app">Back to dashboard</Link>
           </Button>
         </ButtonRow>

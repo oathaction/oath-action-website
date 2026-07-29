@@ -157,6 +157,62 @@ now has a regression test.
 
 ---
 
+## 5b. Visual design overhaul
+
+Run as a twelfth workstream after the product was working, on the principle that
+you cannot design a screen you have not yet seen carry real data.
+
+**Structure.** One Art Director built the foundation alone — tokens, type scale,
+elevation, spacing, and all of `src/components/ui/*` plus the Evidence Rail —
+because every surface depends on that vocabulary and five people inventing it in
+parallel produces five vocabularies. Then five surface designers worked
+concurrently under strict file ownership, each followed by a fresh-eyes polish
+pass by a different agent. Every agent was required to screenshot its own work at
+1280×900 and 390×844 and iterate against the image.
+
+**That requirement earned its keep.** The Alert rewrite destructured `children`
+out of props and spread only the remainder onto the div in its no-icon branch, so
+every alert without an icon rendered empty. Typecheck passed, lint passed, and
+471 tests passed — nothing asserts that an alert has content. It was findable
+only by looking.
+
+**What changed, measured.**
+
+| Surface | Before | After | |
+|---|---|---|---|
+| Obligation register, 390px | 29,580px | 11,313px | −62% |
+| Obligation register, 1280px | 5,276px | 1,940px | −63% |
+| Review workspace, 1280px | 2,041px | 1,100px | −46% |
+| Marketing home, 1280px | 7,774px | 6,760px | −13% |
+
+The register mattered most: thirty-five phone screens of scrolling to answer
+"what is due next" is not a register, it is an archive.
+
+**Defects the design work found, which were bugs rather than taste:**
+
+1. `--border-control` was 1.64:1 on inputs, selects, checkboxes and outlined
+   buttons. An unfilled control's border is its entire affordance and WCAG 1.4.11
+   asks for 3:1. Now measured at 3.18:1, kept low-chroma so reaching the ratio
+   does not turn every field into a brown box.
+2. The palette is light-only by design but never said so, so an operating system
+   in dark mode rendered dark native date pickers and select popups inside a warm
+   ivory review tool — and the obligation editor is full of native controls.
+3. The application header used `bg-background/95` with a backdrop blur, so page
+   content ghosted through it while scrolling.
+4. `obligation-editor.tsx` shipped lucide's `Sparkles` icon, explicitly out of
+   bounds for this product.
+5. The document panel tinted the cited sentence with the amber *alert* colour, so
+   the passage you check a claim against looked like a warning. The highlight
+   family is now separate from the alert family.
+
+**Verified after.** 52/52 end-to-end, 0 axe violations across all sixteen
+surfaces with the keyboard-operability tests still passing, production build
+across 17 routes, typecheck and lint clean, 471 unit and integration tests
+passing. No accessible name, role or label changed, so the suites that assert
+them needed no edits.
+
+---
+
 ## 6. Deferred, and honest status
 
 - **~~Supabase adapter not wired in.~~ Closed.** `src/lib/db/pg/` now implements

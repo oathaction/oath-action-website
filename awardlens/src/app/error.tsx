@@ -45,12 +45,16 @@ export default function GlobalError({
           </p>
         </div>
 
-        <ButtonRow className="mt-7 justify-center">
-          <Button onClick={reset}>
+        <ButtonRow className="mt-7 flex-col justify-center sm:flex-row">
+          <Button onClick={reset} className="w-full sm:w-auto">
             <RotateCw aria-hidden="true" />
             Try again
           </Button>
-          <Button variant="secondary" onClick={() => window.location.assign("/app")}>
+          <Button
+            variant="secondary"
+            className="w-full sm:w-auto"
+            onClick={() => window.location.assign("/app")}
+          >
             Go to dashboard
           </Button>
         </ButtonRow>
