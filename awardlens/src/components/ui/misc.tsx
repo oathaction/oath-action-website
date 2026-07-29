@@ -28,11 +28,24 @@ export function Separator({
   );
 }
 
+/**
+ * A progress bar must be named, and the type system enforces it.
+ *
+ * Radix renders `role="progressbar"` with `aria-valuenow`, so an unnamed one
+ * announces a bare percentage with nothing saying what is at that percentage.
+ * That is easy to forget at a call site and invisible in review — it already
+ * happened once. Requiring one of `aria-label` or `aria-labelledby` here makes
+ * the omission a compile error rather than something an audit has to catch.
+ */
+type RequiresAccessibleName =
+  | { "aria-label": string; "aria-labelledby"?: never }
+  | { "aria-labelledby": string; "aria-label"?: never };
+
 export function Progress({
   className,
   value,
   ...props
-}: React.ComponentProps<typeof ProgressPrimitive.Root>) {
+}: React.ComponentProps<typeof ProgressPrimitive.Root> & RequiresAccessibleName) {
   return (
     <ProgressPrimitive.Root
       className={cn("relative h-2 w-full overflow-hidden rounded-full bg-muted", className)}

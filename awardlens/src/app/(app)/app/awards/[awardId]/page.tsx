@@ -171,7 +171,11 @@ export default async function AwardPage(props: {
                 Nothing here is treated as confirmed until you check it against the document.
               </p>
             </div>
-            <Progress value={progress.percentComplete} className="w-full max-w-48" />
+            <Progress
+              value={progress.percentComplete}
+              aria-label={`Review ${progress.percentComplete} percent complete`}
+              className="w-full max-w-48"
+            />
           </div>
         </div>
       ) : null}
