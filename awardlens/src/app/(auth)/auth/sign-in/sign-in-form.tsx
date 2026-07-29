@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { KeyRound, Mail } from "lucide-react";
+import { KeyRound, Mail, TriangleAlert } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldHint, Input, Label } from "@/components/ui/field";
@@ -35,7 +35,7 @@ export function SignInForm() {
   }
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="stack-lg">
       <Field>
         <Label htmlFor="email">Email address</Label>
         <Input
@@ -67,22 +67,24 @@ function VerifyForm({ requested }: { requested: AuthState }) {
   const [state, formAction] = useActionState<AuthState, FormData>(verifyLoginCode, requested);
 
   return (
-    <form action={formAction} className="space-y-4">
+    <form action={formAction} className="stack-lg">
       <input type="hidden" name="email" value={state.email} />
 
-      <p className="text-sm text-foreground-soft" role="status">
+      <p className="text-[13px] leading-relaxed text-muted-foreground empty:hidden" role="status">
         {state.status === "code_sent" && state.message ? state.message : null}
       </p>
 
       {requested.devCode ? (
-        <Alert variant="warning">
+        <Alert variant="warning" icon={<TriangleAlert />}>
           <AlertDescription>
             <p className="font-semibold">Development mode — email is not being sent.</p>
-            <p className="mt-1">
+            <p className="mt-1.5 text-[13px]">
               Your code is{" "}
-              <span className="font-mono text-base tracking-widest">{requested.devCode}</span>
+              <span className="metric font-mono text-base tracking-[0.28em] text-warning">
+                {requested.devCode}
+              </span>
             </p>
-            <p className="mt-1 text-xs">
+            <p className="mt-1.5 text-xs leading-relaxed">
               Configure RESEND_API_KEY to deliver real email. Codes are never shown on screen in a
               production build.
             </p>
@@ -102,8 +104,8 @@ function VerifyForm({ requested }: { requested: AuthState }) {
           required
           autoFocus
           placeholder="000000"
-          className="text-center font-mono text-lg tracking-[0.4em]"
           aria-invalid={state.status === "error" || undefined}
+          className="h-12 text-center font-mono text-xl tracking-[0.4em]"
         />
         {state.status === "error" ? <FieldError>{state.message}</FieldError> : null}
       </Field>
@@ -115,7 +117,10 @@ function VerifyForm({ requested }: { requested: AuthState }) {
 
       <p className="text-center text-xs text-muted-foreground">
         Didn&rsquo;t get it? Check spam, or{" "}
-        <a href="/auth/sign-in" className="underline underline-offset-2 hover:text-foreground">
+        <a
+          href="/auth/sign-in"
+          className="font-medium underline underline-offset-2 hover:text-foreground"
+        >
           start again
         </a>
         .

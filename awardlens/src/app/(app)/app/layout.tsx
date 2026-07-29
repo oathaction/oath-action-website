@@ -45,7 +45,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           }
           @keyframes al-header-lift {
             from { box-shadow: 0 0 0 0 rgb(var(--shadow-tint) / 0); }
-            to   { box-shadow: 0 1px 0 var(--border), 0 8px 18px -14px rgb(var(--shadow-tint) / 0.5); }
+            to   { box-shadow: 0 1px 0 var(--border), 0 10px 20px -14px rgb(var(--shadow-tint) / 0.7); }
           }
         }
       `}</style>

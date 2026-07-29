@@ -114,7 +114,7 @@ export default function DemoPage() {
             </p>
           </div>
 
-          <dl className="card-pad-roomy mt-10 grid gap-x-8 gap-y-6 rounded-lg border border-border bg-surface shadow-resting sm:grid-cols-3 lg:grid-cols-5">
+          <dl className="card-pad-roomy mt-10 grid grid-cols-2 gap-x-8 gap-y-6 rounded-lg border border-border bg-surface shadow-resting sm:grid-cols-3 lg:grid-cols-5">
             <SampleFact label="Funder" value={profile.funder ?? "Not stated"} />
             <SampleFact
               label="Amount"
@@ -136,7 +136,7 @@ export default function DemoPage() {
             variant="info"
             role="note"
             icon={<UserCheck />}
-            className="measure-wide mt-6"
+            className="mt-6 max-w-3xl"
           >
             <AlertTitle>Every item still says Needs review</AlertTitle>
             <AlertDescription>
@@ -181,7 +181,7 @@ export default function DemoPage() {
               <Button
                 asChild
                 size="lg"
-                className="bg-surface text-ink-accent hover:bg-muted focus-visible:outline-white"
+                className="bg-surface text-ink-accent hover:bg-muted active:bg-surface-sunken focus-visible:outline-white"
               >
                 <Link href="/app/awards/new">
                   Analyse an award
@@ -192,14 +192,14 @@ export default function DemoPage() {
                 asChild
                 size="lg"
                 variant="ghost"
-                className="border border-white/25 text-white hover:bg-white/10 hover:text-white focus-visible:outline-white"
+                className="border border-white/40 text-white hover:bg-white/10 hover:text-white active:bg-white/15 focus-visible:outline-white"
               >
                 <Link href="/pricing">See pricing</Link>
               </Button>
             </div>
           </div>
 
-          <p className="type-caption mt-10 flex items-start gap-2 border-t border-white/15 pt-5 text-white/70">
+          <p className="type-caption mt-10 flex items-start gap-2 border-t border-white/20 pt-5 text-white/70">
             <FileText className="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
             This sample is fictional. Any resemblance to a real funder, recipient or award number
             is coincidental.
@@ -214,7 +214,7 @@ function SampleFact({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt className="eyebrow text-muted-foreground">{label}</dt>
-      <dd className="metric tabular mt-2 text-xl">{value}</dd>
+      <dd className="metric tabular mt-2 text-lg leading-snug sm:text-xl">{value}</dd>
     </div>
   );
 }

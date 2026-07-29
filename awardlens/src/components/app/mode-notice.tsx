@@ -49,7 +49,7 @@ export function ModeNotice({
           />
           <span className="min-w-0">
             {/* 5.69:1 — --warning on --warning-quiet */}
-            <span className="font-semibold text-warning">Running in {notices.join(", ")}.</span>{" "}
+            <span className="font-medium text-warning">Running in {notices.join(", ")}.</span>{" "}
             <span className="whitespace-nowrap font-medium text-muted-foreground group-open:hidden">
               What this affects
               <ChevronDown

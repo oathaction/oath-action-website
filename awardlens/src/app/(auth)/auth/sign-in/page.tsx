@@ -76,7 +76,7 @@ export default async function SignInPage() {
           <span className="text-[17px] font-semibold tracking-[-0.02em]">AwardLens</span>
         </Link>
 
-        <div className="mx-auto flex w-full max-w-[25.5rem] flex-1 flex-col justify-center py-10 lg:py-0">
+        <div className="mx-auto flex w-full max-w-[27rem] flex-1 flex-col justify-center py-10 lg:py-0">
           <h1 className="type-heading">Sign in</h1>
           <p className="type-small mt-2 text-muted-foreground">
             We&rsquo;ll email you a six-digit code. No password to remember.

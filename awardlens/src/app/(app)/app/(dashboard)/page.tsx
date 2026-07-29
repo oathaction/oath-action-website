@@ -19,6 +19,7 @@ import { getDashboardData, type DeadlineEntry } from "@/lib/awards/queries";
 import { Button, ButtonRow } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "@/components/ui/misc";
 import { CATEGORY_META } from "@/lib/domain/types";
 import { formatCurrency, formatIsoDate } from "@/lib/utils";
 
@@ -100,10 +101,13 @@ export default async function DashboardPage() {
 
           {data.overdue.length + data.dueIn30.length + data.dueIn60.length + data.dueIn90.length ===
           0 ? (
-            <p className="measure mt-3 rounded-lg border border-dashed border-border-strong bg-surface/60 px-5 py-8 text-sm leading-relaxed text-muted-foreground">
-              No dated deadlines in the next 90 days. Requirements without a fixed calendar date
-              still appear in each award&rsquo;s register.
-            </p>
+            <EmptyState
+              className="mt-4"
+              headingLevel={3}
+              icon={<CalendarClock />}
+              title="No dated deadlines in the next 90 days"
+              description="Requirements without a fixed calendar date still appear in each award's register."
+            />
           ) : (
             <div className="mt-4 stack-lg">
               <DeadlineGroup title="Overdue" entries={data.overdue} tone="destructive" />
@@ -337,8 +341,8 @@ const STEPS = [
 
 function FirstRun({ organizationName }: { organizationName: string }) {
   return (
-    <div className="container-page pt-12 sm:pt-16">
-      <div className="grid items-start gap-x-16 gap-y-12 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+    <div className="container-page pt-11 sm:pt-14">
+      <div className="grid items-start gap-x-16 gap-y-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div>
           <p className="eyebrow text-primary">Getting started</p>
           <h1 className="type-title mt-2.5">Welcome to {organizationName}</h1>
@@ -349,46 +353,19 @@ function FirstRun({ organizationName }: { organizationName: string }) {
           </p>
 
           <ButtonRow className="mt-7 gap-3">
-            <Button asChild size="lg">
+            <Button asChild size="lg" className="w-full sm:w-auto">
               <Link href="/app/awards/new">
                 <Plus className="size-4" aria-hidden="true" />
                 Analyse your first award
               </Link>
             </Button>
-            <Button asChild size="lg" variant="secondary">
+            <Button asChild size="lg" variant="secondary" className="w-full sm:w-auto">
               <Link href="/demo">See a worked sample</Link>
             </Button>
           </ButtonRow>
-
-          <section aria-labelledby="steps-heading" className="mt-12">
-            <h2 id="steps-heading" className="eyebrow text-muted-foreground">
-              What happens next
-            </h2>
-            <ol className="mt-4 border-t border-border-subtle">
-              {STEPS.map((step, index) => (
-                <li
-                  key={step.title}
-                  className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-4 border-b border-border-subtle py-4"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="tabular font-mono text-[13px] font-medium text-primary"
-                  >
-                    {String(index + 1).padStart(2, "0")}
-                  </span>
-                  <div className="stack-xs">
-                    <p className="text-sm font-semibold text-foreground">{step.title}</p>
-                    <p className="measure text-sm leading-relaxed text-muted-foreground">
-                      {step.body}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </section>
         </div>
 
-        <Card elevation="raised" className="lg:mt-9">
+        <Card elevation="raised" className="lg:mt-1">
           <CardHeader padding="roomy" className="pb-4">
             <CardTitle>What you&rsquo;ll get</CardTitle>
           </CardHeader>
@@ -411,6 +388,23 @@ function FirstRun({ organizationName }: { organizationName: string }) {
           </CardContent>
         </Card>
       </div>
+
+      <section aria-labelledby="steps-heading" className="mt-14 border-t border-border pt-7">
+        <h2 id="steps-heading" className="eyebrow text-muted-foreground">
+          What happens next
+        </h2>
+        <ol className="mt-5 grid gap-x-12 gap-y-7 sm:grid-cols-3">
+          {STEPS.map((step, index) => (
+            <li key={step.title} className="stack-sm">
+              <p aria-hidden="true" className="tabular font-mono text-[13px] font-medium text-primary">
+                {String(index + 1).padStart(2, "0")}
+              </p>
+              <p className="text-sm font-semibold text-foreground">{step.title}</p>
+              <p className="text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
     </div>
   );
 }

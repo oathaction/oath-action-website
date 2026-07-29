@@ -31,7 +31,15 @@ export function SignOutButton({
   const initial = (email.trim()[0] ?? "?").toUpperCase();
 
   return (
-    <DropdownMenu>
+    /*
+     * Not modal. A modal Radix menu marks everything outside the portal
+     * `aria-hidden`, which includes the skip link in the root layout — a
+     * focusable element inside an aria-hidden subtree, which is exactly what
+     * axe's `aria-hidden-focus` rule is for. Nothing here needs a modal: it is
+     * a two-item menu, outside clicks still dismiss it, and Escape still
+     * closes it.
+     */
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger
         className="flex size-9 items-center justify-center rounded-full border border-border-control bg-surface text-[13px] font-semibold text-foreground-soft shadow-xs transition-colors hover:bg-muted hover:text-foreground"
         aria-label={`Account menu for ${email}`}
@@ -42,7 +50,13 @@ export function SignOutButton({
         {organizationName ? (
           <DropdownMenuLabel>{organizationName}</DropdownMenuLabel>
         ) : null}
-        <div className="max-w-56 truncate px-2.5 pb-2 pt-1 text-sm text-foreground">{email}</div>
+        {/*
+         * Wrapped, not truncated. "who am I signed in as" is the only question
+         * this menu exists to answer, and `…@e...` does not answer it.
+         */}
+        <div className="max-w-[17rem] px-2.5 pb-2 pt-1 text-sm leading-snug text-foreground [overflow-wrap:anywhere]">
+          {email}
+        </div>
         <DropdownMenuSeparator />
 
         {/*

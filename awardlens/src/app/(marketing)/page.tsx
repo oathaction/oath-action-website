@@ -369,7 +369,7 @@ export default function MarketingHomePage() {
                           The Recipient shall submit quarterly narrative reports describing
                           progress toward the performance measures set out in Exhibit A.
                         </span>
-                        <span className="type-caption mt-3 block font-sans text-muted-foreground">
+                        <span className="type-caption mt-2 block font-sans text-muted-foreground">
                           Quoted in the register &rarr;
                         </span>
                       </p>
@@ -614,56 +614,60 @@ export default function MarketingHomePage() {
       </section>
 
       {/* ---------------------------------------------------------- personas */}
+      {/*
+        A full-width ruled list rather than another side-headed grid. Five roles
+        with one line each is a table of contents, and typesetting it as one
+        keeps it from competing with the two blocks above.
+      */}
       <section>
         <div className="container-page section-tight">
-          <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
-            <div className="lg:col-span-4">
-              <p className="eyebrow text-muted-foreground">Who it is for</p>
-              <h2 className="type-heading measure mt-3">
-                Built for the people who have to answer for the award
-              </h2>
-            </div>
-
-            <dl className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:col-span-8">
-              {PERSONAS.map((persona) => (
-                <div key={persona.role} className="border-t border-border pt-4">
-                  <dt className="type-subhead">{persona.role}</dt>
-                  <dd className="type-small mt-1.5 text-muted-foreground">{persona.body}</dd>
-                </div>
-              ))}
-            </dl>
+          <div className="measure-wide">
+            <p className="eyebrow text-muted-foreground">Who it is for</p>
+            <h2 className="type-heading mt-3">
+              Built for the people who have to answer for the award
+            </h2>
           </div>
+
+          <dl className="mt-9 border-t border-border">
+            {PERSONAS.map((persona) => (
+              <div
+                key={persona.role}
+                className="grid gap-1 border-b border-border-subtle py-4 md:grid-cols-[19rem_1fr] md:gap-10"
+              >
+                <dt className="type-subhead">{persona.role}</dt>
+                <dd className="type-small text-muted-foreground md:pt-px">{persona.body}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
       </section>
 
       {/* ---------------------------------------------------------- security */}
       <section id="privacy" className="scroll-mt-16">
         <div className="container-page">
-          <div className="rule section-tight">
-            <div className="grid gap-x-10 gap-y-8 lg:grid-cols-12">
-              <div className="lg:col-span-4">
-                <p className="eyebrow text-muted-foreground">Security and privacy</p>
-                <h2 className="type-heading measure mt-3">Your award documents are yours</h2>
-                <p className="type-small mt-4 text-muted-foreground">
-                  A grant agreement often contains budget detail, staff names and information
-                  about the people you serve. It is treated accordingly.
-                </p>
-              </div>
-
-              <ul className="grid gap-x-10 gap-y-6 sm:grid-cols-2 lg:col-span-8">
-                {SECURITY.map((item) => (
-                  <li key={item.title} className="flex gap-3.5">
-                    <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-ink-accent-subtle text-ink-accent">
-                      <item.icon aria-hidden="true" className="size-4" />
-                    </span>
-                    <div>
-                      <h3 className="type-subhead">{item.title}</h3>
-                      <p className="type-small mt-1.5 text-muted-foreground">{item.body}</p>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+          <div className="section-tight">
+            <div className="measure-wide">
+              <p className="eyebrow text-muted-foreground">Security and privacy</p>
+              <h2 className="type-heading mt-3">Your award documents are yours</h2>
+              <p className="type-body mt-4 text-foreground-soft">
+                A grant agreement often contains budget detail, staff names and information about
+                the people you serve. It is treated accordingly.
+              </p>
             </div>
+
+            <ul className="mt-9 grid gap-x-10 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+              {SECURITY.map((item) => (
+                <li key={item.title} className="flex gap-3.5">
+                  <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-md bg-ink-accent-subtle text-ink-accent">
+                    <item.icon aria-hidden="true" className="size-4" />
+                  </span>
+                  <div>
+                    <h3 className="type-subhead">{item.title}</h3>
+                    <p className="type-small mt-1.5 text-muted-foreground">{item.body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
 
             {/*
               Not a footnote. The absence of a certification is a fact a buyer
@@ -671,8 +675,8 @@ export default function MarketingHomePage() {
               rather than tucked under the fold in grey 12px.
             */}
             <div className="card-pad-roomy mt-12 rounded-lg border border-border-strong bg-surface">
-              <div className="grid gap-4 md:grid-cols-[15rem_1fr] md:gap-10">
-                <h3 className="type-heading">What we do not claim</h3>
+              <div className="grid gap-4 md:grid-cols-[17rem_1fr] md:gap-10">
+                <h3 className="type-heading md:whitespace-nowrap">What we do not claim</h3>
                 <p className="type-lede text-foreground-soft">
                   AwardLens holds no SOC 2, ISO, HIPAA or FedRAMP certification, and we will not
                   imply otherwise on a marketing page. If your funder or your board requires a
@@ -770,7 +774,7 @@ export default function MarketingHomePage() {
               <Button
                 asChild
                 size="lg"
-                className="bg-surface text-ink-accent hover:bg-muted focus-visible:outline-white"
+                className="bg-surface text-ink-accent hover:bg-muted active:bg-surface-sunken focus-visible:outline-white"
               >
                 <Link href="/app/awards/new">Analyse an award</Link>
               </Button>
@@ -778,7 +782,7 @@ export default function MarketingHomePage() {
                 asChild
                 size="lg"
                 variant="ghost"
-                className="border border-white/25 text-white hover:bg-white/10 hover:text-white focus-visible:outline-white"
+                className="border border-white/40 text-white hover:bg-white/10 hover:text-white active:bg-white/15 focus-visible:outline-white"
               >
                 <Link href="/demo">View a sample first</Link>
               </Button>

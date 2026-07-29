@@ -132,7 +132,7 @@ export default function PricingPage() {
 
           {/* ------------------------------------------------- the free plan */}
           <Card tone="primary" elevation="raised" className="mt-12 overflow-hidden md:mt-16">
-            <div className="grid gap-y-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,21rem)_1fr] lg:gap-x-14 lg:p-10">
+            <div className="grid gap-y-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,19rem)_1fr] lg:gap-x-12 lg:p-10">
               <div>
                 <div className="cluster">
                   <h3 className="type-heading">{FREE_PLAN.name}</h3>
@@ -157,14 +157,22 @@ export default function PricingPage() {
                 </Button>
               </div>
 
-              <ul className="grid content-start gap-x-10 gap-y-3.5 sm:grid-cols-2 lg:border-l lg:border-primary-border lg:pl-14">
-                {planFeatures(FREE_PLAN).map((feature) => (
-                  <li key={feature} className="type-body flex gap-2.5 text-foreground-soft">
-                    <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-primary" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
+              <div className="lg:flex lg:flex-col lg:justify-center lg:border-l lg:border-primary-border lg:pl-12">
+                <p className="eyebrow text-primary-subtle-foreground">Included on the free tier</p>
+                <ul className="mt-4 grid gap-x-10 gap-y-3.5 sm:grid-cols-2">
+                  {planFeatures(FREE_PLAN).map((feature) => (
+                    <li key={feature} className="type-body flex gap-2.5 text-foreground-soft">
+                      <Check aria-hidden="true" className="mt-1 size-4 shrink-0 text-primary" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="type-small mt-6 text-muted-foreground">
+                  Source citations, review and confirmation, and every export are on this plan
+                  exactly as they are on the paid ones. What a paid plan adds is more awards and
+                  email deadline reminders.
+                </p>
+              </div>
             </div>
           </Card>
 
@@ -183,7 +191,9 @@ export default function PricingPage() {
                   <p className="type-caption mt-1 font-mono text-ink-accent">
                     {awardLimitLabel(plan)}
                   </p>
-                  <CardDescription className="mt-2">{plan.tagline}</CardDescription>
+                  {/* Two lines' worth of room, so the rule below every tagline
+                      lands on the same line across the row. */}
+                  <CardDescription className="mt-2 md:min-h-11">{plan.tagline}</CardDescription>
                 </CardHeader>
 
                 <CardContent padding="roomy" className="flex-1">
@@ -226,7 +236,18 @@ export default function PricingPage() {
             </p>
           </div>
 
-          <div className="mt-8 overflow-x-auto rounded-lg border border-border bg-surface shadow-resting">
+          {/*
+            Below about 780px the table has to scroll sideways, and a scroll
+            container with no focusable content inside it is unreachable without
+            a mouse (WCAG 2.1.1). tabIndex makes the region itself focusable and
+            the label tells a screen-reader user what they have landed in.
+          */}
+          <div
+            role="region"
+            aria-label="Plan comparison table"
+            tabIndex={0}
+            className="mt-8 overflow-x-auto rounded-lg border border-border bg-surface shadow-resting"
+          >
             <table className="w-full min-w-[46rem] border-collapse text-left">
               <caption className="sr-only">
                 AwardLens plans compared by purpose, awards included, email deadline reminders and
@@ -418,7 +439,7 @@ export default function PricingPage() {
             <Button
               asChild
               size="lg"
-              className="shrink-0 bg-surface text-ink-accent hover:bg-muted focus-visible:outline-white"
+              className="shrink-0 bg-surface text-ink-accent hover:bg-muted active:bg-surface-sunken focus-visible:outline-white"
             >
               <Link href="/app/awards/new">Analyse an award</Link>
             </Button>

@@ -116,8 +116,14 @@ export default async function SettingsPage(props: {
 
   return (
     <div className="container-page pt-8 sm:pt-10">
-      <div className="mx-auto max-w-[70rem] lg:grid lg:grid-cols-[12.5rem_minmax(0,1fr)] lg:gap-14">
-        <div className="lg:sticky lg:top-20 lg:pb-10">
+      <div className="mx-auto max-w-[62rem] lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12">
+        {/*
+         * `self-start` is load-bearing: a grid item stretches to the row height
+         * by default, so a sticky item fills its own grid area and has nowhere
+         * to travel. Shrinking the item to its content leaves the tall grid
+         * area as the containing block, which is the room sticky needs.
+         */}
+        <div className="lg:sticky lg:top-20 lg:self-start lg:pb-10">
           <h1 className="type-heading">Settings</h1>
           <p className="type-small measure mt-1.5 text-muted-foreground">
             Your account, your organisation, and how this deployment is configured.
@@ -158,7 +164,10 @@ export default async function SettingsPage(props: {
             title="Your profile"
             description={
               <>
-                Signed in as <span className="font-mono text-foreground-soft">{session.profile.email}</span>
+                Signed in as{" "}
+                <span className="font-mono text-foreground-soft [overflow-wrap:anywhere]">
+                  {session.profile.email}
+                </span>
               </>
             }
           >
@@ -197,7 +206,7 @@ export default async function SettingsPage(props: {
                     allOffsets={[...REMINDER_OFFSETS]}
                   />
                 ) : (
-                  <Alert variant="info" role="note">
+                  <Alert variant="quiet" role="note">
                     <AlertDescription>
                       Email reminders are included from the {PLANS.single_award.name} upwards. Your
                       register, calendar export and review workflow work on every plan.
@@ -320,10 +329,17 @@ export default async function SettingsPage(props: {
             <Card>
               <CardContent className="pt-5">
                 <h3 className="eyebrow text-muted-foreground">What AwardLens stores</h3>
-                <ul className="mt-2.5 space-y-1.5 text-[13px] leading-relaxed text-foreground-soft">
-                  <li>The documents you upload, and the text extracted from them.</li>
-                  <li>The obligations extracted, your edits, and your review decisions.</li>
-                  <li>An activity log of actions taken, which never contains document text.</li>
+                <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-foreground-soft">
+                  {[
+                    "The documents you upload, and the text extracted from them.",
+                    "The obligations extracted, your edits, and your review decisions.",
+                    "An activity log of actions taken, which never contains document text.",
+                  ].map((item) => (
+                    <li key={item} className="flex items-start gap-2.5">
+                      <StatusDot variant="neutral" className="mt-[7px]" />
+                      {item}
+                    </li>
+                  ))}
                 </ul>
 
                 <CardDivider />
