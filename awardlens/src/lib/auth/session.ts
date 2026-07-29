@@ -108,7 +108,20 @@ export async function destroySession(): Promise<void> {
   store.delete(SESSION_COOKIE);
 }
 
-/** Six digits, uniformly distributed. */
+/**
+ * Six digits, uniformly distributed.
+ *
+ * Rejection sampling rather than a bare modulo: 2^32 is not a multiple of
+ * 1,000,000, so `random % 1e6` would make the lowest 967,296 codes very
+ * slightly more likely than the rest. The bias is far too small to matter
+ * against a five-attempt limit and a fifteen-minute expiry, but discarding the
+ * short tail costs one comparison and removes the caveat entirely.
+ */
 export function generateLoginCode(): string {
-  return String(randomBytes(4).readUInt32BE(0) % 1_000_000).padStart(6, "0");
+  const limit = Math.floor(0xffffffff / 1_000_000) * 1_000_000;
+  let value = randomBytes(4).readUInt32BE(0);
+  while (value >= limit) {
+    value = randomBytes(4).readUInt32BE(0);
+  }
+  return String(value % 1_000_000).padStart(6, "0");
 }

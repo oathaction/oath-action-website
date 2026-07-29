@@ -5,7 +5,7 @@ import { getAwardWorkspace } from "@/lib/awards/queries";
 import { obligationsToCsv } from "@/lib/exports/csv";
 import { obligationsToIcs } from "@/lib/exports/ics";
 import { buildJsonExport } from "@/lib/exports/json";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { getServerConfig } from "@/lib/env";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import type { ExportFormat } from "@/lib/domain/types";

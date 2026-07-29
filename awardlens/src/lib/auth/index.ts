@@ -4,7 +4,7 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 
 import type { Organization, Profile } from "@/lib/domain/types";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { readSession } from "./session";
 
 export interface Session {

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { Obligation, Reminder } from "@/lib/domain/types";
 import { addDaysIso, formatIsoDate, toIsoDate } from "@/lib/utils";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { canUseReminders } from "@/lib/billing/plans";
 import { escapeHtml, renderEmailShell, sendEmail } from "@/lib/email";
 import { getServerConfig } from "@/lib/env";

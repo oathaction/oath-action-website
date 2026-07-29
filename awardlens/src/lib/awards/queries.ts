@@ -7,7 +7,7 @@ import type {
   ProcessingRun,
 } from "@/lib/domain/types";
 import { daysUntil } from "@/lib/utils";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 
 /** Joins obligations to their citations in one pass rather than per row. */
 export async function attachCitations(

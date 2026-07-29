@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { ingestDocument } from "@/lib/awards/process";
 import { attachCitations, getAwardWorkspace, getDashboardData } from "@/lib/awards/queries";
 import { obligationsToCsv } from "@/lib/exports/csv";

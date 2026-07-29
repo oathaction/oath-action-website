@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft, Lock } from "lucide-react";
 
 import { requireSession } from "@/lib/auth";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { checkAwardEntitlement } from "@/lib/billing/plans";
 import { UploadFlow } from "@/components/documents/upload-flow";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";

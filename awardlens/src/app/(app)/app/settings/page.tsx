@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Check } from "lucide-react";
 
 import { requireSession } from "@/lib/auth";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { describeConfig } from "@/lib/env";
 import { PLAN_ORDER, PLANS, planFor } from "@/lib/billing/plans";
 import { REMINDER_OFFSETS } from "@/lib/domain/types";

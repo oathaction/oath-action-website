@@ -4,7 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { getServerConfig } from "@/lib/env";
 import { loginCodeEmail, sendEmail } from "@/lib/email";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";

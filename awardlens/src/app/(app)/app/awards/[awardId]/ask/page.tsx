@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpenCheck, CircleHelp, Quote } from "lucide-react";
 
 import { requireSession } from "@/lib/auth";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { INTERPRETATION_LABELS } from "@/lib/domain/types";
 import { formatLocator } from "@/lib/documents/segment";
 import { Badge } from "@/components/ui/badge";

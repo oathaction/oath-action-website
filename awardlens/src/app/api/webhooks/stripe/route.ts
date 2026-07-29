@@ -3,7 +3,7 @@ import type Stripe from "stripe";
 
 import { getServerConfig } from "@/lib/env";
 import { getStripe, planIdFromMetadata } from "@/lib/billing/stripe";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import type { PlanId, Subscription } from "@/lib/domain/types";
 
 export const runtime = "nodejs";

@@ -13,7 +13,7 @@ import { hashContent } from "@/lib/documents/validation";
 import { parseDocument } from "@/lib/documents/parse";
 import { segmentBlocks, type SegmentInput } from "@/lib/documents/segment";
 import { runExtraction } from "@/lib/ai/pipeline";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import type { Session } from "@/lib/auth";
 import { checkAwardEntitlement } from "@/lib/billing/plans";
 

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import {
   OBLIGATION_CATEGORIES,
   OBLIGATION_PRIORITIES,

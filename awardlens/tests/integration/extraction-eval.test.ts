@@ -27,7 +27,24 @@ import type { ConsolidatedObligation } from "@/lib/ai/consolidate";
  * the rules to these twelve documents.
  */
 
-const LIVE = process.env.AWARDLENS_LIVE_EVAL === "1";
+const LIVE_REQUESTED = process.env.AWARDLENS_LIVE_EVAL === "1";
+const LIVE_CREDENTIALS = Boolean(process.env.AI_GATEWAY_API_KEY && process.env.AI_MODEL);
+
+/**
+ * Live mode needs credentials. Asking for it without them used to fail with an
+ * opaque "no model configured" throw from deep inside the pipeline; skipping
+ * with an explicit reason is the honest behaviour, and it keeps `pnpm
+ * test:ai-live` safe to run anywhere.
+ */
+const LIVE = LIVE_REQUESTED && LIVE_CREDENTIALS;
+
+if (LIVE_REQUESTED && !LIVE_CREDENTIALS) {
+  console.warn(
+    "\n[extraction-eval] AWARDLENS_LIVE_EVAL=1 was set but AI_GATEWAY_API_KEY and AI_MODEL are not both present.\n" +
+      "Falling back to the deterministic extractor. Run `pnpm models:list` to find a model id your gateway key can reach.\n",
+  );
+}
+
 const FIXTURE_DIR = path.join(process.cwd(), "tests", "fixtures");
 
 interface ExpectedObligation {

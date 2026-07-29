@@ -6,7 +6,7 @@ import { z } from "zod";
 
 import { requireSession } from "@/lib/auth";
 import { destroySession } from "@/lib/auth/session";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { getServerConfig } from "@/lib/env";
 import { createCheckoutSession } from "@/lib/billing/stripe";
 import { REMINDER_OFFSETS, type PlanId } from "@/lib/domain/types";

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { getSession, requireSession } from "@/lib/auth";
 import { getAwardWorkspace } from "@/lib/awards/queries";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import type { DocumentSegment } from "@/lib/domain/types";
 import { ReviewWorkspace } from "@/components/obligations/review-workspace";
 

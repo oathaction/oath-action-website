@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { askAward } from "@/lib/ai/ask";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import type { ActionResult } from "./obligations";

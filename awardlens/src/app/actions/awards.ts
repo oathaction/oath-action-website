@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { requireSession } from "@/lib/auth";
-import * as db from "@/lib/db/local";
+import * as db from "@/lib/db";
 import { reprocessAward } from "@/lib/awards/process";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/security/rate-limit";
 import type { ActionResult } from "./obligations";
