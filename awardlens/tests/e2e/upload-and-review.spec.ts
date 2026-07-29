@@ -46,14 +46,24 @@ function reviewQueue(): Locator {
   return page.getByRole("list", { name: "Obligations awaiting review" });
 }
 
-/** Expands a queue row so its full evidence rail is on screen. */
-async function openQueueItem(item: Locator): Promise<Locator> {
-  if ((await item.getByRole("group").count()) === 0) {
-    await item.getByRole("button").first().click();
-  }
-  const rail = item.getByRole("article");
-  await expect(rail).toBeVisible();
-  return rail;
+/**
+ * Expands a queue row so its full evidence rail is on screen.
+ *
+ * Selecting an item scrolls it into view, which can move the row out from under
+ * a click that was already in flight, so the select-and-check is retried as a
+ * unit rather than assumed to land first time.
+ */
+async function openQueueItem(index: number): Promise<Locator> {
+  const item = reviewQueue().locator("> li").nth(index);
+
+  await expect(async () => {
+    if ((await item.getByRole("group").count()) === 0) {
+      await item.getByRole("button").first().click();
+    }
+    await expect(item.getByRole("article")).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
+
+  return item.getByRole("article");
 }
 
 /* ----------------------------------------------------------------- steps -- */
@@ -85,11 +95,10 @@ test("the review queue holds several obligations drawn from the document", async
 test("every obligation shows a source citation or says outright that it could not be verified", async () => {
   test.setTimeout(180_000);
 
-  const items = reviewQueue().locator("> li");
-  const count = await items.count();
+  const count = await reviewQueue().locator("> li").count();
 
   for (let index = 0; index < count; index += 1) {
-    const rail = await openQueueItem(items.nth(index));
+    const rail = await openQueueItem(index);
     const text = await rail.innerText();
     const title = (await rail.getByRole("heading").first().innerText()).trim();
 
@@ -140,7 +149,7 @@ test("confirming an item changes its status and only its status", async () => {
   const items = reviewQueue().locator("> li");
   const before = await items.count();
 
-  const rail = await openQueueItem(items.first());
+  const rail = await openQueueItem(0);
   const title = (await rail.getByRole("heading").first().innerText()).trim();
 
   await rail.getByRole("button", { name: "Confirm", exact: true }).click();
@@ -156,11 +165,9 @@ test("confirming an item changes its status and only its status", async () => {
 });
 
 test("editing an obligation persists the change across a reload", async () => {
-  const items = reviewQueue().locator("> li");
-
   // Pick something still awaiting a decision, so the edit is the only change.
   await page.getByRole("button", { name: /^Needs review \d+$/ }).click();
-  const rail = await openQueueItem(items.first());
+  const rail = await openQueueItem(0);
   const originalTitle = (await rail.getByRole("heading").first().innerText()).trim();
 
   await rail.getByRole("button", { name: "Edit" }).click();
@@ -227,7 +234,9 @@ test("the register can be searched, filtered by review status, and read as a tab
   await page.getByLabel("Search").fill("zzzz-no-such-requirement");
   await expect(page.getByRole("heading", { name: "No obligations match your filters" })).toBeVisible();
 
-  await page.getByRole("button", { name: "Reset filters" }).click();
+  // The empty state offers its own reset alongside the one in the controls.
+  await expect(page.getByRole("button", { name: "Reset filters" })).toHaveCount(2);
+  await page.getByRole("button", { name: "Reset filters" }).last().click();
   await expect(page.getByRole("article")).toHaveCount(totalCards);
 
   /* ------------------------------------------------------ filter by status */
@@ -250,7 +259,7 @@ test("the register can be searched, filtered by review status, and read as a tab
   const needsReviewCount = await needsReview.count();
   expect(confirmedCount + needsReviewCount).toBe(totalCards);
 
-  await page.getByRole("button", { name: "Reset filters" }).click();
+  await page.getByRole("button", { name: "Reset filters" }).first().click();
 
   /* ------------------------------------------------------------ table view */
   await page.getByRole("button", { name: "Table" }).click();

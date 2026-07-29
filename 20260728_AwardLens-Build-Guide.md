@@ -184,7 +184,7 @@ flowchart TD
   SESSION --> LOCAL
   REM --> LOCAL
   BILL --> LOCAL
-  LOCAL -. "seam to swap, not implemented" .-> SUPA
+  LOCAL -.->|"seam to swap, not implemented"| SUPA
 
   ACTIONS --> BILL
   BILL --> STRIPE
@@ -215,10 +215,11 @@ flowchart TD
   DROP -- no --> DISCARD
   DROP -- yes --> S5 --> PLAUS --> S8
 
-  MODE{"aiMode"}
-  S3 --- MODE
-  MODE -- "fixtures" --> RULE["ai/fixtures.ts rule-based extractor<br/>reads the real document, quotes it verbatim"]
-  MODE -- "live" --> LLM["generateObject via AI Gateway<br/>model id from AI_MODEL"]
+  MODE{"aiMode - stages 3, 4 and 7"}
+  RULE["ai/fixtures.ts rule-based extractor<br/>reads the real document, quotes it verbatim"]
+  LLM["generateObject via AI Gateway<br/>model id from AI_MODEL"]
+  MODE -->|"fixtures"| RULE
+  MODE -->|"live"| LLM
 ```
 
 **Two notes on the diagram, because the numbering is conceptual and the

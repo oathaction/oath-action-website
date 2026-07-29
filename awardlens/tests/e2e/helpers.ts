@@ -125,17 +125,32 @@ export async function analyseSample(
   await expect(analyse).toBeVisible();
 
   if (options.observeProcessing) {
-    const processingHeading = page.getByRole("heading", { name: "Analysing your award" });
+    // Deterministic extraction is offline and fast enough that the checklist can
+    // come and go inside a single assertion. Holding the ingest request open
+    // makes the progress UI observable without changing what it does — the
+    // panel is rendered by the client the moment the form is submitted.
+    await page.route("**/api/awards/ingest", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 2_000));
+      // The page navigates away as soon as analysis finishes, which can retire
+      // the route from under us; that is not a failure of anything.
+      await route.continue().catch(() => {});
+    });
+
+    const checklist = page.getByRole("list").filter({ hasText: "Securing document" });
+
     await Promise.all([
       expect(
-        processingHeading,
+        page.getByRole("heading", { name: "Analysing your award" }),
         "the stage checklist should be shown while the document is analysed",
       ).toBeVisible({ timeout: 30_000 }),
       analyse.click(),
     ]);
 
-    // The checklist names every stage the server streams, so the user can see
-    // what is happening rather than watching an invented progress bar.
+    // Read the checklist once: it is a live region that disappears on redirect,
+    // so six separate round trips would be racing the thing under test.
+    await expect(checklist.getByRole("listitem")).toHaveCount(6);
+    const stages = await checklist.innerText();
+
     for (const stage of [
       "Securing document",
       "Reading document",
@@ -144,13 +159,14 @@ export async function analyseSample(
       "Checking source references",
       "Preparing review",
     ]) {
-      await expect(page.getByText(stage, { exact: true })).toBeVisible();
+      expect(stages, `the processing checklist never mentions "${stage}"`).toContain(stage);
     }
   } else {
     await analyse.click();
   }
 
   await page.waitForURL(/\/app\/awards\/[^/]+\/review/, { timeout: 120_000 });
+  await page.unroute("**/api/awards/ingest").catch(() => {});
   return awardIdFromUrl(page.url());
 }
 
