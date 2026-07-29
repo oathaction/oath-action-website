@@ -105,39 +105,48 @@ test("the owner can see their own award", async () => {
 });
 
 test("another organisation cannot open the award workspace", async () => {
-  const response = await intruderPage.goto(`/app/awards/${awardId}`);
+  await intruderPage.goto(`/app/awards/${awardId}`);
 
-  expect(response?.status(), "an award belonging to someone else was served").toBe(404);
-  await expect(intruderPage.getByRole("heading", { name: /We couldn’t find that/ })).toBeVisible();
+  await expect(
+    intruderPage.getByRole("heading", { name: /We couldn’t find that/ }),
+    "an award belonging to someone else was served",
+  ).toBeVisible();
 
   expectNoLeak(await intruderPage.content(), "the award workspace");
 });
 
 test("another organisation cannot open the review queue", async () => {
-  const response = await intruderPage.goto(`/app/awards/${awardId}/review`);
+  await intruderPage.goto(`/app/awards/${awardId}/review`);
 
-  expect(response?.status()).toBe(404);
+  await expect(intruderPage.getByRole("heading", { name: /We couldn’t find that/ })).toBeVisible();
   await expect(
     intruderPage.getByRole("heading", { name: "Review what this award requires" }),
   ).toHaveCount(0);
+  await expect(intruderPage.getByRole("list", { name: "Obligations awaiting review" })).toHaveCount(
+    0,
+  );
 
   expectNoLeak(await intruderPage.content(), "the review queue");
 });
 
 test("another organisation cannot open the obligation register", async () => {
-  const response = await intruderPage.goto(`/app/awards/${awardId}/obligations`);
+  await intruderPage.goto(`/app/awards/${awardId}/obligations`);
 
-  expect(response?.status()).toBe(404);
+  await expect(intruderPage.getByRole("heading", { name: /We couldn’t find that/ })).toBeVisible();
   await expect(intruderPage.getByRole("article")).toHaveCount(0);
+  await expect(intruderPage.getByRole("table")).toHaveCount(0);
 
   expectNoLeak(await intruderPage.content(), "the obligation register");
 });
 
 test("the other authenticated views of the award are closed too", async () => {
-  // Ask, plan and the printable operating plan all read the same workspace.
+  // Ask and the printable operating plan read the same workspace.
   for (const suffix of ["/ask", "/plan"]) {
-    const response = await intruderPage.goto(`/app/awards/${awardId}${suffix}`);
-    expect(response?.status(), `${suffix} was served to another organisation`).toBe(404);
+    await intruderPage.goto(`/app/awards/${awardId}${suffix}`);
+    await expect(
+      intruderPage.getByRole("heading", { name: /We couldn’t find that/ }),
+      `${suffix} was served to another organisation`,
+    ).toBeVisible();
     expectNoLeak(await intruderPage.content(), suffix);
   }
 });

@@ -1,5 +1,18 @@
 import { Skeleton } from "@/components/ui/misc";
 
+/**
+ * Dashboard skeleton.
+ *
+ * This lives inside the `(dashboard)` route group rather than at the `/app`
+ * segment root on purpose. A `loading.tsx` at the segment root puts a Suspense
+ * boundary above every nested route, so Next streams the response and flushes
+ * a 200 status line before the page component runs. Any award route that then
+ * calls `notFound()` can no longer change the status, and a missing or
+ * non-permitted award returns 200 with the not-found UI appended.
+ *
+ * The route group keeps this skeleton scoped to the dashboard — which never
+ * calls `notFound()` — so the award routes below can still return a real 404.
+ */
 export default function Loading() {
   return (
     <div className="container-page pt-8">

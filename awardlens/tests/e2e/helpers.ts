@@ -39,10 +39,12 @@ export function uniqueEmail(prefix: string): string {
  * itself intact and exercised.
  */
 function uniqueClientAddress(): string {
-  sequence += 1;
-  const octet3 = Math.floor(sequence / 250) % 250;
-  const octet4 = (sequence % 250) + 1;
-  return `198.51.${100 + octet3}.${octet4}`;
+  // Drawn at random from a 24-bit space rather than counted, because the
+  // server's rate-limit buckets outlive a single `playwright test` invocation:
+  // a counter restarting at zero would re-use addresses whose 15-minute window
+  // is still open, and the ninth sign-in of the afternoon would fail.
+  const octet = () => Math.floor(Math.random() * 254) + 1;
+  return `10.${octet()}.${octet()}.${octet()}`;
 }
 
 /* ------------------------------------------------------------------ auth -- */
