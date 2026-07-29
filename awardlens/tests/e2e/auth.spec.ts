@@ -93,10 +93,18 @@ test.describe("authentication", () => {
     expect(await exportResponse.text()).not.toContain("formatVersion");
   });
 
-  test("signing out ends the session and re-protects the application", async ({ page }) => {
+  test("signing out ends the session and re-protects the application", async ({
+    page,
+    context,
+  }) => {
     const email = uniqueEmail("auth-signout");
     await signIn(page, email);
     await expect(page).toHaveURL(/\/app$/);
+
+    expect(
+      (await context.cookies()).map((cookie) => cookie.name),
+      "a session cookie should exist before signing out",
+    ).toContain("awardlens_session");
 
     await signOut(page);
 
@@ -105,12 +113,44 @@ test.describe("authentication", () => {
       "Every grant comes with promises",
     );
 
+    // …the session cookie is genuinely gone, not merely unused…
+    expect(
+      (await context.cookies()).map((cookie) => cookie.name),
+      "the session cookie must be cleared, or a shared machine stays signed in for 30 days",
+    ).not.toContain("awardlens_session");
+
     // …and the application is closed again.
     await page.goto("/app");
     await expect(page).toHaveURL(/\/auth\/sign-in$/);
 
     // Going "back" must not resurrect the authenticated page from cache.
     await page.goto("/app/settings");
+    await expect(page).toHaveURL(/\/auth\/sign-in$/);
+  });
+
+  test("signing out works from the keyboard alone", async ({ page, context }) => {
+    // The menu item and the submit button are the same element, and Radix's
+    // Enter handling runs through the same select path that once detached the
+    // form mid-submit. A pointer-only test would not have caught that.
+    await signIn(page, uniqueEmail("auth-signout-keyboard"));
+
+    const accountMenu = page.getByRole("button", { name: /account menu/i });
+    await accountMenu.focus();
+    await page.keyboard.press("Enter");
+
+    const signOutItem = page.getByRole("menuitem", { name: "Sign out" });
+    await expect(signOutItem).toBeVisible();
+
+    await signOutItem.focus();
+    await expect(signOutItem).toBeFocused();
+    await page.keyboard.press("Enter");
+
+    await page.waitForURL(/localhost:3000\/$/, { timeout: 60_000 });
+    expect((await context.cookies()).map((cookie) => cookie.name)).not.toContain(
+      "awardlens_session",
+    );
+
+    await page.goto("/app");
     await expect(page).toHaveURL(/\/auth\/sign-in$/);
   });
 });
