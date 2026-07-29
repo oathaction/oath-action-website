@@ -141,7 +141,7 @@ export default async function AwardPage(props: {
 
       {/* The four facts a grants manager reads first. Unequal columns because
           a date range needs room and a percentage does not. */}
-      <dl className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border shadow-resting sm:grid-cols-2 lg:grid-cols-[1fr_1.55fr_0.8fr_0.85fr]">
+      <dl className="mt-6 grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border bg-border shadow-resting lg:grid-cols-[1fr_1.55fr_0.8fr_0.85fr]">
         <SummaryCell
           label="Award amount"
           value={formatCurrency(award.awardAmount, award.currency)}
@@ -418,10 +418,10 @@ function Section({
 
       {items.length === 0 ? (
         <div className="mt-4 rounded-lg border border-dashed border-border-strong bg-surface/60 px-5 py-8">
-          <p className="mx-auto max-w-sm text-center text-sm leading-relaxed text-foreground-soft">
+          <p className="mx-auto max-w-lg text-center text-sm leading-relaxed text-foreground-soft">
             {empty}
           </p>
-          <p className="mx-auto mt-2 max-w-sm text-center text-xs leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-2 max-w-lg text-center text-xs leading-relaxed text-muted-foreground">
             Nothing found is not the same as nothing there.{" "}
             <Link
               href={`/app/awards/${awardId}/obligations`}

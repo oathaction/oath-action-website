@@ -1105,9 +1105,11 @@ export function Register({
           {groups.map((group) => (
             <div key={group.key}>
               {group.label ? (
+                /* The count is set lighter by weight, not by colour: the muted
+                   ink is already the palest step that clears AA. */
                 <h3 className="eyebrow mb-2.5 text-muted-foreground">
                   {group.label}{" "}
-                  <span className="text-border-control">({group.items.length})</span>
+                  <span className="tabular font-normal">({group.items.length})</span>
                 </h3>
               ) : null}
               <ul className="space-y-2">
