@@ -315,8 +315,12 @@
    *   .type-subhead   card titles, dialog titles, sub-section h3/h4.
    *   .type-lede      the paragraph under a display/title. One per section.
    *   .type-body      editorial reading text: marketing copy, descriptions.
-   *   .type-small     dense UI text: metadata rows, table cells, hints.
+   *   .type-small     dense UI text: card descriptions, table cells, hints.
    *   .type-caption   the smallest legible step: labels, counts, footnotes.
+   *
+   * Sizes: 56 / 39 / 26 / 17 / 19 / 15 / 14 / 12. There is deliberately no
+   * step between 19 and 26 — a scale with a rung for every occasion stops
+   * being a scale.
    *
    * Tracking tightens as size grows because Inter is drawn for text sizes: at
    * 56px its default sidebearings read loose and word shapes fall apart. The
@@ -373,9 +377,9 @@
   }
 
   .type-small {
-    font-size: 0.8125rem; /* 13px */
-    line-height: 1.5;
-    letter-spacing: 0;
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.55;
+    letter-spacing: -0.002em;
     font-weight: 400;
   }
 
