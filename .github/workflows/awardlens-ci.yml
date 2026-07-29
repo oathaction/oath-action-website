@@ -1,0 +1,67 @@
+name: AwardLens CI
+
+# Verifies the AwardLens application in awardlens/. The Oath & Action static
+# site at the repository root is unaffected and has its own Pages workflow.
+on:
+  push:
+    branches: ["main"]
+    paths: ["awardlens/**", ".github/workflows/awardlens-ci.yml"]
+  pull_request:
+    paths: ["awardlens/**", ".github/workflows/awardlens-ci.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: awardlens-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: awardlens
+
+jobs:
+  verify:
+    name: Typecheck, lint, test, build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    env:
+      # CI runs entirely in the app's zero-credential mode: the deterministic
+      # extractor, the local file store, development billing and console email.
+      # No external service is contacted, so the suite is hermetic.
+      USE_DETERMINISTIC_AI_FIXTURES: "true"
+      DEVELOPMENT_BILLING_MODE: "true"
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      AUTH_SECRET: ci-only-not-a-real-secret-value-000000
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: awardlens/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit and integration tests
+        run: pnpm test
+
+      - name: Extraction evaluation
+        # Reports recall, citation coverage and unsupported-claim rate, and
+        # fails if the honesty invariants regress. Never calls a live model.
+        run: pnpm test:ai-fixtures
+
+      - name: Production build
+        run: pnpm build
