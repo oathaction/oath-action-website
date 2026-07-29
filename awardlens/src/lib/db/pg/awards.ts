@@ -18,6 +18,7 @@ import type {
   UsageMetadata,
 } from "@/lib/domain/types";
 
+import type { Sql } from "./client";
 import { getSql, toDateOrNull, toIso, toIsoOrNull, toNumber, toNumberOrNull } from "./client";
 
 /**
@@ -45,19 +46,18 @@ import { getSql, toDateOrNull, toIso, toIsoOrNull, toNumber, toNumberOrNull } fr
 /* ------------------------------------------------------------- helpers -- */
 
 /**
- * jsonb payloads are sent as text and coerced by the target column's type.
- * `sql.json` would be the idiomatic call, but the domain's interfaces
- * (AwardContact, UsageMetadata) do not structurally satisfy the driver's
- * index-signature JSONValue type, so this keeps every jsonb write on one path
- * without widening types at each call site.
+ * jsonb payloads.
+ *
+ * `sql.json` encodes the value exactly once. Handing the driver an
+ * already-stringified payload does not work: the server reports the parameter
+ * as jsonb and the driver then JSON-encodes it a second time, storing a JSON
+ * *string* rather than the object — which the `..._is_array` check constraints
+ * reject. The assertion is needed because the domain's interfaces do not
+ * structurally satisfy the driver's index-signature JSONValue type; a null
+ * value becomes SQL NULL, not the JSON value `null`.
  */
-function jsonb(value: unknown): string {
-  return JSON.stringify(value);
-}
-
-/** As `jsonb`, but a JS null becomes SQL NULL rather than the JSON value `null`. */
-function jsonbOrNull(value: unknown): string | null {
-  return value === null || value === undefined ? null : JSON.stringify(value);
+function jsonb(sql: Sql, value: unknown): postgres.Parameter {
+  return sql.json(value as postgres.JSONValue);
 }
 
 /**
@@ -65,7 +65,7 @@ function jsonbOrNull(value: unknown): string | null {
  * so a column can be assigned a guarded expression (see `updateDocument`); the
  * caller's data is still interpolated as a parameter inside that fragment.
  */
-type ColumnValue = string | number | boolean | null | postgres.Fragment;
+type ColumnValue = string | number | boolean | null | postgres.Parameter | postgres.Fragment;
 type ColumnPatch = Record<string, ColumnValue>;
 
 /* -------------------------------------------------------------- awards -- */
@@ -137,7 +137,7 @@ export async function createAward(
       ${input.organizationId}, ${input.name}, ${input.funder}, ${input.recipientName},
       ${input.awardNumber}, ${input.awardAmount}, ${input.currency}, ${input.startDate},
       ${input.endDate}, ${input.effectiveDate}, ${input.grantPeriodText}, ${input.programName},
-      ${input.assistanceType}, ${jsonb(input.primaryContacts)}, ${jsonb(input.governingDocuments)},
+      ${input.assistanceType}, ${jsonb(sql, input.primaryContacts)}, ${jsonb(sql, input.governingDocuments)},
       ${input.status}, ${input.reviewStatus}, ${input.sourceType}, ${input.createdBy}
     )
     returning *
@@ -190,9 +190,9 @@ export async function updateAward(
   if (patch.grantPeriodText !== undefined) updates.grant_period_text = patch.grantPeriodText;
   if (patch.programName !== undefined) updates.program_name = patch.programName;
   if (patch.assistanceType !== undefined) updates.assistance_type = patch.assistanceType;
-  if (patch.primaryContacts !== undefined) updates.primary_contacts = jsonb(patch.primaryContacts);
+  if (patch.primaryContacts !== undefined) updates.primary_contacts = jsonb(sql, patch.primaryContacts);
   if (patch.governingDocuments !== undefined) {
-    updates.governing_documents = jsonb(patch.governingDocuments);
+    updates.governing_documents = jsonb(sql, patch.governingDocuments);
   }
   if (patch.status !== undefined) updates.status = patch.status;
   if (patch.reviewStatus !== undefined) updates.review_status = patch.reviewStatus;
@@ -582,7 +582,7 @@ export async function createRun(
       (select organization_id from public.awards where id = ${input.awardId}),
       ${input.status}, ${input.stage}, ${input.model}, ${input.promptVersion},
       ${input.startedAt}, ${input.completedAt}, ${input.errorCode},
-      ${input.errorMessage}, ${jsonbOrNull(input.usageMetadata)}
+      ${input.errorMessage}, ${jsonb(sql, input.usageMetadata)}
     )
     returning *
   `;
@@ -608,7 +608,7 @@ export async function updateRun(
   if (patch.errorCode !== undefined) updates.error_code = patch.errorCode;
   if (patch.errorMessage !== undefined) updates.error_message = patch.errorMessage;
   if (patch.usageMetadata !== undefined) {
-    updates.usage_metadata = jsonbOrNull(patch.usageMetadata);
+    updates.usage_metadata = jsonb(sql, patch.usageMetadata);
   }
 
   if (Object.keys(updates).length === 0) {

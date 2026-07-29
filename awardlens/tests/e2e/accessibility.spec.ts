@@ -282,6 +282,46 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
       "focus returned somewhere unrelated to the item that was being edited",
     ).toContain(obligationTitle);
 
+    /* ------------------------------------------------- delete, and after -- */
+
+    // The delete confirmation takes the same path, and confirming it exercises
+    // the case the editor never does: the row focus should return to no longer
+    // exists. Falling back to the queue is the only sane answer — falling to
+    // <body> would be the original defect wearing a different hat.
+    const doomedTitle = (await rail.getByRole("heading").first().innerText()).trim();
+    await rail.getByRole("button", { name: "Delete" }).click();
+
+    const deleteDialog = page.getByRole("dialog");
+    await expect(deleteDialog.getByRole("heading", { name: "Delete this item?" })).toBeVisible();
+
+    // First, back out: the row is still there, so focus goes back to it.
+    await page.keyboard.press("Escape");
+    await expect(deleteDialog.getByRole("heading", { name: "Delete this item?" })).toBeHidden();
+    await expect(
+      queue.locator(":focus"),
+      "focus did not return to the queue after cancelling a delete",
+    ).toHaveCount(1);
+
+    // Now go through with it. The row disappears underneath the dialog.
+    await rail.getByRole("button", { name: "Delete" }).click();
+    await expect(deleteDialog.getByRole("heading", { name: "Delete this item?" })).toBeVisible();
+    await deleteDialog.getByRole("button", { name: "Delete permanently" }).click();
+
+    await expect(page.getByText(doomedTitle, { exact: true })).toHaveCount(0);
+    await expect
+      .poll(
+        async () =>
+          page.evaluate(() => {
+            const active = document.activeElement;
+            return !active || active === document.body ? "body" : "somewhere real";
+          }),
+        {
+          message:
+            "focus fell to <body> after deleting the item the dialog was opened from — the row is gone, so the fallback has to catch it",
+        },
+      )
+      .toBe("somewhere real");
+
     /* --------------------------------------------------- add obligation -- */
     await page.goto(`/app/awards/${id}/obligations`);
     const addTrigger = page.getByRole("button", { name: "Add an obligation" });

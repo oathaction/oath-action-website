@@ -172,6 +172,12 @@ test("editing an obligation persists the change across a reload", async () => {
   const rail = await openQueueItem(0);
   const originalTitle = (await rail.getByRole("heading").first().innerText()).trim();
 
+  // Titles come from the document's own wording, so two requirements can
+  // legitimately share one. Count how many carry it now rather than assuming
+  // this item is the only one.
+  const sharingTitleBefore = await page.getByText(originalTitle, { exact: true }).count();
+  expect(sharingTitleBefore).toBeGreaterThan(0);
+
   await rail.getByRole("button", { name: "Edit" }).click();
 
   const editor = page.getByRole("dialog");
@@ -182,14 +188,21 @@ test("editing an obligation persists the change across a reload", async () => {
 
   await editor.getByLabel("Title").fill(EDITED_TITLE);
   await editor.getByRole("button", { name: "Save changes" }).click();
-  await expect(editor).toBeHidden();
+  await expect(editor.getByRole("heading", { name: "Edit this requirement" })).toBeHidden();
 
   await page.reload();
+
   await expect(
-    page.getByText(EDITED_TITLE),
+    page.getByText(EDITED_TITLE, { exact: true }),
     "the edited title did not survive a reload",
-  ).toBeVisible();
-  await expect(page.getByText(originalTitle, { exact: true })).toHaveCount(0);
+  ).toHaveCount(1);
+
+  // Exactly one item moved off the old title — the one that was edited, and
+  // nothing else was rewritten along with it.
+  await expect(
+    page.getByText(originalTitle, { exact: true }),
+    "editing one obligation changed the title of another",
+  ).toHaveCount(sharingTitleBefore - 1);
 });
 
 test("an obligation added by hand is recorded as the user's own, confirmed item", async () => {
