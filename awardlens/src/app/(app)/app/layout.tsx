@@ -56,7 +56,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         data-app-nav
         data-print="hide"
       >
-        <div className="container-page flex h-14 items-center gap-3">
+        {/* gap-2 below 640px: labelled nav plus the mark and both actions is
+            exactly six pixels too wide for a 320px phone at gap-3. */}
+        <div className="container-page flex h-14 items-center gap-2 sm:gap-3">
           <Link
             href="/app"
             aria-label="AwardLens"
