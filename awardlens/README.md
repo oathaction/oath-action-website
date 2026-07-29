@@ -42,10 +42,31 @@ Copy `.env.example` to `.env.local` when you are ready to connect real services.
 
 | Subsystem | Default (no credentials) | Upgraded by |
 |---|---|---|
-| **Storage** | Local JSON file store under `.awardlens-data/` | `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` + `SUPABASE_SERVICE_ROLE_KEY` |
+| **Storage** | Local JSON file store under `.awardlens-data/` | **Nothing yet — see below** |
 | **Extraction** | Deterministic rule-based extractor — offline, free, reproducible | `AI_GATEWAY_API_KEY` + `AI_MODEL`, with `USE_DETERMINISTIC_AI_FIXTURES=false` |
 | **Billing** | Development mode — plans granted without payment, refuses to grant in a production build | `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET`, with `DEVELOPMENT_BILLING_MODE=false` |
 | **Email** | Console — recipient and subject logged, body never logged | `RESEND_API_KEY` + `EMAIL_FROM` |
+
+### Storage is the one that has not landed yet
+
+`supabase/migrations/` contains the production Postgres schema with row-level
+security, verified against a live Postgres (16 tables, 54 policies, negative
+tests for cross-organisation access). **But no Supabase client is wired into the
+application.** `@/lib/db` resolves to the file-backed store, and setting the
+Supabase environment variables changes nothing except adding a warning telling
+you so.
+
+This matters more than an ordinary "not done yet". On a serverless host the file
+store lives in `/tmp`: it is per-instance, ephemeral, and a crash on one instance
+can lose data belonging to another tenant on it. Treat this build as suitable for
+local use, demos and single-tenant pilots — not for holding several
+organisations' confidential grant documents.
+
+Wiring it up means adding `src/lib/db/supabase.ts` implementing the same exported
+surface, switching the re-export in `src/lib/db/index.ts` on
+`getServerConfig().storageMode`, and flipping `SUPABASE_ADAPTER_IMPLEMENTED` in
+`src/lib/env/index.ts`. No caller names an implementation, so nothing else
+changes.
 
 Two things are genuinely required in production:
 
