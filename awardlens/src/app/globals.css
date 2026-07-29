@@ -1,0 +1,246 @@
+@import "tailwindcss";
+
+/*
+ * AwardLens design system — "Calm Compliance".
+ *
+ * Paper-like warm neutrals, an evergreen action colour, and amber/red reserved
+ * strictly for genuine attention and genuine risk. The palette is light-only by
+ * design: this is a document-review product, and a single well-tested set of
+ * contrast ratios is worth more than a dark mode we cannot verify against every
+ * evidence surface. All pairs below were checked to at least WCAG AA.
+ */
+
+:root {
+  /* Surfaces */
+  --background: #fbfaf7; /* warm ivory */
+  --surface: #ffffff;
+  --surface-sunken: #f4f2ec;
+  --muted: #f1efe9; /* soft stone */
+  --muted-foreground: #5b6472; /* 5.71:1 on background */
+
+  /* Ink */
+  --foreground: #12181f; /* deep ink, 16.4:1 on background */
+  --foreground-soft: #333d4a;
+
+  /* Action */
+  --primary: #0f5c4a; /* evergreen, 7.88:1 on white */
+  --primary-hover: #0b4a3b;
+  --primary-foreground: #ffffff;
+  --primary-subtle: #e6f0ec;
+  --primary-subtle-foreground: #0b4536;
+
+  /* Authority accent, used sparingly for evidence surfaces */
+  --ink-accent: #1c3352;
+  --ink-accent-subtle: #e8edf4;
+
+  /* Attention */
+  --warning: #b45309; /* 4.53:1 on --warning-subtle */
+  --warning-subtle: #fef3c7;
+  --warning-border: #f0d9a0;
+
+  /* Risk */
+  --destructive: #b3261e; /* 6.61:1 on white */
+  --destructive-hover: #8f1d17;
+  --destructive-foreground: #ffffff;
+  --destructive-subtle: #fdecea;
+  --destructive-border: #f2c4c0;
+
+  /* Confirmation */
+  --success: #1a6b45;
+  --success-subtle: #e4f1ea;
+
+  /* Structure */
+  --border: #e3e0d8; /* warm gray */
+  --border-strong: #cfcabd;
+  --ring: #0f5c4a;
+
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-foreground: var(--foreground);
+  --color-foreground-soft: var(--foreground-soft);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-subtle: var(--primary-subtle);
+  --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+
+  --color-ink-accent: var(--ink-accent);
+  --color-ink-accent-subtle: var(--ink-accent-subtle);
+
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-hover: var(--destructive-hover);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-destructive-border: var(--destructive-border);
+
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-serif: var(--font-source-serif), ui-serif, Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 4px);
+  --radius-xl: calc(var(--radius) + 8px);
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* A single, always-visible focus treatment. Never removed. */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--primary-subtle);
+    color: var(--primary-subtle-foreground);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+    letter-spacing: -0.018em;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  /* Tabular figures wherever numbers are compared down a column. */
+  table,
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* The quoted source excerpt treatment used across every evidence surface. */
+  .evidence-quote {
+    font-family: var(--font-serif);
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: var(--foreground-soft);
+  }
+
+  .container-page {
+    width: 100%;
+    margin-inline: auto;
+    max-width: 78rem;
+    padding-inline: 1.25rem;
+  }
+
+  @media (min-width: 768px) {
+    .container-page {
+      padding-inline: 2rem;
+    }
+  }
+
+  .container-prose {
+    width: 100%;
+    margin-inline: auto;
+    max-width: 44rem;
+    padding-inline: 1.25rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Print: used for the award summary and the operating plan. We deliberately
+ * rely on a print stylesheet rather than a server-side PDF binary — it removes
+ * a heavy native dependency from the Vercel deployment and always reflects the
+ * live page.
+ */
+@media print {
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  :root {
+    --background: #ffffff;
+    --surface: #ffffff;
+    --muted: #ffffff;
+  }
+
+  body {
+    background: #ffffff;
+    font-size: 10.5pt;
+  }
+
+  [data-print="hide"],
+  nav[data-app-nav],
+  footer[data-app-footer] {
+    display: none !important;
+  }
+
+  .print-break-before {
+    break-before: page;
+  }
+
+  .print-avoid-break {
+    break-inside: avoid;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #555;
+    word-break: break-all;
+  }
+
+  .evidence-quote {
+    border-left: 2pt solid #999;
+    padding-left: 6pt;
+  }
+}

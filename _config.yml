@@ -1,0 +1,15 @@
+# Jekyll configuration for the Oath & Action static site.
+#
+# The site itself is plain HTML at the repository root and is published by
+# .github/workflows/pages.yml. This file exists only to keep application source
+# out of the published output.
+#
+# `awardlens/` is a separate Next.js application that lives in this repository
+# but is deployed independently (to Vercel, with its Root Directory set to
+# `awardlens`). It must never be copied into the GitHub Pages build.
+exclude:
+  - awardlens
+  - README.md
+  - "*.md"
+  - node_modules
+  - vendor
