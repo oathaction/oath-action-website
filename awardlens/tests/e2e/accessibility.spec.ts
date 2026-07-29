@@ -219,27 +219,68 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
     test.setTimeout(300_000);
 
     // Dialogs are where focus management and labelling usually break, and axe
-    // only sees what is on screen.
+    // only sees the tree — it cannot tell you that focus escaped, so the
+    // behaviour is checked separately below.
     await signIn(page, uniqueEmail("a11y-dialog"));
     const id = await analyseSample(page);
 
     await page.goto(`/app/awards/${id}/review`);
-    const rail = page.getByRole("list", { name: "Obligations awaiting review" }).getByRole("article").first();
+    const rail = page
+      .getByRole("list", { name: "Obligations awaiting review" })
+      .getByRole("article")
+      .first();
     await rail.getByRole("button", { name: "Edit" }).click();
 
     const dialog = page.getByRole("dialog");
     await expect(dialog.getByRole("heading", { name: "Edit this requirement" })).toBeVisible();
     await expectNoViolations(page, "obligation editor dialog", testInfo);
 
-    await dialog.getByRole("button", { name: "Cancel" }).click();
-    await expect(dialog).toBeHidden();
+    // Opening moves focus into the dialog rather than leaving it behind on the
+    // page underneath, where a keyboard user would have no idea what happened.
+    await expect
+      .poll(async () =>
+        page.evaluate(() => {
+          const open = document.querySelector('[role="dialog"]');
+          return Boolean(open && document.activeElement && open.contains(document.activeElement));
+        }),
+      )
+      .toBe(true);
 
+    // Focus is trapped: tabbing repeatedly never lands outside the dialog.
+    for (let step = 0; step < 25; step += 1) {
+      await page.keyboard.press("Tab");
+      const escaped = await page.evaluate(() => {
+        const open = document.querySelector('[role="dialog"]');
+        const active = document.activeElement;
+        if (!open || !active || active === document.body) return null;
+        return open.contains(active) ? null : (active.textContent ?? active.tagName).slice(0, 60);
+      });
+      expect(escaped, `focus escaped the editor dialog onto "${escaped}"`).toBeNull();
+    }
+
+    // Escape closes it and hands focus back to what opened it, so the user
+    // resumes where they were instead of at the top of the document.
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeHidden();
+    await expect(rail.getByRole("button", { name: "Edit" })).toBeFocused();
+
+    /* --------------------------------------------------- add obligation -- */
     await page.goto(`/app/awards/${id}/obligations`);
-    await page.getByRole("button", { name: "Add an obligation" }).click();
-    await expect(
-      page.getByRole("dialog").getByRole("heading", { name: "Add an obligation" }),
-    ).toBeVisible();
+    const addTrigger = page.getByRole("button", { name: "Add an obligation" });
+    await addTrigger.click();
+
+    const addDialog = page.getByRole("dialog");
+    await expect(addDialog.getByRole("heading", { name: "Add an obligation" })).toBeVisible();
     await expectNoViolations(page, "add obligation dialog", testInfo);
+
+    // The dialog explains how a hand-entered item will be recorded; that
+    // explanation is part of the dialog's description, not decoration.
+    await expect(addDialog.getByText(/stored as .*confirmed/)).toBeVisible();
+    await expect(addDialog.getByText(/with no source citation/)).toBeVisible();
+
+    await page.keyboard.press("Escape");
+    await expect(addDialog).toBeHidden();
+    await expect(addTrigger).toBeFocused();
   });
 });
 
