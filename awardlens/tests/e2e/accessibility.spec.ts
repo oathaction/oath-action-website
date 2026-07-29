@@ -339,6 +339,37 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
     await page.keyboard.press("Escape");
     await expect(addDialog).toBeHidden();
     await expect(addTrigger).toBeFocused();
+
+    /* ------------------------------------------------------ bulk confirm -- */
+
+    // Last, because it changes the state of the whole register. This dialog
+    // closes programmatically once the action resolves, exactly like the delete
+    // confirmation does — the difference is that it has a `DialogTrigger`, so
+    // Radix has somewhere to put focus back. Asserted rather than assumed.
+    await page.goto(`/app/awards/${id}/review`);
+    await page.getByRole("button", { name: "Confirm all verified items" }).click();
+
+    const bulkDialog = page.getByRole("dialog");
+    await expect(
+      bulkDialog.getByRole("heading", { name: "Confirm the items we could verify" }),
+    ).toBeVisible();
+    await expectNoViolations(page, "bulk confirm dialog", testInfo);
+
+    await bulkDialog.getByRole("button", { name: /^Confirm \d+ item/ }).click();
+    await expect(bulkDialog).toBeHidden();
+
+    // Which control ends up focused depends on how many items were eligible —
+    // the trigger itself disappears once nothing is left to bulk confirm. What
+    // must never happen is the same thing as on delete: focus on <body>.
+    await expect
+      .poll(async () =>
+        page.evaluate(() =>
+          !document.activeElement || document.activeElement === document.body
+            ? "body"
+            : "somewhere real",
+        ),
+      )
+      .toBe("somewhere real");
   });
 });
 

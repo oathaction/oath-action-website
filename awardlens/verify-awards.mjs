@@ -601,6 +601,25 @@ check("deleteAward is scoped and every child cascades", async () => {
   assert.equal(await db.readDocumentBytes(doc.id), null, "document bytes went with the row");
 });
 
+check("a malformed id is 'not found', not a database error", async () => {
+  const bad = "not-a-uuid";
+  assert.equal(await db.getAward(bad, orgA), null);
+  assert.equal(await db.getAward(orgA, bad), null);
+  assert.deepEqual(await db.listAwards(bad), []);
+  assert.equal(await db.updateAward(bad, orgA, { name: "x" }), null);
+  assert.equal(await db.deleteAward(bad, orgA), false);
+  assert.equal(await db.findAwardByContentHash(bad, HASH), null);
+  assert.equal(await db.getDocument(bad, orgA), null);
+  assert.deepEqual(await db.listDocuments(bad, orgA), []);
+  assert.equal(await db.updateDocument(bad, orgA, { mimeType: "text/plain" }), null);
+  assert.equal(await db.deleteDocument(bad, orgA), false);
+  assert.equal(await db.readDocumentBytes(bad), null);
+  assert.deepEqual(await db.listSegments(bad), []);
+  assert.equal(await db.updateRun(bad, { status: "failed" }), null);
+  assert.equal(await db.getLatestRun(bad), null);
+  await assert.rejects(() => db.saveDocumentBytes(bad, Buffer.from("x")), /unknown document/);
+});
+
 /* ----------------------------------------------------------------- run -- */
 
 let failed = 0;

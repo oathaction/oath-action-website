@@ -60,6 +60,23 @@ function jsonb(sql: Sql, value: unknown): postgres.Parameter {
   return sql.json(value as postgres.JSONValue);
 }
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * True when every argument could be a key of a uuid column.
+ *
+ * The file store compares strings, so an id that does not exist simply finds
+ * nothing; Postgres rejects a malformed uuid with an error instead, which would
+ * turn a mistyped URL into a 500 rather than the reference's "not found". Ids
+ * reach these functions straight from route parameters, so the lookups answer
+ * an impossible id the way the reference does. Only the canonical form is
+ * accepted — Postgres would also take the brace and hyphenless spellings, but
+ * the file store's string comparison would not match them either.
+ */
+function areIds(...values: string[]): boolean {
+  return values.every((value) => UUID_PATTERN.test(value));
+}
+
 /**
  * A value in a whitelisted UPDATE ... SET assignment. Fragments are permitted
  * so a column can be assigned a guarded expression (see `updateDocument`); the
@@ -146,6 +163,7 @@ export async function createAward(
 }
 
 export async function getAward(id: string, organizationId: string): Promise<Award | null> {
+  if (!areIds(id, organizationId)) return null;
   const sql = getSql();
   const [row] = await sql<AwardRow[]>`
     select * from public.awards
@@ -155,6 +173,7 @@ export async function getAward(id: string, organizationId: string): Promise<Awar
 }
 
 export async function listAwards(organizationId: string): Promise<Award[]> {
+  if (!areIds(organizationId)) return [];
   const sql = getSql();
   const rows = await sql<AwardRow[]>`
     select * from public.awards
@@ -171,6 +190,7 @@ export async function updateAward(
   organizationId: string,
   patch: Partial<Award>,
 ): Promise<Award | null> {
+  if (!areIds(id, organizationId)) return null;
   const sql = getSql();
 
   // The whitelist IS the immutability guarantee: id, organization_id,
@@ -227,6 +247,7 @@ export async function updateAward(
  * documents.content.
  */
 export async function deleteAward(id: string, organizationId: string): Promise<boolean> {
+  if (!areIds(id, organizationId)) return false;
   const sql = getSql();
   const rows = await sql`
     delete from public.awards
@@ -240,6 +261,7 @@ export async function findAwardByContentHash(
   organizationId: string,
   contentHash: string,
 ): Promise<{ award: Award; document: DocumentRecord } | null> {
+  if (!areIds(organizationId)) return null;
   const sql = getSql();
   // (organization_id, content_hash) is unique, so this is at most one row.
   const [documentRow] = await sql<DocumentRow[]>`
@@ -336,6 +358,7 @@ export async function updateDocument(
   organizationId: string,
   patch: Partial<DocumentRecord>,
 ): Promise<DocumentRecord | null> {
+  if (!areIds(id, organizationId)) return null;
   const sql = getSql();
 
   const updates: ColumnPatch = {};
@@ -376,6 +399,7 @@ export async function getDocument(
   id: string,
   organizationId: string,
 ): Promise<DocumentRecord | null> {
+  if (!areIds(id, organizationId)) return null;
   const sql = getSql();
   const [row] = await sql<DocumentRow[]>`
     select ${sql(DOCUMENT_COLUMNS)} from public.documents
@@ -388,6 +412,7 @@ export async function listDocuments(
   awardId: string,
   organizationId: string,
 ): Promise<DocumentRecord[]> {
+  if (!areIds(awardId, organizationId)) return [];
   const sql = getSql();
   const rows = await sql<DocumentRow[]>`
     select ${sql(DOCUMENT_COLUMNS)} from public.documents
@@ -400,6 +425,7 @@ export async function listDocuments(
 }
 
 export async function deleteDocument(id: string, organizationId: string): Promise<boolean> {
+  if (!areIds(id, organizationId)) return false;
   const sql = getSql();
   // document_segments cascade from documents (0001), and the bytes go with the
   // row because they are a column of it.
@@ -424,6 +450,7 @@ export async function deleteDocument(id: string, organizationId: string): Promis
  * there when the bytes are inline.
  */
 export async function saveDocumentBytes(documentId: string, data: Buffer): Promise<string> {
+  if (!areIds(documentId)) throw new Error(`Cannot store bytes for unknown document ${documentId}.`);
   const sql = getSql();
   const rows = await sql`
     update public.documents
@@ -441,6 +468,7 @@ export async function saveDocumentBytes(documentId: string, data: Buffer): Promi
 }
 
 export async function readDocumentBytes(documentId: string): Promise<Buffer | null> {
+  if (!areIds(documentId)) return null;
   const sql = getSql();
   // Unscoped, exactly as in the file store: callers resolve the document
   // through getDocument (which is scoped) before asking for its bytes.
@@ -518,6 +546,7 @@ export async function createSegments(
 }
 
 export async function listSegments(documentId: string): Promise<DocumentSegment[]> {
+  if (!areIds(documentId)) return [];
   const sql = getSql();
   const rows = await sql<SegmentRow[]>`
     select * from public.document_segments
@@ -593,6 +622,7 @@ export async function updateRun(
   id: string,
   patch: Partial<ProcessingRun>,
 ): Promise<ProcessingRun | null> {
+  if (!areIds(id)) return null;
   const sql = getSql();
 
   // award_id and document_id are outside the whitelist: a run belongs to the
@@ -627,6 +657,7 @@ export async function updateRun(
 }
 
 export async function getLatestRun(awardId: string): Promise<ProcessingRun | null> {
+  if (!areIds(awardId)) return null;
   const sql = getSql();
   const [row] = await sql<RunRow[]>`
     select * from public.processing_runs

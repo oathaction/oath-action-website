@@ -308,6 +308,9 @@ export function ReviewWorkspace({
       const next =
         queue.slice(index + 1).find(isOpen) ?? queue.slice(0, Math.max(index, 0)).find(isOpen);
       if (next) select(next.id, "pointer");
+      // Returned so a caller closing a dialog programmatically knows where
+      // focus should land.
+      return next?.id ?? null;
     },
     [queue, select],
   );
@@ -420,7 +423,18 @@ export function ReviewWorkspace({
       }
       toast.success("Deleted.");
       setDeleteTargetId(null);
-      advanceFrom(id);
+      const nextId = advanceFrom(id);
+
+      // Radix only calls onOpenChange when the USER closes a dialog — Escape,
+      // an overlay click, a DialogClose. Closing it programmatically here flips
+      // `open` without that ever firing, so the restore wired into
+      // onOpenChange does not run and focus falls to <body>.
+      //
+      // This is also the case with the least margin for error: the row the user
+      // came from has just been deleted, so there is nothing to return to.
+      // Focus moves to the next item the queue advanced to, and falls back to
+      // the queue list when that was the last one.
+      restoreFocusTo(nextId);
     });
   }
 
