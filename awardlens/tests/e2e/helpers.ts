@@ -170,6 +170,28 @@ export async function analyseSample(
   return awardIdFromUrl(page.url());
 }
 
+/**
+ * Analyses pasted award text under a caller-chosen name.
+ *
+ * The sample tab always produces an award called "Sample foundation grant", so
+ * a test that needs to prove one organisation's data never reaches another has
+ * to be able to plant a name and a phrase that could only have come from here.
+ */
+export async function analysePastedAward(
+  page: Page,
+  award: { name: string; text: string },
+): Promise<string> {
+  await page.goto("/app/awards/new");
+  await page.getByRole("tab", { name: "Paste text" }).click();
+
+  await page.getByLabel("Award document text").fill(award.text);
+  await page.getByLabel("Award name (optional)").fill(award.name);
+  await page.getByRole("button", { name: "Analyse this award" }).click();
+
+  await page.waitForURL(/\/app\/awards\/[^/]+\/(review|$)/, { timeout: 120_000 });
+  return awardIdFromUrl(page.url());
+}
+
 /** Pulls the award id out of any `/app/awards/{id}/...` URL. */
 export function awardIdFromUrl(url: string): string {
   const match = new URL(url).pathname.match(/^\/app\/awards\/([^/]+)/);

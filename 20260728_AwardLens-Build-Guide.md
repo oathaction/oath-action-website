@@ -625,7 +625,8 @@ store.
 `src/lib/db/index.ts`, and all fifteen consumers import the concrete module
 path. Making the swap real is a bounded piece of work:
 
-1. **Extract the interface.** `local.ts` exports roughly 45 async functions.
+1. **Extract the interface.** `local.ts` exports about 50 functions, nearly all
+   async.
    Define them as a `DbAdapter` type in a new `src/lib/db/types.ts`. The
    signatures are already storage-agnostic: they take and return the domain
    types in `src/lib/domain/types.ts` and every organisation-scoped read already
@@ -1296,12 +1297,13 @@ This is the default mode and it deserves a section, because it is not what
 extractor that reads the document the user actually uploaded:
 
 * `splitSentences` breaks each stored segment into sentences.
-* 21 ordered `ObligationRule` entries — most specific first — match sentences by
-  regular expression. `prior-approval`, `match`, `final-report`, `closeout`,
-  `audit`, `retention`, `branding`, `restricted`, `indirect`,
-  `budget-revision`, `subrecipient`, `procurement`, `insurance`,
-  `eligibility`, `performance`, `data`, `reporting`, `renewal`, `deliverable`,
-  `financial-mgmt`, `compliance`.
+* Ordered `ObligationRule` entries — most specific first, 24 as of this writing
+  — match sentences by regular expression: `prior-approval`, `match`,
+  `final-report`, `unexpended-funds`, `final-invoice`, `closeout`, `audit`,
+  `retention`, `advance-review`, `branding`, `restricted`, `indirect`,
+  `budget-revision`, `subrecipient`, `procurement`, `insurance`, `eligibility`,
+  `performance`, `data`, `reporting`, `renewal`, `deliverable`,
+  `financial-mgmt`, `compliance`. The first rule that matches a sentence wins.
 * Boilerplate (`whereas`, `now therefore`, signature blocks) and pure
   definitions are excluded.
 * Each rule carries a category, priority, suggested owner role, lead days and a
@@ -1392,7 +1394,7 @@ Two things worth knowing about the Playwright setup, both documented in
 
 ### What the tests actually cover
 
-`tests/unit/` — 11 files, all pure logic, no network, no mocks of the modules
+`tests/unit/` — 13 files, all pure logic, no network, no mocks of the modules
 under test:
 
 | File | Covers |
@@ -1406,16 +1408,22 @@ under test:
 | `parse.test.ts` | Plain-text parsing, page markers, running header/footer stripping |
 | `pipeline.test.ts` | `batchSegments`, `detectInjectionAttempts` |
 | `plans.test.ts` | `planFor`, `checkAwardEntitlement`, `canUseReminders` |
+| `prompts.test.ts` | Prompt construction, document fencing, segment rendering |
 | `rate-limit.test.ts` | Fixed-window behaviour against a fixed clock |
 | `segment.test.ts` | Segment sizing, locator ranges, `formatLocator` |
 | `validation.test.ts` | Upload validation, size and type rejection, content hashing |
 
-`tests/integration/pipeline.test.ts` — 439 lines running the **real** ingestion
-path against the **real** file store in a temp directory
-(`AWARDLENS_DATA_DIR` is pointed at `mkdtemp`), with
-`USE_DETERMINISTIC_AI_FIXTURES=true`. It covers ingest, dedupe, workspace and
-dashboard queries, all three exports, and reminder scheduling and delivery. No
-mocks of the modules under test.
+`tests/integration/pipeline.test.ts` runs the **real** ingestion path against
+the **real** file store in a temp directory (`AWARDLENS_DATA_DIR` is pointed at
+`mkdtemp`), with `USE_DETERMINISTIC_AI_FIXTURES=true`. It covers ingest,
+dedupe, workspace and dashboard queries, all three exports, and reminder
+scheduling and delivery. No mocks of the modules under test.
+
+`tests/integration/extraction-eval.test.ts` is the extraction evaluation —
+see [§20](#20-live-ai-evaluation).
+
+`tests/e2e/` — Playwright specs for the marketing pages, the sign-in flow, and
+the upload-and-review journey, plus a shared `helpers.ts`.
 
 `tests/fixtures/` — 12 synthetic award documents plus a `manifest.json` that
 declares, per fixture, the expected award identity and the critical obligations
@@ -1450,29 +1458,89 @@ pure logic exercised. Nothing else about module resolution changes.
 
 ## 20. Live AI evaluation
 
-The `pnpm test:ai-fixtures` and `pnpm test:ai-live` scripts point at
-`tests/integration/extraction-eval.test.ts`, **which does not exist yet**. What
-follows is how to evaluate live extraction today, plus what building the missing
-harness would involve.
+`tests/integration/extraction-eval.test.ts` runs the pipeline across all twelve
+synthetic award documents and measures it against the obligations the fixture
+manifest says each one contains. The same file runs in both modes:
 
-### Evaluating live extraction by hand
+```bash
+cd awardlens
 
-1. Configure live mode ([§11](#11-ai-gateway-configuration)) in
-   `awardlens/.env.local`.
-2. Restart `pnpm dev`.
-3. Confirm the mode banner is gone and `/app/settings` shows
-   `Live model (<your model id>)`.
-4. Upload each fixture in `tests/fixtures/` through `/app/awards/new` using the
-   "paste text" option.
-5. Compare the result against `tests/fixtures/manifest.json`, which declares for
-   each fixture:
-   * `expectedAward` — funder, recipient, award number, amount, currency, start
-     and end dates,
-   * `expectedCriticalObligations` — a `key`, a `category`, `titleContains`
-     tokens, an `expectedDueDate`, and `mustCiteTextContaining`, which is the
-     literal source string the citation has to include.
+# Deterministic — offline, free, reproducible. This is the CI path.
+pnpm test:ai-fixtures
 
-The fixtures worth the most attention:
+# The same evaluation against a live model.
+AI_GATEWAY_API_KEY=... AI_MODEL=... pnpm test:ai-live
+```
+
+`pnpm test:ai-live` sets `AWARDLENS_LIVE_EVAL=1`, which flips the suite's
+`forceMode` from `"fixtures"` to `"live"`. `PipelineOptions.forceMode` exists
+precisely so an evaluation can override the configured mode without touching
+`USE_DETERMINISTIC_AI_FIXTURES`.
+
+### What it asserts, and what it only reports
+
+The design principle in the file's own comment: "The hard assertions below are
+properties that must hold in EITHER mode — they are about honesty, not
+cleverness. Recall is reported rather than strictly asserted, because the
+deterministic extractor is deliberately more literal than a model and a tight
+recall gate here would only encourage overfitting the rules to these twelve
+documents."
+
+**Hard invariants, per obligation, in every mode:**
+
+* Nothing reaches the register without at least one citation that resolved to a
+  real segment.
+* Every citation's `locatorValue` **equals the stored segment's**
+  `locatorValue` — this is the ADR-level anti-fabrication guarantee, asserted
+  directly.
+* Confidence is within `[0, 1]`.
+
+**Hard aggregate gates:**
+
+| Assertion | Meaning |
+| --- | --- |
+| `unsupported === 0` | Every claim that reaches a user is traceable to the document |
+| `citedVerbatim / extracted ≥ 0.95` | Citation coverage — "the product's core promise; it must be near-total" |
+| `extracted > fixtures × 3` | Something is actually extracted from every real award |
+| `recalled / expected > 0.2` | "A floor, not a target — regressions below this are a genuine problem" |
+
+**Two further hard tests:**
+
+* **Injection.** The injection fixture must produce detected attempts *and*
+  still extract real obligations, and no obligation title may parrot the
+  injected instruction back.
+* **Non-grant.** The non-grant fixture must set `isGrantDocument: false` and
+  produce a warning mentioning grant or award.
+
+**Reported, not gated** — printed as a table plus totals:
+
+```
+Critical-obligation recall ....
+Citation coverage (verbatim) ..
+Unsupported-claim rate ........
+Date accuracy .................
+Duplicate rate ................
+Human review burden ........... N items per award
+```
+
+Date accuracy counts a null date as **correct** when the manifest says no date
+is supported: "The expert said no date is supported. Claiming one is a real
+error."
+
+### Using it to choose a model
+
+Run `pnpm test:ai-fixtures` first to get the deterministic baseline, then
+`pnpm test:ai-live` with a candidate `AI_MODEL`, and compare the reported
+numbers. A model is a good fit when recall and date accuracy improve **and**
+the unsupported-claim rate stays at zero. A model that improves recall while
+producing unsupported claims fails the suite outright, which is the correct
+outcome for this product.
+
+Record the baseline before changing `AI_MODEL` on a live deployment.
+
+### Checking specific behaviours by hand
+
+The fixtures worth the most attention when reading output yourself:
 
 * **05-conflicting-dates.** The merged obligation must have `dueDate: null`,
   two `dateConflicts` entries, and a clarification question naming both dates.
@@ -1505,22 +1573,15 @@ carrying:
 A useful acceptance bar for a live model: **`droppedUnsupported` should be at or
 near zero on the fixtures.** A model that regularly produces quotes not present
 in the document is not fit for this product, regardless of how good the prose
-is.
+is. The evaluation enforces the corresponding aggregate as a hard assertion.
 
-### Building the missing harness
+### One caveat about running the live eval in CI
 
-To make `pnpm test:ai-fixtures` and `pnpm test:ai-live` real, create
-`tests/integration/extraction-eval.test.ts` that:
-
-1. Loads `tests/fixtures/manifest.json`.
-2. For each fixture, parses and segments the text, then calls `runExtraction`
-   with `forceMode` set to `"fixtures"` or `"live"` — the `PipelineOptions`
-   already expose `forceMode` precisely so evaluations can override the
-   configured mode.
-3. Picks the mode from `process.env.AWARDLENS_LIVE_EVAL === "1"`.
-4. Asserts the manifest's expectations, and skips the whole suite when live mode
-   is requested but `AI_GATEWAY_API_KEY`/`AI_MODEL` are absent — a live eval must
-   never fail CI for a missing key.
+`pnpm test:ai-live` does **not** skip itself when `AI_GATEWAY_API_KEY` and
+`AI_MODEL` are absent — `forceMode: "live"` makes `getExtractionModel()` throw
+`ModelNotConfiguredError`. Keep it out of the default CI job (which should run
+`pnpm verify`, and therefore the deterministic evaluation) and run it as a
+separate, manually triggered job with the credentials present.
 
 ---
 
@@ -1629,7 +1690,10 @@ For reminders:
 ```
 CRON_SECRET               = <openssl rand -hex 32>
 ```
-plus `awardlens/vercel.json` from [§16](#16-scheduled-reminders).
+
+`awardlens/vercel.json` already carries the daily cron entry and the security
+headers ([§16](#16-scheduled-reminders)); confirm it is present in the commit
+you deploy, because cron definitions are read at deploy time.
 
 For payments:
 
@@ -1909,8 +1973,10 @@ The Root Directory is not set to `awardlens`. See
 this repository, because the repo root is a static HTML site with no
 `package.json`.
 
-Related symptom: you set the Root Directory correctly but Cron never fires —
-`vercel.json` must be at `awardlens/vercel.json`, not the repository root.
+Related symptom: you set the Root Directory correctly but Cron never fires, or
+the security headers are absent — `vercel.json` is read from
+`awardlens/vercel.json`, not the repository root, and only when the Root
+Directory is set correctly.
 
 ### The production deployment throws on every request
 
@@ -2015,23 +2081,35 @@ on the instance that serves your next request. This is the ephemerality warning
 made visible. Either accept it for a demo (`ALLOW_LOCAL_STORE=true`) or finish
 the Supabase adapter.
 
-### `pnpm test:e2e`, `pnpm test:accessibility`, `pnpm test:ai-fixtures`, `pnpm test:ai-live` all fail
+### `pnpm test:accessibility` fails with "no tests found"
 
-The files they point at do not exist yet. See [§19](#19-test-commands). Use
-`pnpm test`, `pnpm test:unit` and `pnpm test:integration`.
+It points at `tests/e2e/accessibility.spec.ts`, which does not exist as of this
+writing. `@axe-core/playwright` is installed and ready for it. Use `pnpm
+test:e2e` for the specs that do exist. See [§19](#19-test-commands).
 
-### A committed `.awardlens-data/`
+### `pnpm test:ai-live` throws `ModelNotConfiguredError`
 
-`awardlens/.gitignore` does not list it. If it is already committed:
+The live evaluation forces `forceMode: "live"`, so it needs
+`AI_GATEWAY_API_KEY` and `AI_MODEL` present. It does not skip itself when they
+are missing. Keep it out of the default CI job.
 
-```bash
-cd awardlens
-printf '\n.awardlens-data/\n' >> .gitignore
-git rm -r --cached .awardlens-data
-git commit -m "Stop tracking the local AwardLens data store"
-```
+### `pnpm test:e2e` cannot find a browser
 
-Then rotate `AUTH_SECRET` if the generated `auth-secret` file was ever pushed.
+`playwright.config.ts` will use `PLAYWRIGHT_CHROMIUM_EXECUTABLE` if set, or a
+Chromium under `PLAYWRIGHT_BROWSERS_PATH` (defaulting to `/opt/pw-browsers`) if
+that path exists; otherwise it says nothing and lets Playwright resolve its own
+browser. On a normal machine, `pnpm exec playwright install chromium` is the
+fix. In a sandbox with a pre-installed Chromium of a different revision, point
+`PLAYWRIGHT_CHROMIUM_EXECUTABLE` at it.
+
+### The e2e suite is slow or times out on first run
+
+By design it boots `pnpm dev` itself (`webServer.timeout` is 240 s) and
+per-test timeout is 120 s, because dev-mode route compilation is lazy and
+`next/font` fetches Google Fonts over the network on cold start. It is also
+serial with a single worker, because the file-backed store is shared mutable
+state. Neither is a bug to optimise away without understanding
+`playwright.config.ts` first.
 
 ---
 
@@ -2108,7 +2186,8 @@ here. This produces a **credible demo**, not a customer-ready product.
    `src/lib/ai/consolidate.ts`, `src/lib/awards/process.ts`. These four files
    are the product. (60 min)
 3. `pnpm verify`. Confirm green. (15 min)
-4. Add `.awardlens-data/` to `awardlens/.gitignore`. (5 min)
+4. `pnpm test:ai-fixtures` and keep the printed evaluation table — it is your
+   deterministic baseline. (10 min)
 5. Upload three or four of the `tests/fixtures/` documents by pasting them, and
    read the output critically — especially `05-conflicting-dates` and
    `09-prompt-injection`. (60 min)
@@ -2121,8 +2200,9 @@ here. This produces a **credible demo**, not a customer-ready product.
 8. Set up Resend, verify a domain, set `RESEND_API_KEY` and `EMAIL_FROM`.
    Redeploy. Confirm you can sign in to production. (60 min)
 9. Create an AI Gateway key, run `pnpm models:list`, set `AI_MODEL` and
-   `USE_DETERMINISTIC_AI_FIXTURES=false`. Redeploy. (30 min)
-10. Run smoke tests 1–20 from [§24](#24-post-deployment-smoke-tests). (45 min)
+   `USE_DETERMINISTIC_AI_FIXTURES=false`. Run `pnpm test:ai-live` locally against
+   the chosen model and compare with the morning's baseline. Redeploy. (45 min)
+10. Run the smoke tests from [§24](#24-post-deployment-smoke-tests). (45 min)
 
 **End of day — what you have**
 
@@ -2140,14 +2220,15 @@ multi-user story.
 
 Five working days to something you could reasonably run a pilot on.
 
-### Day 1 — Foundations and honesty
+### Day 1 — Foundations and baseline
 
 * Everything in the one-day path.
-* Replace `awardlens/README.md` — it is still the `create-next-app` template.
-  Point it at this guide.
-* Add `.awardlens-data/` to `.gitignore`.
-* Set up CI running `pnpm verify` on every push. Do **not** include the four
-  broken test scripts.
+* Set up CI running `pnpm verify` on every push. Add `pnpm test:e2e` as a
+  separate job — it boots its own dev server and needs a Chromium. Keep
+  `pnpm test:ai-live` out of the default job; it needs credentials and does not
+  skip without them.
+* Record the `pnpm test:ai-fixtures` evaluation table somewhere durable. Every
+  later change to prompts, rules or model is measured against it.
 
 ### Day 2 — Durability, part 1
 
@@ -2176,24 +2257,25 @@ This is the big one and it will take longer than you want.
 
 ### Day 4 — Reminders and evaluation
 
-* Add `awardlens/vercel.json` with the daily cron entry. Set `CRON_SECRET`.
-  Deploy. Verify with `curl`, then verify a real reminder arrives.
-* Write `tests/integration/extraction-eval.test.ts` so
-  `pnpm test:ai-fixtures` and `pnpm test:ai-live` do what their names say.
-  Use `PipelineOptions.forceMode`, drive it from `AWARDLENS_LIVE_EVAL`, and skip
-  cleanly when the live credentials are absent.
-* Run the live eval against all 12 fixtures. Record coverage and
-  `droppedUnsupported` per fixture as your baseline.
+* Confirm `awardlens/vercel.json` is in the deployed commit. Set `CRON_SECRET`.
+  Deploy. Verify with `curl`, then verify a real reminder arrives end to end.
+* Run `pnpm test:ai-live` against the chosen model over all 12 fixtures.
+  Compare recall, date accuracy and the unsupported-claim rate with the
+  deterministic baseline from day 1. If the unsupported rate is not zero, change
+  the model — the suite will fail anyway.
+* Confirm the security headers from `vercel.json` are actually present on the
+  deployed origin (`curl -I https://your-domain`), since they cannot be checked
+  locally.
 
 ### Day 5 — Billing, accessibility, launch prep
 
 * Stripe: create prices, set the four Stripe variables, set
   `DEVELOPMENT_BILLING_MODE=false`, configure the production webhook, and run a
   real test-mode checkout end to end.
-* Add `playwright.config.ts` and a first `tests/e2e/accessibility.spec.ts` using
-  the already-installed `@axe-core/playwright`, so `pnpm test:accessibility`
-  stops being a lie. Cover at minimum `/`, `/pricing`, `/demo`, `/auth/sign-in`,
-  `/app`, and one award page.
+* Write `tests/e2e/accessibility.spec.ts` using the already-installed
+  `@axe-core/playwright`, so `pnpm test:accessibility` has a target. Cover at
+  minimum `/`, `/pricing`, `/demo`, `/auth/sign-in`, `/app`, and one award page.
+  Until this exists, make no accessibility conformance claim.
 * Run the full smoke test list from [§24](#24-post-deployment-smoke-tests).
 * Work the pilot launch checklist in [§31](#31-pilot-launch-checklist).
 
@@ -2218,8 +2300,10 @@ is not.
 - [ ] `AI_GATEWAY_API_KEY` and `AI_MODEL` set, `AI_MODEL` taken from a real
       `pnpm models:list` run
 - [ ] `USE_DETERMINISTIC_AI_FIXTURES=false`
-- [ ] `CRON_SECRET` set **and** `awardlens/vercel.json` committed with the daily
-      cron entry
+- [ ] `CRON_SECRET` set **and** `awardlens/vercel.json` present in the deployed
+      commit with the daily cron entry
+- [ ] Security headers from `vercel.json` confirmed on the live origin with
+      `curl -I` (they are not applied by `pnpm start` locally)
 - [ ] If charging: all four Stripe variables set and
       `DEVELOPMENT_BILLING_MODE=false`
 - [ ] `/app/settings` shows **zero** configuration warnings
@@ -2236,9 +2320,11 @@ is not.
 ### Verification
 
 - [ ] `pnpm verify` green on the exact commit being deployed
+- [ ] `pnpm test:e2e` green
 - [ ] Smoke tests 1–24 in [§24](#24-post-deployment-smoke-tests) all pass
       against production
-- [ ] Live eval run over all 12 fixtures; `droppedUnsupported` at or near zero
+- [ ] `pnpm test:ai-live` green against the exact `AI_MODEL` being deployed;
+      unsupported-claim rate zero, and recall and date accuracy recorded
 - [ ] `05-conflicting-dates` produces no due date and a clarification question
 - [ ] `09-prompt-injection` reports the passages as ignored and the output is
       unaffected
@@ -2255,6 +2341,8 @@ is not.
       footer
 - [ ] Pilot users are told what is **not** built: no OCR, no multi-user
       organisations, no Team-plan shared workspace
+- [ ] No accessibility conformance is claimed anywhere until
+      `tests/e2e/accessibility.spec.ts` exists and passes
 
 ### Operations
 

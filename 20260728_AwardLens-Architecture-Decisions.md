@@ -847,14 +847,25 @@ mechanical judgement — same category, near-identical wording — and doing it 
 code makes it reproducible, free, testable, and incapable of inventing a
 requirement that no pass actually extracted."
 
-The merge rule (`isSameObligation`):
+The merge rule (`isSameObligation`) — thresholds as of this writing:
 
 * **Different category → never merged.**
 * **Different non-empty recurrence → never merged.** "A quarterly report and an
   annual report are never the same duty however similar the words."
 * Otherwise, Jaccard similarity over content words (stop words including
-  `recipient`, `grantee`, `award`, `grant`, `shall`, `must` are stripped):
-  title similarity ≥ 0.62, **or** title ≥ 0.4 and title-plus-description ≥ 0.55.
+  `recipient`, `grantee`, `award`, `grant`, `shall`, `must` are stripped), and
+  **both** title and description must agree: title ≥ 0.85 with description
+  ≥ 0.45, **or** title ≥ 0.55 with description ≥ 0.65.
+
+Requiring the description to agree as well as the title is itself a recorded
+decision, and the reasoning is the asymmetry of the two failure modes: "Titles
+are short and often generic… so title similarity alone merges genuinely
+different duties: a narrative report and a financial report, or two unrelated
+closeout terms. That is not merely untidy. A wrong merge collapses two real
+deadlines into one and, when their dates differ, the result looks like a
+contradiction in the document and suppresses both dates. **Under-merging shows
+the user a duplicate they can dismiss; over-merging silently loses a
+deadline.**"
 
 The merge itself (`mergeGroup`) is conservative in every direction:
 
@@ -894,8 +905,9 @@ period it does not."
 * **Cost: purely lexical merging.** Two candidates describing the same duty in
   genuinely different vocabulary will not merge, and the register will show a
   near-duplicate. Users will see this occasionally.
-* **Cost: the thresholds are tuned by hand** — 0.62, 0.55, 0.4 — against the
-  fixtures, not derived from data.
+* **Cost: the thresholds are tuned by hand** against the twelve fixtures, not
+  derived from data. They have already been revised once during development,
+  which is evidence both that they matter and that they are not settled.
 * **Cost: `consolidateCandidates` is O(n²)** over candidates. With an 80-item
   cap this is irrelevant, but it is not a general algorithm.
 * **Cost: the stop-word list is English-only and domain-specific.** Non-English
@@ -957,12 +969,13 @@ The implementation:
 
 * `splitSentences` breaks each stored segment into sentences, keeping list
   markers attached.
-* **21 ordered rules**, most specific first, match sentences by regular
-  expression: prior approval, match/cost-share, final report, closeout, audit,
-  records retention, branding, restricted use, indirect costs, budget revision,
+* **Ordered rules, most specific first** (24 as of this writing), match
+  sentences by regular expression: prior approval, match/cost-share, final
+  report, unexpended funds, final invoice, closeout, audit, records retention,
+  advance review, branding, restricted use, indirect costs, budget revision,
   subrecipient oversight, procurement, insurance, participant eligibility,
   performance measures, data collection, reporting, renewal, deliverable,
-  financial management, general compliance.
+  financial management, general compliance. The first match wins.
 * Boilerplate (`whereas`, `now therefore`, signature blocks) and pure
   definitions are filtered out.
 * Each rule contributes a category, priority, suggested owner role, lead days
@@ -1073,8 +1086,8 @@ user's own question in "Ask this award" is fenced too, in its own
 prompt.
 
 **2. Detection and disclosure.** `detectInjectionAttempts` in
-`src/lib/ai/pipeline.ts` scans segments against nine patterns and collects up to
-twelve matching passages. The comment explains why this exists on top of the
+`src/lib/ai/pipeline.ts` scans segments against a pattern list (ten entries as
+of this writing) and collects up to twelve matching passages. The comment explains why this exists on top of the
 fencing: "The prompts already isolate document text as data; this detection
 exists so we can tell the user what we saw and ignored, which is far more
 trustworthy than silently handling it." The user sees: "This document contains N
@@ -1113,7 +1126,7 @@ Related, non-prompt injection surfaces are also closed:
 * **Cost: fencing is not a security boundary.** It is a strong instruction to a
   system that follows instructions probabilistically. The honest claim is
   layered mitigation, not prevention — which is exactly why layer 3 exists.
-* **Cost: the nine detection patterns are a blocklist**, and blocklists are
+* **Cost: the detection patterns are a blocklist**, and blocklists are
   bypassable by rephrasing. Their purpose is disclosure, not defence.
 * **Cost: false positives are possible.** A grant agreement that legitimately
   discusses AI policy ("you must not disregard prior instructions from the
@@ -2046,8 +2059,7 @@ Recorded so they are visibly deferred rather than accidentally omitted.
 | **Redis-backed rate limiting** (ADR 17) | Another credential, against ADR 2 | Sustained multi-instance operation, or evidence of abuse |
 | **OCR for scanned PDFs** | A heavy dependency; the paste-the-text path covers the case | Enough users uploading scans |
 | **Multi-user organisations and the Team plan's shared workspace** | One user, one organisation is enough for the pilot; the plan tier exists but its features do not | Selling the Team plan |
-| **Playwright end-to-end and accessibility suites** | The scripts exist in `package.json`; the tests do not | Before any release that claims accessibility conformance |
-| **`extraction-eval.test.ts`** for `test:ai-fixtures` / `test:ai-live` | The fixtures and manifest exist; the harness does not | Before changing `AI_MODEL` on a live deployment |
+| **An accessibility spec** for `pnpm test:accessibility` | `playwright.config.ts` and `tests/e2e/` now exist with auth, marketing and upload-and-review specs; `tests/e2e/accessibility.spec.ts` does not, though `@axe-core/playwright` is installed | Before any release that claims accessibility conformance — until then, claim none |
 | **Dark mode / high-contrast mode** (ADR 18) | Contrast verification burden across evidence surfaces | User demand, or an accessibility requirement |
 | **Embedding-based retrieval** (ADR 21) | Disproportionate at tens of segments | Vocabulary mismatch becoming the top complaint |
 | **Stripe reconciliation job** (ADR 20) | Webhooks plus idempotency cover the normal path | A missed webhook causing a real billing discrepancy |
