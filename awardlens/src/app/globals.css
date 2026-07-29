@@ -8,51 +8,127 @@
  * design: this is a document-review product, and a single well-tested set of
  * contrast ratios is worth more than a dark mode we cannot verify against every
  * evidence surface. All pairs below were checked to at least WCAG AA.
+ *
+ *
+ * HOW TO USE THIS FILE
+ * --------------------
+ * Four layers, in the order you should reach for them:
+ *
+ *   1. Colour tokens   meaning, not decoration.       :root, below
+ *   2. Elevation       shadow-resting / -raised /
+ *                      -popover / -overlay            @theme inline
+ *   3. Type scale      .type-display … .type-caption  @layer components
+ *   4. Rhythm          .section*, .stack-*,
+ *                      .card-pad*, .cluster           @layer components
+ *
+ * The type and rhythm classes live in `@layer components`, deliberately. A
+ * cascade layer beats specificity, so any Tailwind utility you add alongside
+ * one of them wins: `class="type-body text-xs"` really is 12px. They are
+ * opinionated defaults, not handcuffs.
+ *
+ * If you are about to write `text-2xl font-semibold tracking-tight`, you want
+ * `.type-heading`. If you are choosing between `gap-2` and `gap-3` for two
+ * siblings, you want a `.stack-*`.
+ *
+ * One caveat worth knowing: `cn()` runs tailwind-merge, which only understands
+ * Tailwind's own class names. It will not de-duplicate `shadow-resting` against
+ * `shadow-md`, so pass `elevation` to <Card> rather than a shadow class.
  */
 
 :root {
-  /* Surfaces */
+  /* ---------------------------------------------------------- Surfaces --- */
   --background: #fbfaf7; /* warm ivory */
   --surface: #ffffff;
   --surface-sunken: #f4f2ec;
   --muted: #f1efe9; /* soft stone */
-  --muted-foreground: #5b6472; /* 5.71:1 on background */
+  --muted-foreground: #5b6472; /* 5.73:1 on background, 5.98:1 on surface, 5.20:1 on muted */
 
-  /* Ink */
-  --foreground: #12181f; /* deep ink, 16.4:1 on background */
-  --foreground-soft: #333d4a;
+  /*
+   * Paper: the reading surface for long-form document text — the source panel,
+   * the quoted excerpt in the Evidence Rail. A half-step warmer than --surface
+   * so a screenful of serif does not glare, and far cleaner than tinting a
+   * document with the amber alert colour. That combination — a warm wash under
+   * cool slate ink — is exactly what made the review workspace read muddy.
+   */
+  --paper: #fdfcf8;
+  --paper-border: #eae5da;
 
-  /* Action */
-  --primary: #0f5c4a; /* evergreen, 7.88:1 on white */
+  /* --------------------------------------------------------------- Ink --- */
+  --foreground: #12181f; /* deep ink, 17.11:1 on background */
+  --foreground-soft: #333d4a; /* 10.55:1 on background */
+
+  /*
+   * Document ink is warm, because it sits on warm paper. Slate-blue ink on a
+   * cream page is the specific pairing that reads dirty; matching the ink's
+   * temperature to the paper's is what makes a quote look printed.
+   */
+  --ink-document: #2f2b25; /* 13.70:1 on --paper, 14.06:1 on --surface */
+  --ink-document-soft: #59524a; /* 7.49:1 on --paper, 7.69:1 on --surface */
+
+  /* ------------------------------------------------------------ Action --- */
+  --primary: #0f5c4a; /* evergreen, 7.92:1 on white */
   --primary-hover: #0b4a3b;
+  --primary-active: #083629; /* pressed, 12.6:1 on white */
   --primary-foreground: #ffffff;
   --primary-subtle: #e6f0ec;
-  --primary-subtle-foreground: #0b4536;
+  --primary-subtle-foreground: #0b4536; /* 9.40:1 on --primary-subtle */
+  --primary-border: #b9d3c9; /* decorative edge for evergreen fills */
 
   /* Authority accent, used sparingly for evidence surfaces */
-  --ink-accent: #1c3352;
+  --ink-accent: #1c3352; /* 10.85:1 on --ink-accent-subtle, 12.42:1 on white */
   --ink-accent-subtle: #e8edf4;
+  --ink-accent-border: #c6d2e3;
 
-  /* Attention */
-  --warning: #b45309; /* 4.53:1 on --warning-subtle */
-  --warning-subtle: #fef3c7;
-  --warning-border: #f0d9a0;
+  /* --------------------------------------------------------- Attention --- */
+  /*
+   * Amber is a signal, not a texture. The previous pair (#b45309 on #fef3c7)
+   * was a saturated cream filling whole banners plus every "due soon" chip, so
+   * amber had stopped meaning "look at this". The fill is now pale parchment
+   * and the ink is deeper: quieter surface, and contrast headroom for 12px text
+   * (4.51:1 before, 5.57:1 now).
+   */
+  --warning: #a04a08; /* 5.57:1 on --warning-subtle, 5.79:1 on background, 6.04:1 on white */
+  --warning-subtle: #fdf5e6;
+  --warning-border: #ead9b6;
+  --warning-quiet: #fbf8f1; /* full-bleed banner fill; --warning on it is 5.71:1 */
 
-  /* Risk */
-  --destructive: #b3261e; /* 6.61:1 on white */
+  /*
+   * Highlight is the marking pen: it belongs to cited passages in a document,
+   * not to warnings. Separating it from the amber alert family means a
+   * highlighted sentence no longer looks like an error.
+   */
+  --highlight-subtle: #fcf0d2; /* mark fill; --foreground on it is 15.76:1 */
+  --highlight-wash: #fdf8ee; /* the active segment's background */
+  --highlight-rule: #c08a1e; /* underline / edge, 3.02:1 on --highlight-subtle */
+
+  /* -------------------------------------------------------------- Risk --- */
+  --destructive: #b3261e; /* 6.61:1 on white, 5.72:1 on --destructive-subtle */
   --destructive-hover: #8f1d17;
   --destructive-foreground: #ffffff;
   --destructive-subtle: #fdecea;
   --destructive-border: #f2c4c0;
 
-  /* Confirmation */
-  --success: #1a6b45;
+  /* ------------------------------------------------------ Confirmation --- */
+  --success: #1a6b45; /* 6.50:1 on white, 5.59:1 on --success-subtle */
   --success-subtle: #e4f1ea;
+  --success-border: #bcd9c9;
 
-  /* Structure */
-  --border: #e3e0d8; /* warm gray */
-  --border-strong: #cfcabd;
+  /* --------------------------------------------------------- Structure --- */
+  --border: #e3e0d8; /* warm gray — the default container edge */
+  --border-subtle: #edeae1; /* hairline for dividers *inside* a container */
+  --border-strong: #cfcabd; /* emphasis edge: quote rules, dashed empty states */
+  --border-control: #948d7e; /* 3.30:1 on white — real control boundaries (WCAG 1.4.11) */
   --ring: #0f5c4a;
+
+  /* Scrim behind modals: warm and honest, not a blue-black film. */
+  --overlay: rgba(30, 26, 18, 0.34);
+
+  /*
+   * Elevation. Three things matter: the shadow is warm-tinted (pure black over
+   * #fbfaf7 reads grey and dead), it is layered rather than one blur, and each
+   * level *means* something. See the @theme block for the values.
+   */
+  --shadow-tint: 44 36 22;
 
   --radius: 0.5rem;
 }
@@ -61,23 +137,35 @@
   --color-background: var(--background);
   --color-surface: var(--surface);
   --color-surface-sunken: var(--surface-sunken);
+  --color-paper: var(--paper);
+  --color-paper-border: var(--paper-border);
   --color-foreground: var(--foreground);
   --color-foreground-soft: var(--foreground-soft);
+  --color-ink-document: var(--ink-document);
+  --color-ink-document-soft: var(--ink-document-soft);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
 
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
+  --color-primary-active: var(--primary-active);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-subtle: var(--primary-subtle);
   --color-primary-subtle-foreground: var(--primary-subtle-foreground);
+  --color-primary-border: var(--primary-border);
 
   --color-ink-accent: var(--ink-accent);
   --color-ink-accent-subtle: var(--ink-accent-subtle);
+  --color-ink-accent-border: var(--ink-accent-border);
 
   --color-warning: var(--warning);
   --color-warning-subtle: var(--warning-subtle);
   --color-warning-border: var(--warning-border);
+  --color-warning-quiet: var(--warning-quiet);
+
+  --color-highlight-subtle: var(--highlight-subtle);
+  --color-highlight-wash: var(--highlight-wash);
+  --color-highlight-rule: var(--highlight-rule);
 
   --color-destructive: var(--destructive);
   --color-destructive-hover: var(--destructive-hover);
@@ -87,19 +175,60 @@
 
   --color-success: var(--success);
   --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
 
   --color-border: var(--border);
+  --color-border-subtle: var(--border-subtle);
   --color-border-strong: var(--border-strong);
+  --color-border-control: var(--border-control);
   --color-ring: var(--ring);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-serif: var(--font-source-serif), ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
+  /* ---------------------------------------------------------- Elevation ---
+   *
+   *   resting  a card at rest. Pair with border-border. The default.
+   *   raised   this one is selected, hovered, or is the primary object on the
+   *            screen. Ideally one raised element per view.
+   *   popover  a transient layer anchored to something: menu, tooltip.
+   *   overlay  a modal layer that owns the screen: dialog, sheet.
+   *   header   the hairline under a sticky bar — not a card shadow.
+   */
+  --shadow-resting:
+    0 1px 1px rgb(var(--shadow-tint) / 0.03), 0 1px 3px -1px rgb(var(--shadow-tint) / 0.05);
+  --shadow-raised:
+    0 1px 2px rgb(var(--shadow-tint) / 0.04), 0 4px 10px -3px rgb(var(--shadow-tint) / 0.07),
+    0 14px 28px -12px rgb(var(--shadow-tint) / 0.1);
+  --shadow-popover:
+    0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 8px 20px -6px rgb(var(--shadow-tint) / 0.12),
+    0 20px 44px -20px rgb(var(--shadow-tint) / 0.14);
+  --shadow-overlay:
+    0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 16px 36px -10px rgb(var(--shadow-tint) / 0.16),
+    0 44px 80px -32px rgb(var(--shadow-tint) / 0.22);
+  --shadow-header: 0 1px 0 var(--border), 0 6px 14px -12px rgb(var(--shadow-tint) / 0.3);
+
+  /* The stock Tailwind steps, re-tinted warm so nothing in the app is cold. */
+  --shadow-2xs: 0 1px 1px rgb(var(--shadow-tint) / 0.04);
+  --shadow-xs: 0 1px 2px rgb(var(--shadow-tint) / 0.05);
+  --shadow-sm:
+    0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 1px 3px -1px rgb(var(--shadow-tint) / 0.06);
+  --shadow-md:
+    0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 8px 20px -6px rgb(var(--shadow-tint) / 0.12),
+    0 20px 44px -20px rgb(var(--shadow-tint) / 0.14);
+  --shadow-lg:
+    0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 16px 36px -10px rgb(var(--shadow-tint) / 0.16),
+    0 44px 80px -32px rgb(var(--shadow-tint) / 0.22);
+  --shadow-xl:
+    0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 24px 50px -12px rgb(var(--shadow-tint) / 0.18),
+    0 60px 100px -40px rgb(var(--shadow-tint) / 0.24);
+
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: var(--radius);
   --radius-lg: calc(var(--radius) + 4px);
   --radius-xl: calc(var(--radius) + 8px);
+  --radius-2xl: calc(var(--radius) + 12px);
 }
 
 @layer base {
@@ -115,8 +244,17 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans);
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    /*
+     * Inter's character variants, on purpose:
+     *   cv02 open-tailed g   cv03 open 6/9   cv04 open 4   cv11 single-storey a
+     * They make numerals and lowercase forms less ambiguous, which matters in a
+     * product where someone reads "$75,000.00" and "Section 4945(d)(1)" off a
+     * screen and has to trust it. calt keeps contextual spacing intact.
+     */
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "calt";
+    font-optical-sizing: auto;
     -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
@@ -149,19 +287,290 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+
+  /*
+   * The mono voice carries locators, dates and counts. Ligatures are switched
+   * off: "!=" rendered as ≠ inside a page reference would be a bug, not a
+   * feature. Figures are tabular so a column of dates lines up.
+   */
+  code,
+  kbd,
+  samp,
+  pre,
+  .font-mono {
+    font-variant-ligatures: none;
+    font-feature-settings: "tnum";
+  }
+}
+
+@layer components {
+  /* ================================================== 3. THE TYPE SCALE ===
+   *
+   * Eight named steps. Each carries its own size, weight, leading, tracking and
+   * optical trim, so a heading is one class and always looks the same.
+   *
+   *   .type-display   page-owning statement. One per page, hero only.
+   *   .type-title     the app page's <h1>; a major marketing section's <h2>.
+   *   .type-heading   section heading. The workhorse.
+   *   .type-subhead   card titles, dialog titles, sub-section h3/h4.
+   *   .type-lede      the paragraph under a display/title. One per section.
+   *   .type-body      editorial reading text: marketing copy, descriptions.
+   *   .type-small     dense UI text: metadata rows, table cells, hints.
+   *   .type-caption   the smallest legible step: labels, counts, footnotes.
+   *
+   * Tracking tightens as size grows because Inter is drawn for text sizes: at
+   * 56px its default sidebearings read loose and word shapes fall apart. The
+   * two largest steps are fluid, so a hero does not overwhelm a 390px phone.
+   *
+   * text-sm / text-xs still exist and are fine for pure chrome. The named steps
+   * are for anything a person actually reads.
+   */
+  .type-display {
+    font-size: clamp(2.375rem, 1.72rem + 2.72vw, 3.5rem); /* 38 → 56px */
+    line-height: 1.04;
+    letter-spacing: -0.033em;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  .type-title {
+    font-size: clamp(1.875rem, 1.55rem + 1.36vw, 2.4375rem); /* 30 → 39px */
+    line-height: 1.13;
+    letter-spacing: -0.027em;
+    font-weight: 650;
+    text-wrap: balance;
+  }
+
+  .type-heading {
+    font-size: clamp(1.375rem, 1.24rem + 0.57vw, 1.625rem); /* 22 → 26px */
+    line-height: 1.24;
+    letter-spacing: -0.021em;
+    font-weight: 620;
+    text-wrap: balance;
+  }
+
+  .type-subhead {
+    font-size: 1.0625rem; /* 17px */
+    line-height: 1.35;
+    letter-spacing: -0.013em;
+    font-weight: 600;
+    text-wrap: balance;
+  }
+
+  .type-lede {
+    font-size: clamp(1.0625rem, 1.02rem + 0.23vw, 1.1875rem); /* 17 → 19px */
+    line-height: 1.58;
+    letter-spacing: -0.008em;
+    font-weight: 400;
+    text-wrap: pretty;
+  }
+
+  .type-body {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.62;
+    letter-spacing: -0.004em;
+    font-weight: 400;
+  }
+
+  .type-small {
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.5;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  .type-caption {
+    font-size: 0.75rem; /* 12px */
+    line-height: 1.45;
+    letter-spacing: 0.004em;
+    font-weight: 500;
+  }
+
+  /* ------------------------------------------------------- Voiced text --- */
+
+  /*
+   * The small-caps label above a heading. Deliberately one size, one weight and
+   * one tracking everywhere — an eyebrow that varies reads as a mistake. Pair
+   * with text-muted-foreground, or text-primary when it labels an action.
+   */
+  .eyebrow {
+    font-size: 0.6875rem; /* 11px */
+    font-weight: 600;
+    line-height: 1.3;
+    letter-spacing: 0.085em;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * The quoted source excerpt used across every evidence surface.
+   *
+   * Source Serif, a step larger than the surrounding UI, with book leading and
+   * warm ink. This is the one place in the product where text is a *document*
+   * rather than chrome, and it should look set rather than rendered. Old-style
+   * figures let dates and section numbers sit inside the line instead of
+   * shouting above it.
+   */
+  .evidence-quote {
+    font-family: var(--font-serif);
+    font-size: 0.96875rem; /* 15.5px */
+    line-height: 1.66;
+    letter-spacing: 0.002em;
+    color: var(--ink-document);
+    font-variant-numeric: oldstyle-nums proportional-nums;
+  }
+
+  /*
+   * A quote set as a block. The opening quotation mark hangs into the margin so
+   * the first letter aligns with the rest of the paragraph, the way a printed
+   * pull-quote does. Only for text that genuinely starts with a quote mark.
+   */
+  .evidence-quote-hang {
+    text-indent: -0.4em;
+  }
+
+  /* The marking pen used on a cited passage inside the source document. */
+  .evidence-mark {
+    background-color: var(--highlight-subtle);
+    box-shadow: 0 0 0 1px var(--highlight-subtle);
+    border-radius: 2px;
+    color: var(--foreground);
+    text-decoration: underline;
+    text-decoration-color: var(--highlight-rule);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+
+  /*
+   * Numbers people came to read: prices, totals, counts. Tabular, tightened,
+   * and heavy enough to be the thing the eye lands on. Set the size yourself —
+   * `.metric text-4xl` for a price, `.metric text-2xl` for a dashboard figure.
+   */
+  .metric {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.028em;
+    font-weight: 650;
+    line-height: 1.05;
+  }
+
+  /* Comfortable measure for prose: roughly 66 and 88 characters. */
+  .measure {
+    max-width: 34em;
+  }
+
+  .measure-wide {
+    max-width: 46em;
+  }
+
+  /* ================================================ 4. SPACING & RHYTHM ===
+   *
+   * Vertical rhythm for a marketing section. Use .section for the default
+   * cadence, .section-tight when two sections belong together and should read
+   * as one movement, and .section-loose for the one or two per page that are
+   * allowed to breathe — the hero, the closing call to action.
+   *
+   * Alternating these is how you break the "eleven identical bands" problem.
+   * Rhythm is what gives a page a shape.
+   */
+  .section {
+    padding-block: clamp(3.5rem, 2.4rem + 3.4vw, 5.75rem); /* 56 → 92px */
+  }
+
+  .section-tight {
+    padding-block: clamp(2.25rem, 1.7rem + 1.7vw, 3.5rem); /* 36 → 56px */
+  }
+
+  .section-loose {
+    padding-block: clamp(4.5rem, 2.8rem + 5.4vw, 8rem); /* 72 → 128px */
+  }
+
+  /*
+   * Vertical stacks — lobotomised-owl margins rather than flex gap, so they
+   * drop into any container without changing its layout mode.
+   *
+   *   .stack-xs    6px  label → control, badge row → title
+   *   .stack-sm   10px  lines that belong to one thought
+   *   .stack-md   16px  the default: paragraphs, blocks inside a card
+   *   .stack-lg   24px  distinct blocks inside a panel
+   *   .stack-xl   40px  sub-sections within one section
+   */
+  .stack-xs > * + * {
+    margin-top: 0.375rem;
+  }
+  .stack-sm > * + * {
+    margin-top: 0.625rem;
+  }
+  .stack-md > * + * {
+    margin-top: 1rem;
+  }
+  .stack-lg > * + * {
+    margin-top: 1.5rem;
+  }
+  .stack-xl > * + * {
+    margin-top: 2.5rem;
+  }
+
+  /*
+   * Card padding. <Card> and its parts already apply these values through the
+   * `padding` prop; reach for the class when hand-rolling a panel so it still
+   * agrees with every real Card on the page.
+   *
+   *   .card-pad-tight   14/16px  dense rows, sidebar panels
+   *   .card-pad         20px     the default
+   *   .card-pad-roomy   28px     pricing, hero panels, anything with a metric
+   */
+  .card-pad-tight {
+    padding: 0.875rem 1rem;
+  }
+  .card-pad {
+    padding: 1.25rem;
+  }
+  .card-pad-roomy {
+    padding: 1.75rem;
+  }
+
+  /* A horizontal group of small things — badges, buttons, meta — that wraps. */
+  .cluster {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .cluster-tight {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+  }
+
+  /*
+   * Dot-separated inline metadata: "Reporting · Due Apr 30 · Page 3". The
+   * separators are generated, so they never end up in the accessibility tree
+   * and never get read out as a word.
+   */
+  .meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 0.5rem;
+    row-gap: 0.25rem;
+  }
+  .meta-row > * + *::before {
+    content: "·";
+    margin-right: 0.5rem;
+    color: var(--border-strong);
+  }
+
+  /* A hairline inside a container. Lighter than the container's own border. */
+  .rule {
+    border-top: 1px solid var(--border-subtle);
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
-  }
-
-  /* The quoted source excerpt treatment used across every evidence surface. */
-  .evidence-quote {
-    font-family: var(--font-serif);
-    font-size: 0.9375rem;
-    line-height: 1.65;
-    color: var(--foreground-soft);
   }
 
   .container-page {
@@ -182,6 +591,65 @@
     margin-inline: auto;
     max-width: 44rem;
     padding-inline: 1.25rem;
+  }
+
+  /*
+   * Entrance only, and short. Radix unmounts on close so there is no exit to
+   * animate, and anything past ~200ms in a compliance tool feels slow rather
+   * than considered. All of it is switched off by the reduced-motion block.
+   */
+  .animate-overlay-in {
+    animation: al-fade-in 140ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-dialog-in {
+    animation: al-dialog-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-sheet-in-right {
+    animation: al-sheet-in-right 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-sheet-in-bottom {
+    animation: al-sheet-in-bottom 200ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .animate-popover-in {
+    animation: al-popover-in 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes al-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes al-dialog-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.975);
+  }
+}
+
+@keyframes al-sheet-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(1.5rem);
+  }
+}
+
+@keyframes al-sheet-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(1.5rem);
+  }
+}
+
+@keyframes al-popover-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
   }
 }
 
@@ -211,11 +679,20 @@
     --background: #ffffff;
     --surface: #ffffff;
     --muted: #ffffff;
+    --paper: #ffffff;
+    --warning-subtle: #ffffff;
+    --warning-quiet: #ffffff;
+    --highlight-wash: #ffffff;
   }
 
   body {
     background: #ffffff;
     font-size: 10.5pt;
+  }
+
+  /* Elevation is a screen idea. On paper an edge does the work. */
+  * {
+    box-shadow: none !important;
   }
 
   [data-print="hide"],
@@ -239,8 +716,43 @@
     word-break: break-all;
   }
 
+  /* The fluid type steps collapse to fixed print sizes. */
+  .type-display {
+    font-size: 22pt;
+    line-height: 1.1;
+  }
+  .type-title {
+    font-size: 17pt;
+    line-height: 1.15;
+  }
+  .type-heading {
+    font-size: 13.5pt;
+  }
+  .type-subhead {
+    font-size: 11.5pt;
+  }
+  .type-lede {
+    font-size: 11pt;
+  }
+
+  /* Sections stop being a rhythm device and become paper economy. */
+  .section,
+  .section-tight,
+  .section-loose {
+    padding-block: 8pt;
+  }
+
   .evidence-quote {
     border-left: 2pt solid #999;
     padding-left: 6pt;
+    font-size: 10pt;
+    line-height: 1.45;
+  }
+
+  .evidence-mark {
+    background: transparent;
+    box-shadow: none;
+    text-decoration: underline;
+    text-decoration-color: #555;
   }
 }
