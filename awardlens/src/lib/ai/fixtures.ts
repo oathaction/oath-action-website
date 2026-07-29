@@ -328,6 +328,15 @@ export function actionTitle(sentence: string): string | null {
   }
   phrase = phrase.replace(/[,;:.]+$/, "").trim();
 
+  // Passive and negated constructions produce fragments that read badly as a
+  // title — "Be submitted before February 28", "Not regrant". In exactly those
+  // cases the rule's own label ("Return of unexpended funds", "Restricted use
+  // of funds") is both clearer and more informative, so decline and let the
+  // caller fall back to it.
+  if (/^(?:be|been|being|not|also|then|thereafter|further|otherwise|so)\b/i.test(phrase)) {
+    return null;
+  }
+
   if (phrase.split(" ").length < 2 || phrase.length < 8) return null;
   if (phrase.length > 68) phrase = `${phrase.slice(0, 65).replace(/\s+\S*$/, "")}…`;
 

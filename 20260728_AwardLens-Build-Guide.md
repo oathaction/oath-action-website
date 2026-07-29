@@ -102,8 +102,11 @@ does.
   50-award limit and a "shared organisation workspace" line item, but multi-user
   organisations are not implemented — `getOrCreateOrganizationForUser` gives
   every user exactly one organisation and there is no invite flow.
-* `tests/e2e/` and Playwright configuration do not exist, so `pnpm test:e2e` and
-  `pnpm test:accessibility` will fail. See [§19](#19-test-commands).
+* There is **no accessibility conformance claim**. `pnpm test:accessibility`
+  runs `tests/e2e/accessibility.spec.ts` if that spec exists; as of this writing
+  `tests/e2e/` contains `auth.spec.ts`, `marketing.spec.ts`,
+  `upload-and-review.spec.ts` and `helpers.ts`, so that one script has no
+  target. See [§19](#19-test-commands).
 
 ---
 
@@ -263,12 +266,15 @@ oath-action-website/
     ├── pnpm-lock.yaml
     ├── pnpm-workspace.yaml              ignoredBuiltDependencies: sharp, unrs-resolver
     ├── next.config.ts                   currently empty (no custom config needed)
+    ├── vercel.json                      daily cron + security headers (§16, §22)
+    ├── .env.example                     annotated template for every variable
     ├── tsconfig.json                    strict; "@/*" → "./src/*"
     ├── vitest.config.ts                 aliases `server-only` to a stub for tests
+    ├── playwright.config.ts             e2e against `next dev`, serial, temp data dir
     ├── eslint.config.mjs                eslint-config-next core-web-vitals + typescript
     ├── postcss.config.mjs               @tailwindcss/postcss
     ├── AGENTS.md / CLAUDE.md            agent instructions for this repo
-    ├── README.md                        still the create-next-app default (see below)
+    ├── README.md                        short product-level orientation
     ├── scripts/
     │   └── list-models.mjs              `pnpm models:list`
     ├── public/                          default Next.js SVGs only
@@ -281,8 +287,11 @@ oath-action-website/
     │   └── seed.sql                     guarded demo dataset
     ├── tests/
     │   ├── fixtures/                    12 synthetic award documents + manifest.json
-    │   ├── unit/                        11 test files
-    │   └── integration/pipeline.test.ts real ingestion against the real file store
+    │   ├── unit/                        13 test files, pure logic, no network
+    │   ├── integration/
+    │   │   ├── pipeline.test.ts         real ingestion against the real file store
+    │   │   └── extraction-eval.test.ts  all 12 fixtures vs. the manifest
+    │   └── e2e/                         Playwright: auth, marketing, upload-and-review
     └── src/
         ├── app/
         │   ├── layout.tsx               fonts, metadata, Toaster
@@ -320,12 +329,13 @@ oath-action-website/
 
 Two things to know about the tree as it stands:
 
-* `awardlens/README.md` is still the untouched `create-next-app` template. It is
-  not a description of this product. This guide is the description.
-* `.awardlens-data/` — the directory the file-backed store writes to in local
-  development — is **not** in `awardlens/.gitignore`. Add it before your first
-  commit, or you will commit a JSON database containing uploaded award text and
-  a generated auth secret. See [§17](#17-local-development).
+* `awardlens/README.md` is a short orientation for someone opening the
+  repository. This guide is the operational reference; they are not duplicates
+  and where they disagree, check the code.
+* `.gitignore` covers `/.awardlens-data/` and `.env*`, so the local file store
+  (which contains uploaded award text and a generated auth secret) and your
+  environment file stay out of version control. Verify this before your first
+  commit if you have changed `.gitignore`.
 
 ---
 
@@ -543,6 +553,21 @@ an error instead of a code. The six-digit code is only ever returned to the
 browser (`devCode`) outside production. So **a production deployment without
 Resend cannot sign anyone in.** This is covered again in
 [§15](#15-resend-setup) and [§27](#27-common-problems).
+
+### Start from `.env.example`
+
+`awardlens/.env.example` is an annotated template covering every variable, with
+the graded-mode behaviour explained inline. Copy it rather than writing one from
+scratch:
+
+```bash
+cd awardlens
+cp .env.example .env.local
+```
+
+Note that the template ships with `USE_DETERMINISTIC_AI_FIXTURES=true` and
+`DEVELOPMENT_BILLING_MODE=true` — the safe defaults. Both must be set to `false`
+for live AI and real payments.
 
 ### A minimal `.env.local` for a fully configured local run
 
@@ -1131,11 +1156,13 @@ Generate one:
 openssl rand -hex 32
 ```
 
-### The `vercel.json` you must add
+### `vercel.json`
 
-**The repository does not currently contain a `vercel.json`.** Vercel Cron will
-not run without one. Create it at `awardlens/vercel.json` — that is the project
-root as Vercel sees it, because Root Directory is set to `awardlens`:
+Vercel Cron will not run without a cron definition in `vercel.json`, and that
+file must sit at **`awardlens/vercel.json`** — the project root as Vercel sees
+it, because Root Directory is set to `awardlens` ([§22](#22-vercel-deployment)).
+
+The repository contains it. This is the cron entry, exactly as committed:
 
 ```json
 {
@@ -1148,9 +1175,37 @@ root as Vercel sees it, because Root Directory is set to `awardlens`:
 }
 ```
 
-`0 13 * * *` is 13:00 UTC daily — roughly 8am US Central in winter. Choose a
-time that lands in your users' morning. Vercel Cron schedules are always
-interpreted in UTC.
+`0 13 * * *` is 13:00 UTC daily — roughly 8am US Central in winter. Vercel Cron
+schedules are always interpreted in UTC. Change it if your users are elsewhere.
+
+The committed file also sets security headers, which is worth knowing about
+because it is the only place they are configured (`next.config.ts` is empty):
+
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "X-Frame-Options", "value": "DENY" },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    }
+  ]
+}
+```
+
+These headers are applied by Vercel, not by Next.js, so they are absent when you
+run `pnpm start` locally. Do not treat a local check as evidence they are set.
 
 Vercel automatically sends `Authorization: Bearer $CRON_SECRET` to cron
 invocations, which is exactly what the route checks. Set `CRON_SECRET` in the
@@ -1178,18 +1233,11 @@ pnpm install
 pnpm dev            # http://localhost:3000
 ```
 
-**Before your first commit**, add the data directory to `.gitignore`:
-
-```bash
-cd awardlens
-printf '\n# local file-backed store\n.awardlens-data/\n' >> .gitignore
-```
-
 `.awardlens-data/` holds `db.json` (every award, obligation and uploaded
 document's parsed text), `documents/*.bin` (the raw uploaded bytes), and
 `auth-secret` (the generated development session key). None of that belongs in
-version control. As of this writing `.gitignore` covers `.env*` but not
-`.awardlens-data/`.
+version control, and `.gitignore` covers it — along with `.env*`. Check both are
+still there if you edit `.gitignore`.
 
 ### The development loop
 
@@ -1311,22 +1359,36 @@ answer and it does not pretend a model ran.
 
 These are the real script names from `awardlens/package.json`.
 
-| Command | What it runs | State today |
+| Command | What it runs | Notes |
 | --- | --- | --- |
-| `pnpm test` | `vitest run` — everything matched by `vitest.config.ts` (`tests/unit/**` and `tests/integration/**`) | ✅ Works |
-| `pnpm test:watch` | `vitest` | ✅ Works |
-| `pnpm test:unit` | `vitest run tests/unit` | ✅ Works |
-| `pnpm test:integration` | `vitest run tests/integration` | ✅ Works — `tests/integration/pipeline.test.ts` |
-| `pnpm typecheck` | `tsc --noEmit` | ✅ Works |
-| `pnpm lint` | `eslint` | ✅ Works |
-| `pnpm verify` | `typecheck && lint && test && build` | ✅ Works |
-| `pnpm test:e2e` | `playwright test` | ⚠️ **Will fail** — there is no `tests/e2e/` directory and no `playwright.config.ts`. `@playwright/test` is installed. |
-| `pnpm test:accessibility` | `playwright test tests/e2e/accessibility.spec.ts` | ⚠️ **Will fail** — same reason. `@axe-core/playwright` is installed and waiting. |
-| `pnpm test:ai-fixtures` | `vitest run tests/integration/extraction-eval.test.ts` | ⚠️ **Will fail** — that file does not exist. The nearest equivalent is `pnpm test:integration`. |
-| `pnpm test:ai-live` | `AWARDLENS_LIVE_EVAL=1 vitest run tests/integration/extraction-eval.test.ts` | ⚠️ **Will fail** — same missing file. `AWARDLENS_LIVE_EVAL` is referenced nowhere else in the codebase. |
+| `pnpm test` | `vitest run` — everything matched by `vitest.config.ts` (`tests/unit/**` and `tests/integration/**`) | The default. No network, no credentials. |
+| `pnpm test:watch` | `vitest` | |
+| `pnpm test:unit` | `vitest run tests/unit` | 13 files, pure logic |
+| `pnpm test:integration` | `vitest run tests/integration` | `pipeline.test.ts` and `extraction-eval.test.ts` |
+| `pnpm test:ai-fixtures` | `vitest run tests/integration/extraction-eval.test.ts` | The extraction evaluation, deterministic mode. Offline and free. |
+| `pnpm test:ai-live` | `AWARDLENS_LIVE_EVAL=1 vitest run tests/integration/extraction-eval.test.ts` | The same evaluation against a live model. See [§20](#20-live-ai-evaluation). |
+| `pnpm test:e2e` | `playwright test` | Boots `pnpm dev` itself via `webServer`. Needs a Chromium build. |
+| `pnpm test:accessibility` | `playwright test tests/e2e/accessibility.spec.ts` | ⚠️ **No target as of this writing** — that spec file does not exist. `@axe-core/playwright` is installed and waiting for it. |
+| `pnpm typecheck` | `tsc --noEmit` | |
+| `pnpm lint` | `eslint` | |
+| `pnpm verify` | `typecheck && lint && test && build` | Run before every deploy. Note it does **not** include Playwright. |
 
-The four ⚠️ scripts are placeholders for work not yet done. Do not put them in CI
-until the files exist.
+Two things worth knowing about the Playwright setup, both documented in
+`playwright.config.ts` and both load-bearing:
+
+* **The e2e suite runs against `next dev`, not `next start`.** Sign-in is a
+  six-digit code that is only returned to the browser when
+  `NODE_ENV !== "production"`. A production build with no Resend key cannot be
+  signed into by a test any more than by a person, so it could not exercise a
+  single authenticated screen. This is the same constraint described in
+  [§15](#15-resend-setup), showing up in the test harness.
+* **It is serial — `fullyParallel: false`, one worker.** The file-backed store
+  is shared mutable state; two workers would interleave writes to the same JSON
+  file and make every "did my change persist?" assertion meaningless. The suite
+  points `AWARDLENS_DATA_DIR` at a fresh temp directory per run, so it never
+  touches your own development data, and it forces
+  `USE_DETERMINISTIC_AI_FIXTURES=true` so extraction is offline and identical
+  every run.
 
 ### What the tests actually cover
 
