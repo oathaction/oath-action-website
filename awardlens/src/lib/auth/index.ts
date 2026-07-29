@@ -40,19 +40,20 @@ export async function requireSession(): Promise<Session> {
   return session;
 }
 
-/**
- * Confirms the caller may act on an organisation. Callers should already be
- * passing their own organisation id; this is the belt-and-braces check that
- * makes an insecure direct object reference a 404 rather than a leak.
+/*
+ * There is deliberately no `assertMembership` helper here.
+ *
+ * An earlier version exported one, documented as "the belt-and-braces check
+ * that makes an insecure direct object reference a 404" — with zero call sites.
+ * A documented control that never runs is worse than no control, because it
+ * invites the assumption that authorisation is handled somewhere central.
+ *
+ * It is not. Authorisation lives in the data layer: every read and write helper
+ * in `@/lib/db` takes an `organizationId` and enforces it, so an id belonging
+ * to another organisation returns null rather than a record. Callers pass
+ * `session.organization.id` from `requireSession()`; there is nothing for a
+ * caller to forget to call.
  */
-export async function assertMembership(organizationId: string): Promise<Session> {
-  const session = await requireSession();
-  if (session.organization.id !== organizationId) {
-    const member = await db.isMember(organizationId, session.profile.id);
-    if (!member) redirect("/app");
-  }
-  return session;
-}
 
 function defaultOrganizationName(email: string): string {
   const domain = email.split("@")[1] ?? "";

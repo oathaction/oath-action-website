@@ -1,5 +1,5 @@
 import type { LocatorType, ParserStatus } from "@/lib/domain/types";
-import type { AcceptedKind } from "./validation";
+import { inspectZipExpansion, MAX_PASTED_CHARACTERS, type AcceptedKind } from "./validation";
 
 export interface ParsedBlock {
   locatorType: LocatorType;
@@ -182,6 +182,18 @@ function decodeEntities(html: string): string {
 }
 
 export async function parseDocx(data: Buffer): Promise<ParseResult> {
+  // Reject a compression bomb before any bytes are inflated.
+  const expansion = inspectZipExpansion(data);
+  if (!expansion.ok) {
+    return {
+      status: "unsupported",
+      message: `${expansion.reason} AwardLens will not open it. If this is a genuine award document, paste its text instead.`,
+      pageCount: null,
+      blocks: [],
+      strippedRunningText: [],
+    };
+  }
+
   let html: string;
   try {
     const mammoth = await import("mammoth");
@@ -266,7 +278,11 @@ export async function parseDocx(data: Buffer): Promise<ParseResult> {
  * otherwise we number paragraphs and label the locator honestly.
  */
 export function parsePlainText(raw: string): ParseResult {
-  const normalised = normaliseWhitespace(raw);
+  // The same ceiling the paste field enforces. Without it, uploading identical
+  // content as a .txt file would allow 15 MB through a path that the paste box
+  // caps at 400,000 characters.
+  const bounded = raw.length > MAX_PASTED_CHARACTERS ? raw.slice(0, MAX_PASTED_CHARACTERS) : raw;
+  const normalised = normaliseWhitespace(bounded);
   if (normalised.length < 40) {
     return {
       status: "no_text_layer",

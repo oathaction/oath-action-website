@@ -12,8 +12,15 @@ function authorised(request: NextRequest, secret: string): boolean {
   // Vercel Cron sends `Authorization: Bearer $CRON_SECRET`.
   const header = request.headers.get("authorization") ?? "";
   const provided = header.startsWith("Bearer ") ? header.slice(7) : "";
-  if (provided.length !== secret.length) return false;
-  return timingSafeEqual(Buffer.from(provided), Buffer.from(secret));
+
+  // Compare BYTE lengths, not string lengths. `String.length` counts UTF-16
+  // code units, so a header with the same character count but a multi-byte
+  // character would pass that check and then make timingSafeEqual throw
+  // RangeError — turning a failed authorisation into an unhandled 500.
+  const providedBytes = Buffer.from(provided, "utf8");
+  const secretBytes = Buffer.from(secret, "utf8");
+  if (providedBytes.length !== secretBytes.length) return false;
+  return timingSafeEqual(providedBytes, secretBytes);
 }
 
 /**

@@ -140,3 +140,86 @@ export function validatePastedText(text: string): UploadValidation {
 export function hashContent(data: Buffer | Uint8Array | string): string {
   return createHash("sha256").update(data).digest("hex");
 }
+
+/** Ceilings for a decompressed DOCX. A real award document is far below both. */
+export const MAX_DECOMPRESSED_BYTES = 80 * 1024 * 1024;
+export const MAX_EXPANSION_RATIO = 200;
+
+export interface ZipExpansion {
+  ok: boolean;
+  declaredBytes: number;
+  ratio: number;
+  reason: string | null;
+}
+
+/**
+ * Reads a DOCX's declared uncompressed size from its zip central directory.
+ *
+ * A 15 MB zip can legitimately declare gigabytes of output. Handing that to a
+ * parser lets one authenticated upload exhaust memory and kill the process —
+ * which, on the file-backed store, destroys that instance's data for every
+ * tenant on it. Checking the declared sizes first is cheap and happens before
+ * a single byte is inflated.
+ *
+ * The declared size is attacker-controlled and can understate the truth, so
+ * this is a fast reject for the obvious case rather than a complete defence;
+ * the parser still runs behind an upload rate limit.
+ */
+export function inspectZipExpansion(data: Buffer): ZipExpansion {
+  const EOCD_SIGNATURE = 0x06054b50;
+  const CENTRAL_SIGNATURE = 0x02014b50;
+
+  // The end-of-central-directory record sits in the last 64KB (comment allowed).
+  let eocd = -1;
+  const searchFrom = Math.max(0, data.length - 66_000);
+  for (let i = data.length - 22; i >= searchFrom; i -= 1) {
+    if (data.readUInt32LE(i) === EOCD_SIGNATURE) {
+      eocd = i;
+      break;
+    }
+  }
+
+  if (eocd === -1) {
+    return { ok: true, declaredBytes: 0, ratio: 0, reason: null }; // not a zip we can read; parser will fail closed
+  }
+
+  const entryCount = data.readUInt16LE(eocd + 10);
+  let offset = data.readUInt32LE(eocd + 16);
+  let total = 0;
+
+  for (let index = 0; index < entryCount; index += 1) {
+    if (offset + 46 > data.length) break;
+    if (data.readUInt32LE(offset) !== CENTRAL_SIGNATURE) break;
+
+    total += data.readUInt32LE(offset + 24); // uncompressed size
+    const nameLength = data.readUInt16LE(offset + 28);
+    const extraLength = data.readUInt16LE(offset + 30);
+    const commentLength = data.readUInt16LE(offset + 32);
+    offset += 46 + nameLength + extraLength + commentLength;
+
+    if (total > MAX_DECOMPRESSED_BYTES) break;
+  }
+
+  const ratio = data.length === 0 ? 0 : total / data.length;
+
+  if (total > MAX_DECOMPRESSED_BYTES) {
+    return {
+      ok: false,
+      declaredBytes: total,
+      ratio,
+      reason: `This file expands to about ${Math.round(total / (1024 * 1024))} MB, far larger than any award document.`,
+    };
+  }
+
+  // A high ratio on an already-large file is the compression-bomb signature.
+  if (ratio > MAX_EXPANSION_RATIO && total > 20 * 1024 * 1024) {
+    return {
+      ok: false,
+      declaredBytes: total,
+      ratio,
+      reason: "This file expands to an implausible size for a document.",
+    };
+  }
+
+  return { ok: true, declaredBytes: total, ratio, reason: null };
+}

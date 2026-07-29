@@ -33,11 +33,23 @@ export interface AuthState {
 const emailSchema = z.string().trim().toLowerCase().email("Enter a valid email address.");
 const codeSchema = z.string().trim().regex(/^\d{6}$/, "Enter the six-digit code.");
 
+/**
+ * Best-effort client identity for rate limiting.
+ *
+ * `x-forwarded-for` is only trustworthy if the edge REPLACES it. Many proxies
+ * append instead, which makes the leftmost hop entirely attacker-chosen and the
+ * limiter trivially bypassable with one header per request. Platform-set
+ * headers are preferred for that reason, and the per-email ceiling in
+ * `requestLoginCode` is the control that does not depend on this value at all.
+ */
 async function clientKey(): Promise<string> {
   const headerList = await headers();
-  // Trust only the first hop; the rest of XFF is client-controlled.
+  const trusted =
+    headerList.get("x-vercel-forwarded-for") ?? headerList.get("x-real-ip");
+  if (trusted) return trusted.trim();
+
   const forwarded = headerList.get("x-forwarded-for")?.split(",")[0]?.trim();
-  return forwarded || headerList.get("x-real-ip") || "unknown";
+  return forwarded || "unknown";
 }
 
 export async function requestLoginCode(
@@ -58,6 +70,23 @@ export async function requestLoginCode(
       email,
       message: `Too many sign-in attempts. Try again in ${Math.ceil(limit.retryAfterSeconds / 60)} minutes.`,
     };
+  }
+
+  // Independent of the IP-derived key above: an attacker who can vary that key
+  // still cannot cycle codes at a single address.
+  for (const policy of [RATE_LIMITS.signInEmail, RATE_LIMITS.signInEmailDaily]) {
+    const perEmail = checkRateLimit(
+      `signin-email:${policy.windowMs}:${email}`,
+      policy,
+    );
+    if (!perEmail.allowed) {
+      return {
+        status: "error",
+        email,
+        message:
+          "Too many sign-in codes have been requested for this address recently. Please wait before trying again.",
+      };
+    }
   }
 
   const config = getServerConfig();
@@ -89,8 +118,26 @@ export async function requestLoginCode(
     status: "code_sent",
     email,
     message: `We sent a six-digit code to ${email}. It expires in 15 minutes.`,
-    devCode: config.isProduction ? undefined : code,
+    devCode: showDevCode(config) ? code : undefined,
   };
+}
+
+/**
+ * Whether the one-time code may be shown on screen.
+ *
+ * Echoing a code to the browser means "type any email address, receive that
+ * account's login code" — total account takeover. A single NODE_ENV check is
+ * too thin a wall for that: a staging box, a custom server or a container image
+ * that drops the variable would silently open it.
+ *
+ * So three independent conditions must all hold: this is not a production
+ * build, no real email provider is configured (if mail can be delivered there
+ * is no reason to display it), and an operator has explicitly opted in.
+ */
+function showDevCode(config: ReturnType<typeof getServerConfig>): boolean {
+  if (config.isProduction) return false;
+  if (config.emailMode !== "console") return false;
+  return process.env.AWARDLENS_SHOW_DEV_CODES !== "0";
 }
 
 export async function verifyLoginCode(

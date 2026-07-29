@@ -28,6 +28,16 @@ export const RATE_LIMITS = {
   extraction: { limit: 20, windowMs: 60 * 60 * 1000 },
   ask: { limit: 40, windowMs: 60 * 60 * 1000 },
   signIn: { limit: 8, windowMs: 15 * 60 * 1000 },
+  /**
+   * Per-email issuance cap, independent of the IP-derived key.
+   *
+   * Re-issuing a code resets the five-attempt lock on that address, so an
+   * IP-only limit lets an attacker cycle "request code, burn five guesses"
+   * indefinitely against a 10^6 code space — and mail-bomb the victim while
+   * doing it. This ceiling is what makes the attempt lock meaningful.
+   */
+  signInEmail: { limit: 3, windowMs: 15 * 60 * 1000 },
+  signInEmailDaily: { limit: 10, windowMs: 24 * 60 * 60 * 1000 },
   export: { limit: 60, windowMs: 60 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitPolicy>;
 

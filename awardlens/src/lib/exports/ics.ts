@@ -3,13 +3,25 @@ import { CATEGORY_META } from "@/lib/domain/types";
 import { expandRecurrence } from "@/lib/domain/dates";
 import { formatLocator } from "@/lib/documents/segment";
 
-/** RFC 5545 text escaping. Order matters — backslashes first. */
+/**
+ * RFC 5545 text escaping. Order matters — backslashes first.
+ *
+ * Every line terminator is folded into a literal `\n`, including a LONE
+ * CARRIAGE RETURN. `\r?\n` would leave a bare `\r` intact, and although RFC
+ * 5545 mandates CRLF, many calendar clients treat a lone CR as a line break —
+ * which is enough to inject whole VEVENTs or properties such as ATTENDEE and
+ * ATTACH into the file. Obligation titles, descriptions, notes and the award
+ * name all reach this function, and all of them can contain text a user typed
+ * or a model produced from an uploaded document. Remaining C0 control
+ * characters are stripped for the same reason.
+ */
 export function escapeIcsText(value: string): string {
   return value
     .replace(/\\/g, "\\\\")
     .replace(/;/g, "\\;")
     .replace(/,/g, "\\,")
-    .replace(/\r?\n/g, "\\n");
+    .replace(/(?:\r\n|\r|\n)+/g, "\\n")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "");
 }
 
 /** RFC 5545 requires lines of at most 75 octets, continued with a leading space. */

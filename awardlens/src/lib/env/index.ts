@@ -108,16 +108,33 @@ export function getServerConfig(): ServerConfig {
       parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
       parsed.SUPABASE_SERVICE_ROLE_KEY,
   );
-  const storageMode: StorageMode = supabaseConfigured ? "supabase" : "local";
 
-  if (
+  // storageMode reports the adapter the application ACTUALLY uses, not the one
+  // its environment variables suggest. `@/lib/db` resolves to the file-backed
+  // store; no Supabase client is constructed anywhere in src/. Deriving the
+  // mode from env vars alone would show an operator "Supabase Postgres" with a
+  // green tick while every private grant document sat in a JSON file on an
+  // ephemeral disk — turning a documented limitation into a false assurance
+  // that row-level security was protecting their tenants.
+  //
+  // Flip this to `supabaseConfigured ? "supabase" : "local"` in the same commit
+  // that wires a real adapter into src/lib/db/index.ts, and not before.
+  const SUPABASE_ADAPTER_IMPLEMENTED = false;
+  const storageMode: StorageMode =
+    SUPABASE_ADAPTER_IMPLEMENTED && supabaseConfigured ? "supabase" : "local";
+
+  if (supabaseConfigured && !SUPABASE_ADAPTER_IMPLEMENTED) {
+    warnings.push(
+      "Supabase credentials are set but AwardLens is NOT using them. No Supabase client is wired in yet, so all data — including uploaded grant documents — is stored in the local file store, and the row-level security policies in supabase/migrations are not in effect. Do not treat this deployment as multi-tenant-safe storage.",
+    );
+  } else if (
     !supabaseConfigured &&
     (parsed.NEXT_PUBLIC_SUPABASE_URL ||
       parsed.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
       parsed.SUPABASE_SERVICE_ROLE_KEY)
   ) {
     warnings.push(
-      "Supabase is partially configured. NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are all required; falling back to the local demo store.",
+      "Supabase is partially configured. NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY are all required.",
     );
   }
 
@@ -147,7 +164,7 @@ export function getServerConfig(): ServerConfig {
 
   if (isProduction && storageMode === "local" && !readBoolean(parsed.ALLOW_LOCAL_STORE, false)) {
     warnings.push(
-      "Running a production build on the ephemeral local store. Data will not survive a redeploy or scale event. Configure Supabase, or set ALLOW_LOCAL_STORE=true to acknowledge this is an intentional demo deployment.",
+      "Running a production build on the ephemeral local store. Data will not survive a redeploy or a scale event, and a crash on one instance can lose another instance's data. Set ALLOW_LOCAL_STORE=true only to acknowledge this is an intentional demo deployment.",
     );
   }
 
