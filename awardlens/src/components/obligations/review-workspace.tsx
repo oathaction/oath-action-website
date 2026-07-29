@@ -249,25 +249,58 @@ export function ReviewWorkspace({
     [],
   );
 
-  /**
-   * Returns focus to a queue row after a programmatically opened dialog closes.
-   *
-   * Deferred to the next frame because Radix is still tearing down its focus
-   * scope in the same commit; focusing synchronously would be immediately
-   * overwritten. Falls back to the queue container so focus can never end up on
-   * <body>, which would strand a keyboard user at the top of the document.
-   */
-  const restoreFocusTo = React.useCallback((obligationId: string | null) => {
-    requestAnimationFrame(() => {
-      const node = obligationId ? itemRefs.current.get(obligationId) : null;
-      if (node) {
-        node.focus({ preventScroll: true });
-        node.scrollIntoView({ block: "nearest" });
-        return;
-      }
-      queueRef.current?.focus({ preventScroll: true });
-    });
+  const focusRow = React.useCallback((obligationId: string | null) => {
+    const node = obligationId ? itemRefs.current.get(obligationId) : null;
+    if (node) {
+      node.focus({ preventScroll: true });
+      node.scrollIntoView({ block: "nearest" });
+      return;
+    }
+    // Never leave focus on <body>; the queue itself is always a valid landing.
+    queueRef.current?.focus({ preventScroll: true });
   }, []);
+
+  /**
+   * Returns focus after a dialog closes without a server round trip — Escape,
+   * Cancel, an overlay click. Radix has already finished tearing down its focus
+   * scope by the time this runs, and no re-render is coming, so focusing
+   * immediately is both correct and stable.
+   */
+  const restoreFocusTo = React.useCallback(
+    (obligationId: string | null) => {
+      focusRow(obligationId);
+    },
+    [focusRow],
+  );
+
+  /**
+   * Returns focus after an action that revalidates the route.
+   *
+   * A deferred focus does NOT work here, and this is worth being precise about
+   * because the obvious fix is wrong: focusing on the next animation frame
+   * races the server round trip plus the router refresh. When the frame wins,
+   * we focus a row node that the refresh then discards, the browser drops focus
+   * to <body>, and nothing puts it back — the selection effect only focuses on
+   * keyboard-originated moves. Measured, that race lost roughly one time in six,
+   * and settling took anywhere from 400ms to 3s.
+   *
+   * So this is render-driven rather than time-driven: the intent is recorded
+   * here and consumed by an effect keyed on the obligation list, which by
+   * definition runs on the render that has the post-refresh data. No timing
+   * assumption, no matter how the refresh is scheduled.
+   */
+  const pendingFocusRef = React.useRef<{ id: string | null } | null>(null);
+
+  const focusAfterRefresh = React.useCallback((obligationId: string | null) => {
+    pendingFocusRef.current = { id: obligationId };
+  }, []);
+
+  React.useEffect(() => {
+    const pendingFocus = pendingFocusRef.current;
+    if (!pendingFocus) return;
+    pendingFocusRef.current = null;
+    focusRow(pendingFocus.id);
+  }, [obligations, focusRow]);
 
   const selectedKey = selected?.id ?? null;
   React.useEffect(() => {
@@ -427,14 +460,13 @@ export function ReviewWorkspace({
 
       // Radix only calls onOpenChange when the USER closes a dialog — Escape,
       // an overlay click, a DialogClose. Closing it programmatically here flips
-      // `open` without that ever firing, so the restore wired into
-      // onOpenChange does not run and focus falls to <body>.
+      // `open` without that ever firing, so nothing restores focus by itself.
       //
       // This is also the case with the least margin for error: the row the user
-      // came from has just been deleted, so there is nothing to return to.
-      // Focus moves to the next item the queue advanced to, and falls back to
-      // the queue list when that was the last one.
-      restoreFocusTo(nextId);
+      // came from has just been deleted, so there is nothing to return to, and
+      // a route revalidation is in flight. Hand it to the render-driven path so
+      // focus lands on whichever render arrives last.
+      focusAfterRefresh(nextId);
     });
   }
 
@@ -885,7 +917,12 @@ export function ReviewWorkspace({
             if (open) return;
             const returnTo = editorTargetId;
             setEditorTargetId(null);
+            // The editor closes both ways: Escape or Cancel (no server call)
+            // and a successful save (which revalidates). Do both — focus now
+            // for the first case, and again after the refresh for the second.
+            // The row survives either way, so the two land in the same place.
             restoreFocusTo(returnTo);
+            focusAfterRefresh(returnTo);
           }}
         />
       ) : null}

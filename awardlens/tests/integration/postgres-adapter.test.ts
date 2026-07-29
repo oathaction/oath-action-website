@@ -135,7 +135,7 @@ describeIfPostgres("Postgres adapter", () => {
         originalFilename: "grant.txt",
         mimeType: "text/plain",
         byteSize: 42,
-        contentHash: "hash-alpha",
+        contentHash: "a".repeat(64),
         parserStatus: "parsed",
         parserMessage: null,
         pageCount: 5,
@@ -191,7 +191,7 @@ describeIfPostgres("Postgres adapter", () => {
       expect(await db.listObligationsForOrganization(bob.organization.id)).toEqual([]);
       expect(await db.getObligation(obligation.id, bob.organization.id)).toBeNull();
       expect(
-        await db.findAwardByContentHash(bob.organization.id, "hash-alpha"),
+        await db.findAwardByContentHash(bob.organization.id, "a".repeat(64)),
       ).toBeNull();
 
       // ---- Writes and deletes -------------------------------------------
@@ -257,7 +257,7 @@ describeIfPostgres("Postgres adapter", () => {
         originalFilename: "grant.pdf",
         mimeType: "application/pdf",
         byteSize: 5,
-        contentHash: "hash-bytes",
+        contentHash: "b".repeat(64),
         parserStatus: "parsed",
         parserMessage: null,
         pageCount: 1,
@@ -305,7 +305,7 @@ describeIfPostgres("Postgres adapter", () => {
         originalFilename: "grant.txt",
         mimeType: "text/plain",
         byteSize: 3,
-        contentHash: "hash-del",
+        contentHash: "c".repeat(64),
         parserStatus: "parsed",
         parserMessage: null,
         pageCount: 1,

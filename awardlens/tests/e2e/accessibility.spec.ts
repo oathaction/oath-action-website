@@ -127,6 +127,25 @@ async function expectScrollableRegionsAreKeyboardAccessible(
   ).toEqual([]);
 }
 
+/** Sentinel for "nothing is focused", which is what focus loss looks like. */
+const NO_FOCUS = "<body>";
+
+/**
+ * Describes what currently holds focus, so a failure names the element instead
+ * of only reporting that the assertion did not hold.
+ */
+async function describeFocus(page: Page): Promise<string> {
+  return page.evaluate(() => {
+    const active = document.activeElement as HTMLElement | null;
+    if (!active || active === document.body) return "<body>";
+    return (
+      active.getAttribute("aria-label") ??
+      active.textContent?.replace(/\s+/g, " ").trim().slice(0, 60) ??
+      active.tagName.toLowerCase()
+    );
+  });
+}
+
 /* ------------------------------------------------------------- public pages -- */
 
 test.describe("public pages meet WCAG 2.1 AA", () => {
@@ -309,18 +328,12 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
 
     await expect(page.getByText(doomedTitle, { exact: true })).toHaveCount(0);
     await expect
-      .poll(
-        async () =>
-          page.evaluate(() => {
-            const active = document.activeElement;
-            return !active || active === document.body ? "body" : "somewhere real";
-          }),
-        {
-          message:
-            "focus fell to <body> after deleting the item the dialog was opened from — the row is gone, so the fallback has to catch it",
-        },
-      )
-      .toBe("somewhere real");
+      .poll(() => describeFocus(page), {
+        message:
+          "focus fell to <body> after deleting the item the dialog was opened from — " +
+          "the row it came from is gone, so the fallback has to catch it",
+      })
+      .not.toBe(NO_FOCUS);
 
     /* --------------------------------------------------- add obligation -- */
     await page.goto(`/app/awards/${id}/obligations`);
@@ -362,14 +375,10 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
     // the trigger itself disappears once nothing is left to bulk confirm. What
     // must never happen is the same thing as on delete: focus on <body>.
     await expect
-      .poll(async () =>
-        page.evaluate(() =>
-          !document.activeElement || document.activeElement === document.body
-            ? "body"
-            : "somewhere real",
-        ),
-      )
-      .toBe("somewhere real");
+      .poll(() => describeFocus(page), {
+        message: "focus fell to <body> when the bulk confirmation closed itself",
+      })
+      .not.toBe(NO_FOCUS);
   });
 });
 

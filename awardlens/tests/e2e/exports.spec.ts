@@ -67,12 +67,52 @@ test.describe("exports from an award with one confirmed, dated obligation", () =
     ).toBeGreaterThanOrEqual(2);
 
     confirmedTitle = (await dated.nth(0).getByRole("heading").first().innerText()).trim();
-    unconfirmedTitle = (await dated.nth(1).getByRole("heading").first().innerText()).trim();
 
+    // Confirmed through the register the way a person would, not by writing to
+    // the store: the export has to reflect a real review decision.
     await dated.nth(0).getByRole("button", { name: /^Confirm/ }).click();
 
     const confirmedCard = page.getByRole("article").filter({ hasText: confirmedTitle });
     await expect(confirmedCard.getByText("Confirmed", { exact: true })).toBeVisible();
+
+    /*
+     * The counter-example for the calendar assertions has to be a dated item
+     * that is unconfirmed *and* whose title is not shared with anything
+     * confirmed. Titles come from the document's own wording, so two
+     * requirements can legitimately carry the same one — picking the second row
+     * blind would eventually assert that a string is absent from the calendar
+     * while a confirmed item legitimately puts it there.
+     */
+    const stored = JSON.parse(
+      await (await page.request.get(`/api/awards/${awardId}/export/json`)).text(),
+    );
+
+    interface StoredObligation {
+      title: string;
+      dueDate: string | null;
+      reviewStatus: string;
+    }
+
+    const confirmedTitles = new Set(
+      stored.obligations
+        .filter((item: StoredObligation) => item.reviewStatus === "confirmed")
+        .map((item: StoredObligation) => item.title),
+    );
+
+    expect(confirmedTitles.size, "exactly one item should have been confirmed").toBe(1);
+
+    const counterExample = stored.obligations.find(
+      (item: StoredObligation) =>
+        item.dueDate !== null &&
+        item.reviewStatus !== "confirmed" &&
+        !confirmedTitles.has(item.title),
+    ) as StoredObligation | undefined;
+
+    expect(
+      counterExample,
+      "the sample needs a second, distinctly titled dated requirement to test against",
+    ).toBeDefined();
+    unconfirmedTitle = counterExample!.title;
   });
 
   test.afterAll(async () => {

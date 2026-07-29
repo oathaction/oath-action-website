@@ -23,5 +23,18 @@ export default defineConfig({
     globals: true,
     environment: "node",
     include: ["tests/unit/**/*.test.ts", "tests/integration/**/*.test.ts"],
+    /**
+     * Test files run one at a time.
+     *
+     * The integration suites share process-wide state — the file-backed store's
+     * data directory, and, when DATABASE_URL is set, a single Postgres database
+     * that each suite truncates in `beforeEach`. Run in parallel they wipe each
+     * other mid-test, which shows up as a scatter of unrelated failures rather
+     * than anything that points at the cause.
+     *
+     * The whole suite runs in a couple of seconds, so serialising costs nothing
+     * worth having.
+     */
+    fileParallelism: false,
   },
 });

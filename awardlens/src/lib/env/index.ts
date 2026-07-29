@@ -188,6 +188,7 @@ export function getServerConfig(): ServerConfig {
       apiKey: parsed.RESEND_API_KEY,
       from: parsed.EMAIL_FROM ?? "AwardLens <onboarding@resend.dev>",
     },
+    databaseUrl: parsed.DATABASE_URL,
     cronSecret: parsed.CRON_SECRET,
     authSecret: parsed.AUTH_SECRET,
     warnings,
