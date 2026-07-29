@@ -377,14 +377,18 @@ function WhenCell({ obligation }: { obligation: ObligationWithCitations }) {
     const overdue = days !== null && days < 0;
     const soon = days !== null && days >= 0 && days <= 30;
     return (
-      <p className="tabular font-mono leading-snug">
-        <span className="text-[13px] font-medium tracking-[-0.01em] text-foreground">
+      <p className="tabular leading-snug">
+        <span className="font-mono text-[13px] font-medium tracking-[-0.01em] text-foreground">
           {formatIsoDate(obligation.dueDate, { month: "short", day: "numeric", year: "numeric" })}
         </span>
         {days !== null ? (
+          /* The countdown is set in sans. Mono belongs to the date itself — a
+             figure read down a column — but "in 214 days" is a sentence, and
+             monospaced word-spacing makes a three-word phrase look mis-set.
+             Tabular figures keep the numbers aligned regardless. */
           <span
             className={cn(
-              "ml-2 text-[11px] sm:ml-0 sm:mt-0.5 sm:block",
+              "ml-2 text-[11.5px] sm:ml-0 sm:mt-1 sm:block",
               overdue
                 ? "font-semibold text-destructive"
                 : soon
@@ -409,7 +413,7 @@ function WhenCell({ obligation }: { obligation: ObligationWithCitations }) {
     <p className="text-[13px] leading-snug text-muted-foreground">
       <span>{obligation.originalDateText ? "No fixed date" : "No date stated"}</span>
       {obligation.originalDateText ? (
-        <span className="ml-2 text-[11px] sm:ml-0 sm:mt-0.5 sm:block">stated in words</span>
+        <span className="ml-2 text-[11.5px] sm:ml-0 sm:mt-1 sm:block">stated in words</span>
       ) : null}
     </p>
   );
@@ -509,9 +513,13 @@ function ObligationRow({
             {manual ? (
               <span>Added by you</span>
             ) : locator ? (
+              /* No `gap` on this wrapper: `.meta-row` draws its separator with
+                 a `::before`, which becomes a flex item here, and a gap would
+                 add itself to the separator's own margin — one token in the
+                 row would sit further from its dot than all the others. */
               <span
                 className={cn(
-                  "inline-flex items-center gap-1.5",
+                  "inline-flex items-center",
                   obligation.sourceStatus === "unverified"
                     ? "text-destructive"
                     : "text-foreground-soft",
@@ -519,7 +527,7 @@ function ObligationRow({
               >
                 <span className="font-mono text-[11.5px] tracking-[-0.01em]">{locator}</span>
                 {obligation.sourceStatus !== "verified" ? (
-                  <span className="font-medium">
+                  <span className="ml-1.5 font-medium">
                     {obligation.sourceStatus === "partial"
                       ? "partial match"
                       : "confirmation needed"}
@@ -541,8 +549,12 @@ function ObligationRow({
           </div>
         </div>
 
+        {/* Centred rather than baseline-aligned. The grid baseline-aligns the
+            date, the title and the actions on their first line, which is right
+            for the two text columns but leaves a 32px button riding high above
+            a two-line row. `self-center` puts it on the row's optical centre. */}
         <div
-          className="mt-1 flex flex-wrap items-center gap-1.5 sm:mt-0 sm:justify-end"
+          className="mt-1 flex flex-wrap items-center gap-1.5 sm:mt-0 sm:justify-end sm:self-center"
           data-print="hide"
         >
           {obligation.reviewStatus !== "confirmed" ? (
@@ -1210,9 +1222,11 @@ function TableRow({
               })}
             </span>
             {days !== null ? (
+              /* Sans, like the countdown on a card row: mono is the date's
+                 voice, not the sentence about it. */
               <span
                 className={cn(
-                  "ml-1.5 tabular font-mono text-xs",
+                  "tabular ml-2 text-xs",
                   days < 0
                     ? "font-semibold text-destructive"
                     : days <= 30

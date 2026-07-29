@@ -166,28 +166,37 @@ export default async function AwardPage(props: {
       </dl>
 
       {progress.needsReview > 0 ? (
-        /* --ink-accent on --ink-accent-subtle is 10.85:1. The bar sits under
-           the sentence at full width, so at 0% it reads as a track waiting to
-           be filled rather than as an empty box floating beside the text. */
+        /* --ink-accent on --ink-accent-subtle is 10.85:1.
+           The band is two objects, not one stack: the standing statement on the
+           left, the tally and its track anchored to the right edge. Left on its
+           own at the foot of a full-width panel, a 0%-filled bar reads as a
+           stub floating in an empty box. Given a right edge to sit against, and
+           a figure above it, it reads as a gauge. */
         <section
           aria-labelledby="review-progress-heading"
-          className="mt-4 rounded-lg border border-ink-accent-border bg-ink-accent-subtle px-5 py-4"
+          className="mt-4 flex flex-wrap items-center justify-between gap-x-10 gap-y-4 rounded-lg border border-ink-accent-border bg-ink-accent-subtle px-5 py-4"
         >
-          <h2 id="review-progress-heading" className="type-subhead text-ink-accent">
-            {progress.needsReview} of {progress.total} items still need your review
-          </h2>
-          <p className="type-small mt-1 text-ink-accent">
-            Nothing here is treated as confirmed until you check it against the document.
-          </p>
-          <div className="mt-3.5 flex max-w-sm items-center gap-3">
+          <div className="min-w-0 max-w-[58ch]">
+            <h2 id="review-progress-heading" className="type-subhead text-ink-accent">
+              {progress.needsReview} of {progress.total} items still need your review
+            </h2>
+            <p className="type-small mt-1 text-ink-accent">
+              Nothing here is treated as confirmed until you check it against the document.
+            </p>
+          </div>
+
+          <div className="w-full sm:w-60">
+            <p className="flex items-baseline justify-between gap-3 text-ink-accent">
+              <span className="eyebrow">Confirmed by a person</span>
+              <span className="tabular shrink-0 text-[13px] font-semibold">
+                {progress.confirmed} / {progress.total}
+              </span>
+            </p>
             <Progress
               value={progress.percentComplete}
               aria-label={`Review ${progress.percentComplete} percent complete`}
-              className="flex-1"
+              className="mt-2"
             />
-            <p className="tabular shrink-0 font-mono text-[11px] font-medium text-ink-accent">
-              {progress.confirmed} / {progress.total} confirmed
-            </p>
           </div>
         </section>
       ) : null}

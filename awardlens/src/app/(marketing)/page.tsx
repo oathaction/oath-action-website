@@ -305,9 +305,15 @@ export default function MarketingHomePage() {
             </div>
           </div>
 
+          {/*
+            These three lines are the product's argument, not its fine print —
+            one of them is a truth-telling line the brand is built on. They are
+            set in --foreground-soft (10.55:1) rather than muted (5.73:1) so
+            they carry the weight of a claim rather than of a footnote.
+          */}
           <ul className="mt-12 grid gap-x-10 gap-y-3 border-t border-border pt-6 sm:grid-cols-3 lg:mt-14">
             {HERO_TRUST.map((item) => (
-              <li key={item} className="type-small flex items-start gap-2.5 text-muted-foreground">
+              <li key={item} className="type-small flex items-start gap-2.5 text-foreground-soft">
                 <Check aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
                 <span>{item}</span>
               </li>
@@ -600,7 +606,12 @@ export default function MarketingHomePage() {
             >
               <AlertTitle>When a source cannot be verified</AlertTitle>
               <AlertDescription>
-                <p>
+                {/*
+                  Reading size, not note size: this paragraph qualifies the two
+                  rules above it, so it is set in the same 15px body as they are
+                  instead of running 100 characters to the line at 14px.
+                */}
+                <p className="type-body">
                   AwardLens checks each quotation back against the stored text of your document.
                   If a quotation cannot be matched, the item is labelled{" "}
                   <span className="font-medium">source confirmation needed</span> and stays in the
@@ -628,6 +639,12 @@ export default function MarketingHomePage() {
             </h2>
           </div>
 
+          {/*
+            The rules run the full container because they are the structure of
+            the list, but the definitions are capped at a reading measure. Left
+            to `1fr` each line ran to 105–118 characters, which is a paragraph
+            width being used for a one-line gloss.
+          */}
           <dl className="mt-9 border-t border-border">
             {PERSONAS.map((persona) => (
               <div
@@ -635,7 +652,9 @@ export default function MarketingHomePage() {
                 className="grid gap-1 border-b border-border-subtle py-4 md:grid-cols-[19rem_1fr] md:gap-10"
               >
                 <dt className="type-subhead">{persona.role}</dt>
-                <dd className="type-small text-muted-foreground md:pt-px">{persona.body}</dd>
+                <dd className="type-small measure text-muted-foreground md:pt-px">
+                  {persona.body}
+                </dd>
               </div>
             ))}
           </dl>

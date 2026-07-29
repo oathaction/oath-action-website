@@ -68,8 +68,6 @@ function VerifyForm({ requested }: { requested: AuthState }) {
 
   return (
     <form action={formAction} className="stack-lg">
-      <input type="hidden" name="email" value={state.email} />
-
       <p className="text-[13px] leading-relaxed text-muted-foreground empty:hidden" role="status">
         {state.status === "code_sent" && state.message ? state.message : null}
       </p>
@@ -125,6 +123,15 @@ function VerifyForm({ requested }: { requested: AuthState }) {
         </a>
         .
       </p>
+
+      {/*
+       * Last, not first. `.stack-lg` spaces `> * + *`, and a `display: none`
+       * input still counts as a child — leading the form with it gave the
+       * status line a 24px top margin that collapsed out through the form and
+       * opened a gap under the card's own padding. As the final child it
+       * generates no box, so it costs nothing.
+       */}
+      <input type="hidden" name="email" value={state.email} />
     </form>
   );
 }

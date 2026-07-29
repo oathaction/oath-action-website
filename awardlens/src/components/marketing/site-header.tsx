@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,22 @@ const NAV_LINKS = [
  * most of these links are in-page anchors, and a client-side navigation leaves
  * a CSS-only <details> panel sitting over the section you just asked to see.
  */
+/**
+ * Which nav link, if any, describes the page you are on.
+ *
+ * Only whole-page links can be current. Three of the four entries are in-page
+ * anchors on `/`, and marking all of them as the current page while you are on
+ * the home page would be worse than marking none: `aria-current` would stop
+ * meaning anything and the nav would light up three ways at once.
+ */
+function isCurrentPage(href: string, pathname: string): boolean {
+  return !href.includes("#") && href === pathname;
+}
+
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
+  const pathname = usePathname();
 
   /*
    * Opaque, and separated by `--shadow-header` rather than a border: the token
@@ -64,7 +78,14 @@ export function SiteHeader() {
         if (event.key === "Escape") close();
       }}
     >
-      <div className="container-page flex h-16 items-center justify-between gap-6">
+      {/*
+        The bar's three groups need about 793px at their roomy spacing, and the
+        desktop nav appears at 768 — so between 768 and 800px "How it works" and
+        "What you get" each broke over two lines inside a 64px bar. Tightening
+        the gutter and the link padding for that band, and restoring both from
+        `lg`, keeps every label on one line at every width the nav is shown.
+      */}
+      <div className="container-page flex h-16 items-center justify-between gap-4 lg:gap-6">
         <Link
           href="/"
           onClick={close}
@@ -76,15 +97,24 @@ export function SiteHeader() {
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center md:flex">
-          {NAV_LINKS.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-sm px-3 py-2 text-sm font-medium text-foreground-soft transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const current = isCurrentPage(link.href, pathname);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                aria-current={current ? "page" : undefined}
+                className={cn(
+                  "rounded-sm px-2 py-2 text-sm transition-colors lg:px-3",
+                  current
+                    ? "font-semibold text-foreground" /* 17.11:1 on --background */
+                    : "font-medium text-foreground-soft hover:text-foreground" /* 10.55:1 */,
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="hidden items-center gap-1.5 md:flex">
@@ -123,17 +153,26 @@ export function SiteHeader() {
       >
         <nav aria-label="Primary, mobile" className="container-page py-2">
           <ul>
-            {NAV_LINKS.map((link) => (
-              <li key={link.href} className="border-b border-border last:border-b-0">
-                <Link
-                  href={link.href}
-                  onClick={close}
-                  className="block rounded-sm py-3.5 text-[15px] font-medium text-foreground-soft"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
+            {NAV_LINKS.map((link) => {
+              const current = isCurrentPage(link.href, pathname);
+              return (
+                <li key={link.href} className="border-b border-border last:border-b-0">
+                  <Link
+                    href={link.href}
+                    onClick={close}
+                    aria-current={current ? "page" : undefined}
+                    className={cn(
+                      "block rounded-sm py-3.5 text-[15px]",
+                      current
+                        ? "font-semibold text-foreground"
+                        : "font-medium text-foreground-soft",
+                    )}
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
         <div className="container-page flex flex-col gap-2 pb-6 pt-3">

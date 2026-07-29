@@ -35,7 +35,11 @@ export default async function AskPage(props: {
       </Link>
 
       <div className="mt-4 grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_19rem]">
-        <div className="min-w-0">
+        {/* Capped to a document measure. Everything in this column is prose or
+            a quotation set to a reading width, so an 840px column left every
+            answer card and every source panel a third empty on the right. The
+            column now ends roughly where its content does. */}
+        <div className="min-w-0 max-w-[46rem]">
           <h1 className="type-title">Ask this award</h1>
           <p className="type-lede measure mt-2 text-muted-foreground">
             Questions are answered only from this award&rsquo;s own documents. If the document
@@ -144,7 +148,12 @@ export default async function AskPage(props: {
           )}
         </div>
 
-        <aside className="lg:pt-1">
+        {/* Sticky, because the answer list is arbitrarily long and what this
+            column says — that AwardLens answers only from the document, and
+            will not tell you whether you are compliant — is exactly the caveat
+            a reader needs while they are reading an answer, not only before
+            they ask. */}
+        <aside className="lg:sticky lg:top-24 lg:self-start lg:pt-1">
           <Card tone="sunken" elevation="flat">
             <CardContent padding="tight" className="pt-3.5">
               <h2 className="type-subhead flex items-center gap-2 text-foreground">

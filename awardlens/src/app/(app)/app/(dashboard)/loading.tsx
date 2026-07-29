@@ -33,7 +33,7 @@ export default function Loading() {
         <Skeleton className="h-10 w-40 rounded-md" />
       </div>
 
-      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <Skeleton key={index} className="h-[5.75rem] rounded-lg" />
         ))}

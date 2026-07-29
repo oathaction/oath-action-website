@@ -114,6 +114,19 @@ export default async function SettingsPage(props: {
 
   const remindersDegraded = config.emailMode !== "resend" || !config.cronProtected;
 
+  const deliveryNote = (
+    <p className="text-[13px] leading-relaxed text-muted-foreground">
+      Reminders are scheduled but not delivered in this deployment.{" "}
+      <Link
+        href="#system-status"
+        className="font-medium text-primary underline decoration-primary/35 underline-offset-2 hover:decoration-primary"
+      >
+        See System status
+      </Link>{" "}
+      for what is missing.
+    </p>
+  );
+
   return (
     <div className="container-page pt-8 sm:pt-10">
       <div className="mx-auto max-w-[62rem] lg:grid lg:grid-cols-[12rem_minmax(0,1fr)] lg:gap-12">
@@ -171,10 +184,9 @@ export default async function SettingsPage(props: {
               </>
             }
           >
+            {/* The form brings its own body padding and commit row. */}
             <Card>
-              <CardContent className="pt-5">
-                <ProfileForm fullName={session.profile.fullName ?? ""} />
-              </CardContent>
+              <ProfileForm fullName={session.profile.fullName ?? ""} />
             </Card>
           </Section>
 
@@ -185,9 +197,7 @@ export default async function SettingsPage(props: {
             description="Awards, documents and obligations belong to this organisation. Nobody outside it can see them."
           >
             <Card>
-              <CardContent className="pt-5">
-                <OrganizationForm name={session.organization.name} />
-              </CardContent>
+              <OrganizationForm name={session.organization.name} />
             </Card>
           </Section>
 
@@ -197,45 +207,36 @@ export default async function SettingsPage(props: {
             title="Deadline reminders"
             description="Emails go out only for obligations you have confirmed and that have a date. Nothing unreviewed is ever emailed to you."
           >
+            {/*
+             * `deliveryNote` is one quiet line where there used to be two amber
+             * boxes. The environment variables that fix it are operator
+             * instructions, and they now live with every other operator
+             * instruction, in System status.
+             */}
             <Card>
-              <CardContent className="pt-5">
-                {currentPlan.emailReminders ? (
-                  <NotificationForm
-                    enabled={preferences.enabled}
-                    offsets={preferences.offsets}
-                    allOffsets={[...REMINDER_OFFSETS]}
-                  />
-                ) : (
+              {currentPlan.emailReminders ? (
+                <NotificationForm
+                  enabled={preferences.enabled}
+                  offsets={preferences.offsets}
+                  allOffsets={[...REMINDER_OFFSETS]}
+                  note={remindersDegraded ? deliveryNote : null}
+                />
+              ) : (
+                <CardContent className="pt-5">
                   <Alert variant="quiet" role="note">
                     <AlertDescription>
                       Email reminders are included from the {PLANS.single_award.name} upwards. Your
                       register, calendar export and review workflow work on every plan.
                     </AlertDescription>
                   </Alert>
-                )}
-
-                {/*
-                 * One quiet line where there used to be two amber boxes. The
-                 * environment variables that fix it are operator instructions,
-                 * and they now live with every other operator instruction, in
-                 * System status.
-                 */}
-                {remindersDegraded ? (
-                  <>
-                    <CardDivider />
-                    <p className="text-[13px] leading-relaxed text-muted-foreground">
-                      Reminders are scheduled but not delivered in this deployment.{" "}
-                      <Link
-                        href="#system-status"
-                        className="font-medium text-primary underline decoration-primary/35 underline-offset-2 hover:decoration-primary"
-                      >
-                        See System status
-                      </Link>{" "}
-                      for what is missing.
-                    </p>
-                  </>
-                ) : null}
-              </CardContent>
+                  {remindersDegraded ? (
+                    <>
+                      <CardDivider />
+                      {deliveryNote}
+                    </>
+                  ) : null}
+                </CardContent>
+              )}
             </Card>
           </Section>
 
@@ -369,14 +370,26 @@ export default async function SettingsPage(props: {
                       key={row.label}
                       className="grid gap-1 py-3 first:pt-0 last:pb-0 sm:grid-cols-[10rem_minmax(0,1fr)] sm:gap-x-6"
                     >
-                      <dt className="text-[13px] font-medium text-foreground-soft">{row.label}</dt>
+                      <dt className="text-[13px] font-medium text-muted-foreground">
+                        {row.label}
+                      </dt>
                       <dd className="min-w-0">
-                        {/* --success 5.80:1 and --warning 5.39:1 on --surface-sunken */}
-                        <p
-                          className={`flex items-center gap-2 text-[13px] font-medium ${
-                            row.ok ? "text-success" : "text-warning"
-                          }`}
-                        >
+                        {/*
+                         * The marker carries the state, the words carry the
+                         * meaning. Setting five status lines in --warning turned
+                         * the one panel on the page whose job is to be read
+                         * calmly into a block of alarm colour — the "every row
+                         * shouts, so no row shouts" defect, in a new place. It
+                         * would read the same in a fully configured deployment,
+                         * five green lines instead of five amber ones.
+                         *
+                         * The dot stays decorative because the state is already
+                         * in the words — "Postgres" against "Local file store
+                         * (ephemeral)" — and only a degraded row carries a note
+                         * underneath, which is the strongest scanning cue here.
+                         * --foreground 15.95:1 on --surface-sunken.
+                         */}
+                        <p className="flex items-center gap-2 text-[13px] font-medium text-foreground">
                           <StatusDot variant={row.ok ? "success" : "warning"} />
                           {row.value}
                         </p>

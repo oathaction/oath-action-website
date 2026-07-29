@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { AlertTriangle, FileText } from "lucide-react";
+import { AlertTriangle, FileText, Quote } from "lucide-react";
 
 import type { DocumentSegment, ObligationCitation } from "@/lib/domain/types";
 import { formatLocator } from "@/lib/documents/segment";
@@ -28,6 +28,10 @@ import { EmptyState } from "@/components/ui/misc";
  * something that is not an alert and left the whole column reading muddy;
  * `--highlight-wash` / `--highlight-subtle` exist precisely so a citation looks
  * marked rather than broken.
+ *
+ * Exactly two things say "the citation is here", and neither of them decorates
+ * the page it is on: `.evidence-mark` on the sentence itself, and a cue in the
+ * sticky page heading, which stays on screen while you read around it.
  */
 
 interface SourcePanelProps {
@@ -121,16 +125,38 @@ export function SourcePanel({
 }: SourcePanelProps) {
   const groups = React.useMemo(() => groupSegments(segments), [segments]);
   const segmentRefs = React.useRef(new Map<string, HTMLElement>());
+  const scrollerRef = React.useRef<HTMLDivElement | null>(null);
 
   const activeSegmentId = activeCitation?.documentSegmentId ?? null;
   const activeCitationId = activeCitation?.id ?? null;
 
+  /**
+   * Bring the marked sentence into view — inside this panel and nowhere else.
+   *
+   * This deliberately does not use `scrollIntoView`. That walks *every*
+   * scrollable ancestor up to and including the document, so on the two-pane
+   * desktop layout it scrolled the whole page as well as the panel: the review
+   * workspace landed 180px down on first paint, with the page heading and the
+   * two page-level actions already off the top of the screen. Scrolling this
+   * one container is the entire intent, so this does exactly that.
+   *
+   * It also aims at the `<mark>` rather than the segment. A stored segment is
+   * often a whole page; centring the page put the sentence wherever it happened
+   * to fall. Aiming at the mark puts the cited sentence a little below the
+   * sticky page heading, which is where the eye is already going.
+   */
   React.useEffect(() => {
     if (!activeSegmentId) return;
-    const node = segmentRefs.current.get(activeSegmentId);
-    if (!node) return;
-    node.scrollIntoView({
-      block: "center",
+    const scroller = scrollerRef.current;
+    const segment = segmentRefs.current.get(activeSegmentId);
+    if (!scroller || !segment) return;
+
+    const target = segment.querySelector("mark") ?? segment;
+    const offset = Math.min(96, Math.max(48, scroller.clientHeight * 0.22));
+    const delta = target.getBoundingClientRect().top - scroller.getBoundingClientRect().top;
+
+    scroller.scrollTo({
+      top: Math.max(scroller.scrollTop + delta - offset, 0),
       behavior: prefersReducedMotion() ? "auto" : "smooth",
     });
   }, [activeSegmentId, activeCitationId]);
@@ -143,18 +169,39 @@ export function SourcePanel({
     [],
   );
 
-  const locatorNoun =
-    segments.length > 0 && segments[0].locatorType === "page"
+  const storedArePages = segments.length > 0 && segments[0].locatorType === "page";
+  const locatorNoun = storedArePages
+    ? groups.length === 1
+      ? "page"
+      : "pages"
+    : segments.length > 0 && segments[0].locatorType === "section"
       ? groups.length === 1
-        ? "page"
-        : "pages"
-      : segments.length > 0 && segments[0].locatorType === "section"
-        ? groups.length === 1
-          ? "section"
-          : "sections"
-        : groups.length === 1
-          ? "paragraph"
-          : "paragraphs";
+        ? "section"
+        : "sections"
+      : groups.length === 1
+        ? "paragraph"
+        : "paragraphs";
+
+  /*
+   * The file's own page count is worth stating only when it differs from the
+   * number of pages we stored — that gap is the interesting fact, because it
+   * means a page yielded no text. When they match, "5 pages · 5 pages in the
+   * file" is the same number twice, and a caveat line that repeats itself is a
+   * caveat people stop reading.
+   */
+  const showFileCount =
+    typeof pageCount === "number" &&
+    pageCount > 0 &&
+    !(storedArePages && pageCount === groups.length);
+
+  /** The group holding the cited passage, so its page heading can say so. */
+  const activeGroupKey = React.useMemo(() => {
+    if (!activeSegmentId) return null;
+    return (
+      groups.find((group) => group.segments.some((segment) => segment.id === activeSegmentId))
+        ?.key ?? null
+    );
+  }, [groups, activeSegmentId]);
 
   /**
    * The citation points at a segment we do not have — for example because it
@@ -197,7 +244,7 @@ export function SourcePanel({
                 <span className="tabular font-mono">
                   {groups.length} {locatorNoun}
                 </span>
-                {typeof pageCount === "number" && pageCount > 0 ? (
+                {showFileCount ? (
                   <>
                     {" · "}
                     <span className="tabular font-mono">
@@ -239,6 +286,7 @@ export function SourcePanel({
         Establishing a containing block here keeps them inside the panel.
       */}
       <div
+        ref={scrollerRef}
         role="region"
         aria-labelledby="source-panel-heading"
         tabIndex={0}
@@ -263,31 +311,61 @@ export function SourcePanel({
                 The passage cited by this item is not in the document shown here.
               </p>
             ) : null}
-            {groups.map((group) => (
-              <section key={group.key} aria-label={group.label}>
-                {/*
-                  Opaque paper, not a translucent blur. Blurring a document a
-                  person is checking a claim against is a legibility cost the
-                  product cannot justify.
-                */}
-                <h3 className="sticky top-0 z-10 flex items-baseline gap-2 border-b border-paper-border bg-paper px-4 py-1.5 text-[11.5px] text-ink-document-soft">
-                  <span className="tabular shrink-0 font-mono font-medium tracking-[-0.01em] text-ink-document">
-                    {group.label}
-                  </span>
-                  {group.heading ? <span className="truncate">{group.heading}</span> : null}
-                </h3>
-                <div className="space-y-3 px-3 py-3.5">
-                  {group.segments.map((segment) => (
-                    <SegmentText
-                      key={segment.id}
-                      ref={setSegmentRef(segment.id)}
-                      segment={segment}
-                      citation={activeSegmentId === segment.id ? activeCitation : null}
-                    />
-                  ))}
-                </div>
-              </section>
-            ))}
+            {groups.map((group) => {
+              const isActiveGroup = group.key === activeGroupKey;
+              return (
+                <section key={group.key} aria-label={group.label}>
+                  {/*
+                    Opaque paper, not a translucent blur. Blurring a document a
+                    person is checking a claim against is a legibility cost the
+                    product cannot justify.
+
+                    This heading is also where the citation cue lives. It used
+                    to be a rule down the whole margin of the active segment,
+                    but a stored segment is a whole page: a 700px vertical line
+                    saying "the sentence is somewhere in here" is colour spent
+                    on the haystack, and it read as a stray border. The heading
+                    is sticky, so putting the cue here means it is still on
+                    screen when you have scrolled away from the mark — which is
+                    exactly when you need to be told which page you are in.
+                  */}
+                  <h3
+                    className={cn(
+                      "sticky top-0 z-10 flex items-baseline gap-2 border-b px-4 py-1.5 text-[11.5px]",
+                      isActiveGroup
+                        ? // --ink-document on --highlight-wash is 13.29:1;
+                          // --ink-document-soft on it is 7.27:1.
+                          "border-highlight-rule bg-highlight-wash text-ink-document-soft"
+                        : "border-paper-border bg-paper text-ink-document-soft",
+                    )}
+                  >
+                    <span className="tabular shrink-0 font-mono font-medium tracking-[-0.01em] text-ink-document">
+                      {group.label}
+                    </span>
+                    {group.heading ? <span className="truncate">{group.heading}</span> : null}
+                    {isActiveGroup ? (
+                      /* The same quote glyph in the same --highlight-rule the
+                         Evidence Rail uses to caption a citation, so the two
+                         halves of the promise are marked with one symbol. */
+                      <span className="ml-auto flex shrink-0 items-center gap-1.5 pl-2 font-medium text-ink-document">
+                        <Quote className="size-3 text-highlight-rule" aria-hidden="true" />
+                        Cited passage
+                      </span>
+                    ) : null}
+                  </h3>
+                  <div className="space-y-3 px-3 py-3.5">
+                    {group.segments.map((segment) => (
+                      <SegmentText
+                        key={segment.id}
+                        ref={setSegmentRef(segment.id)}
+                        segment={segment}
+                        citation={activeSegmentId === segment.id ? activeCitation : null}
+                      />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
           </>
         )}
       </div>
@@ -306,36 +384,22 @@ function SegmentText({ segment, citation, ref }: SegmentTextProps) {
   const isActive = citation !== null;
 
   return (
-    <div
-      ref={ref}
-      data-active={isActive ? "true" : undefined}
-      className={cn(
-        "scroll-mt-12 border-l-2 px-3 py-1 transition-colors",
-        /*
-         * A marginal rule, not a wash. A stored segment is often a whole page,
-         * and tinting a page of body text to say "the sentence you want is
-         * somewhere in here" spends the colour budget on the haystack. The
-         * needle gets the colour instead: `.evidence-mark` on the sentence, and
-         * a change-bar down the margin of the passage it sits in.
-         *
-         * --highlight-rule is 3.32:1 on --paper, clearing the 3:1 WCAG 1.4.11
-         * asks of a non-text boundary.
-         */
-        isActive ? "border-highlight-rule" : "border-transparent",
-      )}
-    >
-      {isActive ? (
-        highlight ? (
-          <p className="eyebrow mb-1.5 flex items-center gap-1.5 text-ink-document-soft">
-            <span aria-hidden="true" className="h-[3px] w-3.5 rounded-full bg-highlight-rule" />
-            Cited passage, marked below
-          </p>
-        ) : (
-          <p className="mb-1.5 flex items-start gap-1.5 text-xs font-medium leading-relaxed text-warning">
-            <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
-            We could not locate this passage in the stored text — nothing is marked below.
-          </p>
-        )
+    /*
+     * No container treatment for the active segment, deliberately. The segment
+     * is usually a whole page, so anything applied here — a wash, a margin rule
+     * — decorates the haystack. `.evidence-mark` on the sentence is the needle,
+     * and the sticky page heading above carries the "cited passage is on this
+     * page" cue, where it stays visible as you read.
+     *
+     * `px-1` rather than `px-3`: with the group's own `px-3`, body text now
+     * starts on the same 16px line as the page heading above it.
+     */
+    <div ref={ref} data-active={isActive ? "true" : undefined} className="px-1 py-1">
+      {isActive && !highlight ? (
+        <p className="mb-1.5 flex items-start gap-1.5 text-xs font-medium leading-relaxed text-warning">
+          <AlertTriangle className="mt-px size-3.5 shrink-0" aria-hidden="true" />
+          We could not locate this passage in the stored text — nothing is marked below.
+        </p>
       ) : null}
 
       <p className="evidence-quote whitespace-pre-wrap break-words">

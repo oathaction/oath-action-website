@@ -299,8 +299,13 @@ function PlanItem({ obligation }: { obligation: ObligationWithCitations }) {
           </p>
         ) : null}
         {obligation.internalDueDate ? (
-          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-            start by {formatIsoDate(obligation.internalDueDate, { month: "short", day: "numeric" })}
+          /* Only the date is mono; "start by" is a sentence, and monospaced
+             word-spacing makes a two-word prefix look mis-set. */
+          <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+            start by{" "}
+            <span className="font-mono">
+              {formatIsoDate(obligation.internalDueDate, { month: "short", day: "numeric" })}
+            </span>
           </p>
         ) : null}
       </div>

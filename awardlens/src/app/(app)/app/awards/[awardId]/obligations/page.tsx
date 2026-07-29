@@ -100,13 +100,19 @@ export default async function ObligationsPage(props: ObligationsPageProps) {
       {progress.needsReview > 0 ? (
         /* Authority blue rather than amber: this is the product's standing
            position, not an alarm. --ink-accent on --ink-accent-subtle is
-           10.85:1. */
+           10.85:1.
+
+           Full width, with the sentence itself set to a reading measure inside
+           it. Held to `measure-wide` the panel stopped two-thirds of the way
+           across the page while the filter bar and every register row ran to
+           the edge, so the one statement that frames the whole page read as an
+           orphan. */
         <Alert
           role="note"
           variant="info"
-          className="measure-wide mt-5 border-ink-accent-border bg-ink-accent-subtle text-ink-accent"
+          className="mt-5 border-ink-accent-border bg-ink-accent-subtle text-ink-accent"
         >
-          <AlertDescription className="leading-relaxed">
+          <AlertDescription className="measure-wide leading-relaxed">
             <span className="font-semibold">
               Nothing here is confirmed until a person confirms it.
             </span>{" "}
@@ -116,7 +122,22 @@ export default async function ObligationsPage(props: ObligationsPageProps) {
         </Alert>
       ) : null}
 
-      <section aria-labelledby="exports-heading" className="mt-5" data-print="hide">
+      <Register award={award} obligations={obligations} />
+
+      {/*
+       * Exports sit below the register, not above it.
+       *
+       * This page exists to be read and worked through; downloading is what you
+       * do once you have. Three download buttons and a caveat paragraph in the
+       * prime slot cost roughly a fifth of the first screen at 1280px and a
+       * third of it at 390px, and pushed the first requirement below the fold.
+       * The award workspace still offers the same files in its Exports card.
+       */}
+      <section
+        aria-labelledby="exports-heading"
+        className="mt-10 border-t border-border pt-5"
+        data-print="hide"
+      >
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <h2 id="exports-heading" className="eyebrow shrink-0 text-muted-foreground">
             Export
@@ -149,8 +170,6 @@ export default async function ObligationsPage(props: ObligationsPageProps) {
           undated requirements are left out rather than put in your diary as if they were settled.
         </p>
       </section>
-
-      <Register award={award} obligations={obligations} />
     </div>
   );
 }

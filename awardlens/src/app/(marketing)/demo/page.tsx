@@ -101,8 +101,13 @@ export default function DemoPage() {
 
   return (
     <>
+      {/*
+        A page opening, so it takes the page-opening cadence. At `section-tight`
+        the h1 sat 56px under the header while the h1 on / and /pricing sat at
+        121px, which made this page read as a fragment of another one.
+      */}
       <section>
-        <div className="container-page section-tight">
+        <div className="container-page section">
           <div className="measure-wide">
             <p className="eyebrow text-primary">Worked sample</p>
             <h1 className="type-title mt-4">What AwardLens produces from a grant agreement</h1>
@@ -115,7 +120,16 @@ export default function DemoPage() {
           </div>
 
           <dl className="card-pad-roomy mt-10 grid grid-cols-2 gap-x-8 gap-y-6 rounded-lg border border-border bg-surface shadow-resting sm:grid-cols-3 lg:grid-cols-5">
-            <SampleFact label="Funder" value={profile.funder ?? "Not stated"} />
+            {/*
+              The funder name is the only long value in the strip. In two
+              columns it wrapped to three lines and left the cell beside it
+              hanging, so at that width it takes the full row instead.
+            */}
+            <SampleFact
+              className="col-span-2 sm:col-span-1"
+              label="Funder"
+              value={profile.funder ?? "Not stated"}
+            />
             <SampleFact
               label="Amount"
               value={formatCurrency(profile.awardAmount, profile.currency ?? "USD")}
@@ -159,9 +173,19 @@ export default function DemoPage() {
           <p className="type-small measure-wide mt-3 text-muted-foreground">
             {obligations.length} items, each one shown with the passage it was drawn from.
           </p>
-          <div className="mt-8 grid gap-5 lg:grid-cols-2">
+          {/*
+            Columns rather than a two-up grid. In a grid every card stretches to
+            the height of its taller neighbour, which left 80–130px of hollow
+            inside three of these thirteen cards — a card with a void under its
+            last line reads as a card that failed to load. Column flow lets each
+            card end where its content ends, and reading order (down column one,
+            then column two) is the order a register is read in anyway.
+          */}
+          <div className="mt-8 lg:columns-2 lg:gap-5">
             {obligations.map((obligation) => (
-              <EvidenceRail key={obligation.id} obligation={obligation} />
+              <div key={obligation.id} className="mb-5 break-inside-avoid">
+                <EvidenceRail obligation={obligation} />
+              </div>
             ))}
           </div>
         </div>
@@ -210,10 +234,24 @@ export default function DemoPage() {
   );
 }
 
-function SampleFact({ label, value }: { label: string; value: string }) {
+function SampleFact({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
   return (
-    <div>
-      <dt className="eyebrow text-muted-foreground">{label}</dt>
+    <div className={className}>
+      {/*
+        Two columns on a phone is narrow enough that "Obligations found" wraps
+        while "With a firm date" does not, which knocked the two figures beside
+        each other off a common baseline. One line of reserved height fixes the
+        row; above `sm` no label wraps and the reservation is dropped.
+      */}
+      <dt className="eyebrow min-h-8 text-muted-foreground sm:min-h-0">{label}</dt>
       <dd className="metric tabular mt-2 text-lg leading-snug sm:text-xl">{value}</dd>
     </div>
   );

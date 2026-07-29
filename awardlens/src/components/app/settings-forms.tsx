@@ -38,12 +38,35 @@ function useAction() {
 }
 
 /*
- * Both of these used to be `flex items-end`, which put Save on the baseline of
- * whatever the field happened to end with — level with the input in one form
- * and level with the hint text in the other, so the same control landed at two
- * different heights on one page. Stacking the action under the field is one
- * rule that holds for every form here, hint or no hint.
+ * Every form on this page is one card: a body you fill in, a hairline, and a
+ * commit row against the card's right edge.
+ *
+ * These used to be `flex items-end`, which put Save on the baseline of whatever
+ * the field happened to end with — level with the input in one form and level
+ * with the hint text in the other, so the same control landed at two different
+ * heights on one page. Stacking Save directly under the field fixed that but
+ * left a 750px card containing a 384px input and a 60px button, with the whole
+ * right half of the box empty; a settings card that wide has to be anchored at
+ * both edges or it reads as an empty frame. A ruled commit row does that, gives
+ * the two single-field cards the same skeleton as the reminders card, and says
+ * plainly where the change is committed.
+ *
+ * The rule and the row sit on `--surface`, not on a tinted band: the outlined
+ * Save button's `--border-control` edge is 3.18:1 on white but only 2.84:1 on
+ * `--surface-sunken`, which would put a control boundary under WCAG 1.4.11.
  */
+function FormBody({ children }: { children: React.ReactNode }) {
+  return <div className="px-5 py-5">{children}</div>;
+}
+
+function FormActions({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-end border-t border-border-subtle px-5 py-3.5">
+      {children}
+    </div>
+  );
+}
+
 export function ProfileForm({ fullName }: { fullName: string }) {
   const { pending, run } = useAction();
   return (
@@ -52,15 +75,18 @@ export function ProfileForm({ fullName }: { fullName: string }) {
         event.preventDefault();
         run(updateProfileAction, new FormData(event.currentTarget));
       }}
-      className="stack-md"
     >
-      <Field className="max-w-sm">
-        <Label htmlFor="fullName">Your name</Label>
-        <Input id="fullName" name="fullName" defaultValue={fullName} maxLength={120} />
-      </Field>
-      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
-        Save
-      </Button>
+      <FormBody>
+        <Field className="max-w-sm">
+          <Label htmlFor="fullName">Your name</Label>
+          <Input id="fullName" name="fullName" defaultValue={fullName} maxLength={120} />
+        </Field>
+      </FormBody>
+      <FormActions>
+        <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+          Save
+        </Button>
+      </FormActions>
     </form>
   );
 }
@@ -73,16 +99,19 @@ export function OrganizationForm({ name }: { name: string }) {
         event.preventDefault();
         run(updateOrganizationAction, new FormData(event.currentTarget));
       }}
-      className="stack-md"
     >
-      <Field className="max-w-sm">
-        <Label htmlFor="orgName">Organisation name</Label>
-        <Input id="orgName" name="name" defaultValue={name} maxLength={120} required />
-        <FieldHint>Appears on exports and the printable operating plan.</FieldHint>
-      </Field>
-      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
-        Save
-      </Button>
+      <FormBody>
+        <Field className="max-w-sm">
+          <Label htmlFor="orgName">Organisation name</Label>
+          <Input id="orgName" name="name" defaultValue={name} maxLength={120} required />
+          <FieldHint>Appears on exports and the printable operating plan.</FieldHint>
+        </Field>
+      </FormBody>
+      <FormActions>
+        <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+          Save
+        </Button>
+      </FormActions>
     </form>
   );
 }
@@ -91,10 +120,13 @@ export function NotificationForm({
   enabled,
   offsets,
   allOffsets,
+  note,
 }: {
   enabled: boolean;
   offsets: number[];
   allOffsets: number[];
+  /** A standing fact about delivery in this deployment, shown under the controls. */
+  note?: React.ReactNode;
 }) {
   const { pending, run } = useAction();
   const [isEnabled, setIsEnabled] = useState(enabled);
@@ -109,47 +141,53 @@ export function NotificationForm({
         for (const offset of selected) data.append("offsets", String(offset));
         run(updateNotificationPreferencesAction, data);
       }}
-      className="stack-lg"
     >
-      <div className="flex items-center gap-2.5">
-        <Checkbox
-          id="reminders-enabled"
-          checked={isEnabled}
-          onCheckedChange={(value) => setIsEnabled(value === true)}
-        />
-        <Label htmlFor="reminders-enabled">Email me before confirmed deadlines</Label>
-      </div>
+      <FormBody>
+        <div className="stack-lg">
+          <div className="flex items-center gap-2.5">
+            <Checkbox
+              id="reminders-enabled"
+              checked={isEnabled}
+              onCheckedChange={(value) => setIsEnabled(value === true)}
+            />
+            <Label htmlFor="reminders-enabled">Email me before confirmed deadlines</Label>
+          </div>
 
-      <fieldset
-        disabled={!isEnabled}
-        className="rounded-md border border-border-subtle bg-surface-sunken/60 px-4 py-3.5 transition-opacity disabled:opacity-55"
-      >
-        <legend className="eyebrow px-1 text-muted-foreground">Send reminders</legend>
-        <div className="flex flex-wrap gap-x-5 gap-y-2.5">
-          {allOffsets.map((offset) => (
-            <div key={offset} className="flex items-center gap-2">
-              <Checkbox
-                id={`offset-${offset}`}
-                checked={selected.includes(offset)}
-                onCheckedChange={(value) =>
-                  setSelected((current) =>
-                    value === true
-                      ? [...current, offset].sort((a, b) => b - a)
-                      : current.filter((entry) => entry !== offset),
-                  )
-                }
-              />
-              <Label htmlFor={`offset-${offset}`} className="text-[13px] font-normal">
-                {offset} {offset === 1 ? "day" : "days"} before
-              </Label>
+          <fieldset
+            disabled={!isEnabled}
+            className="rounded-md border border-border-subtle bg-surface-sunken/60 px-4 py-3.5 transition-opacity disabled:opacity-55"
+          >
+            <legend className="eyebrow px-1 text-muted-foreground">Send reminders</legend>
+            <div className="flex flex-wrap gap-x-5 gap-y-2.5">
+              {allOffsets.map((offset) => (
+                <div key={offset} className="flex items-center gap-2">
+                  <Checkbox
+                    id={`offset-${offset}`}
+                    checked={selected.includes(offset)}
+                    onCheckedChange={(value) =>
+                      setSelected((current) =>
+                        value === true
+                          ? [...current, offset].sort((a, b) => b - a)
+                          : current.filter((entry) => entry !== offset),
+                      )
+                    }
+                  />
+                  <Label htmlFor={`offset-${offset}`} className="text-[13px] font-normal">
+                    {offset} {offset === 1 ? "day" : "days"} before
+                  </Label>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </fieldset>
+          </fieldset>
 
-      <Button type="submit" variant="secondary" size="sm" disabled={pending}>
-        Save reminder settings
-      </Button>
+          {note}
+        </div>
+      </FormBody>
+      <FormActions>
+        <Button type="submit" variant="secondary" size="sm" disabled={pending}>
+          Save reminder settings
+        </Button>
+      </FormActions>
     </form>
   );
 }

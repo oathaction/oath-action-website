@@ -557,7 +557,9 @@ export function ReviewWorkspace({
       <div className="mt-2.5 flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
         <div className="min-w-0">
           <h1 className="type-title">Review what this award requires</h1>
-          <p className="type-small mt-1.5 max-w-[58ch] text-muted-foreground">
+          {/* Balanced so the second sentence is not orphaned mid-phrase —
+              unbalanced it broke after "Nothing counts". */}
+          <p className="type-small text-balance mt-1.5 max-w-[58ch] text-muted-foreground">
             Work through one item at a time with the document beside it. Nothing counts as agreed
             until you say so.
           </p>
@@ -695,7 +697,17 @@ export function ReviewWorkspace({
           {/* ------------------------------------------------------ queue -- */}
           <div className="flex min-w-0 flex-col lg:min-h-0">
             {/* ------------------------------------------------- progress -- */}
-            <div className="shrink-0 rounded-lg border border-border bg-surface px-4 py-3 shadow-resting">
+            {/*
+              A column header, not a card. It was a bordered, shadowed panel,
+              which made it a peer of the one object on this screen that is
+              meant to be raised — the item under review. Progress is a caption
+              for the queue below it, so it is set as one: hairline underneath,
+              no fill, no elevation. That also gives ~30px back to the queue on
+              a phone, where the queue was starting below the fold.
+            */}
+            {/* The `lg` top padding puts the eyebrow on the same baseline as
+                the document panel's filename in the column beside it. */}
+            <div className="shrink-0 border-b border-border pb-2.5 pt-0.5 lg:pt-3">
               <div className="flex items-center gap-3">
                 <p className="eyebrow shrink-0 text-muted-foreground">Review progress</p>
                 <Progress
@@ -748,7 +760,7 @@ export function ReviewWorkspace({
                     title={definition.description}
                     onClick={() => setFilter(definition.key)}
                     className={cn(
-                      "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[13px] font-medium transition-colors sm:min-h-7",
+                      "inline-flex min-h-11 items-center gap-1.5 rounded-full border px-3 py-1 text-[13px] font-medium transition-colors sm:min-h-7",
                       isActive
                         ? "border-primary bg-primary text-primary-foreground"
                         : // --border-control is 3.18:1 on white, which is what
@@ -758,10 +770,19 @@ export function ReviewWorkspace({
                     )}
                   >
                     {definition.label}
+                    {/*
+                      The count is a numeral, not a second control. It used to
+                      sit in its own filled capsule inside the chip — a pill
+                      inside a pill, six times over, above a queue whose whole
+                      argument is that repeated pills say nothing. Plain tabular
+                      figures carry the same number in a third of the ink and
+                      pull ~70px out of the row. White at 75% on --primary is
+                      5.24:1; --muted-foreground on --surface is 5.98:1.
+                    */}
                     <span
                       className={cn(
-                        "tabular rounded-full px-1.5 py-0.5 font-mono text-[11px]",
-                        isActive ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground",
+                        "tabular font-mono text-[11px]",
+                        isActive ? "text-primary-foreground/75" : "text-muted-foreground",
                       )}
                     >
                       {count}
@@ -890,7 +911,14 @@ export function ReviewWorkspace({
                                     decision. Checking the passage in context
                                     sits at the left, next to the evidence it
                                     belongs to; editing and deleting the record
-                                    are pushed to the far end. */}
+                                    are pushed to the far end.
+
+                                    Edit and Delete are one group rather than
+                                    two siblings so they wrap together. Loose in
+                                    the row, a narrow column dropped Delete onto
+                                    a line of its own at the left margin, which
+                                    made the most destructive control on the
+                                    screen look like the next thing to do. */}
                                 <span className="rule flex w-full flex-wrap items-center gap-1 pt-2">
                                   {citations.map((citation) => (
                                     <Button
@@ -909,28 +937,30 @@ export function ReviewWorkspace({
                                       {formatLocator(citation.locatorType, citation.locatorValue)}
                                     </Button>
                                   ))}
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="ghost"
-                                    className="h-11 sm:ml-auto sm:h-8"
-                                    disabled={pending}
-                                    onClick={() => openEditor(obligation.id)}
-                                  >
-                                    <Pencil className="size-4" aria-hidden="true" />
-                                    Edit
-                                  </Button>
-                                  <Button
-                                    type="button"
-                                    size="sm"
-                                    variant="destructiveGhost"
-                                    className="h-11 sm:h-8"
-                                    disabled={pending}
-                                    onClick={() => openDeleteDialog(obligation.id)}
-                                  >
-                                    <Trash2 className="size-4" aria-hidden="true" />
-                                    Delete
-                                  </Button>
+                                  <span className="ml-auto flex items-center gap-1">
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-11 sm:h-8"
+                                      disabled={pending}
+                                      onClick={() => openEditor(obligation.id)}
+                                    >
+                                      <Pencil className="size-4" aria-hidden="true" />
+                                      Edit
+                                    </Button>
+                                    <Button
+                                      type="button"
+                                      size="sm"
+                                      variant="destructiveGhost"
+                                      className="h-11 sm:h-8"
+                                      disabled={pending}
+                                      onClick={() => openDeleteDialog(obligation.id)}
+                                    >
+                                      <Trash2 className="size-4" aria-hidden="true" />
+                                      Delete
+                                    </Button>
+                                  </span>
                                 </span>
                               </>
                             }
@@ -1132,7 +1162,16 @@ function QueueRow({
           </span>
           <span className="meta-row mt-0.5 text-xs text-muted-foreground">
             <span>{CATEGORY_META[obligation.category].label}</span>
-            <span>
+            {/*
+              A date the award actually states is the one thing in this run
+              worth finding at a glance, so it carries a little more weight than
+              its neighbours. Its absence stays muted — "no stated due date" is
+              the commonest case and should not compete with a real deadline.
+              --foreground-soft is 11.01:1 on --surface, 9.58:1 on row hover.
+            */}
+            <span
+              className={cn(obligation.dueDate && "font-medium text-foreground-soft")}
+            >
               {obligation.dueDate
                 ? `Due ${formatIsoDate(obligation.dueDate, {
                     year: "numeric",
@@ -1142,18 +1181,30 @@ function QueueRow({
                 : "No stated due date"}
             </span>
             {/*
-              Wrapped for two reasons: the badge's own ::before marker would
-              otherwise collide with the separator `.meta-row` draws on each
-              child, and the wrapper is where the ordinary case gets demoted —
-              "Needs review" is the state every row starts in, so it reads as
-              the last item of the metadata run rather than as a label.
+              No pills in this queue at all — not even for a decided row.
+
+              `ReviewStatusBadge` defaults "Confirmed" and "Needs clarification"
+              to a filled pill, which is right in the register, where you are
+              scanning for what is done. Here it inverted the screen: the
+              finished rows shouted in solid green while the ten rows still
+              waiting on a person whispered in grey. A queue should be loudest
+              about what is outstanding.
+
+              So every status is `bare` — the words, in the tone of the decision
+              (green 6.50:1, amber 6.04:1, grey 5.98:1 on --surface; 5.65 /
+              5.25 / 5.20:1 on the hover wash) — and the decision itself is
+              carried by the coloured rail on the row's leading edge. Undecided
+              rows drop to muted and normal weight, so silence really is the
+              default state. It also equalises row heights, which a pill on
+              some rows and not others did not.
+
+              The wrapper is still needed: the badge's own ::before marker would
+              collide with the separator `.meta-row` draws on each child.
             */}
             <span
-              className={cn(
-                undecided && "[&>span]:font-normal [&>span]:text-muted-foreground",
-              )}
+              className={cn(undecided && "[&>span]:font-normal [&>span]:text-muted-foreground")}
             >
-              <ReviewStatusBadge status={status} emphasis={undecided ? "bare" : undefined} />
+              <ReviewStatusBadge status={status} emphasis="bare" />
             </span>
           </span>
         </span>

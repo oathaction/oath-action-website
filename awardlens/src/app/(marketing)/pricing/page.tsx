@@ -248,16 +248,30 @@ export default function PricingPage() {
             tabIndex={0}
             className="mt-8 overflow-x-auto rounded-lg border border-border bg-surface shadow-resting"
           >
-            <table className="w-full min-w-[46rem] border-collapse text-left">
+            {/*
+              Fixed layout so the four plans get equal columns. Auto layout
+              apportioned by content, which handed Team 265px and Single Award
+              Pack 224px — and at the scrolling width that difference was
+              enough to break one plan name over three lines and set the whole
+              header row's height by it.
+            */}
+            <table className="w-full min-w-[46rem] table-fixed border-collapse text-left">
               <caption className="sr-only">
                 AwardLens plans compared by purpose, awards included, email deadline reminders and
                 billing.
               </caption>
               <thead>
                 <tr className="border-b border-border">
+                  {/*
+                    Narrower at the width where the table has to scroll: at
+                    13rem the row-label column ate 208 of the 736px the table
+                    is allowed, which squeezed "Single Award Pack" onto three
+                    lines and left a 126px void above every other plan in the
+                    header row.
+                  */}
                   <th
                     scope="col"
-                    className="w-52 px-5 py-4 align-bottom font-normal text-muted-foreground"
+                    className="w-40 px-5 py-4 align-bottom font-normal text-muted-foreground md:w-52"
                   >
                     <span className="eyebrow">Plan</span>
                   </th>
@@ -333,7 +347,8 @@ export default function PricingPage() {
             </table>
           </div>
 
-          <p className="type-small mt-4 text-muted-foreground">
+          {/* Capped: unbounded this ran the full 1184px container on one line. */}
+          <p className="type-small measure-wide mt-4 text-muted-foreground">
             Email reminders require a paid plan. On the free tier, export the deadline calendar
             and let your own calendar remind you.
           </p>
@@ -429,8 +444,16 @@ export default function PricingPage() {
       <section className="bg-ink-accent">
         <div className="container-page section">
           <div className="flex flex-col gap-7 md:flex-row md:items-center md:justify-between md:gap-12">
-            <div className="max-w-2xl">
-              <h2 className="type-title text-white">One award, no payment, no obligation</h2>
+            {/*
+              3xl, not 2xl: the heading needs 678px and 2xl gave it 672, so it
+              broke after "no" and orphaned it from "payment" by six pixels.
+              Balanced wrapping covers the intermediate widths where it still
+              has to take two lines.
+            */}
+            <div className="max-w-3xl">
+              <h2 className="type-title text-balance text-white">
+                One award, no payment, no obligation
+              </h2>
               <p className="type-lede mt-4 text-white/80">
                 Analyse the award you are least sure about and judge AwardLens on the register it
                 gives you back.

@@ -113,17 +113,23 @@ export function AddObligationDialog({ awardId }: { awardId: string }) {
       >
         <DialogHeader>
           <DialogTitle>Add an obligation</DialogTitle>
-          <DialogDescription id={`${fieldId}-intro`}>
-            Use this for a requirement you know about that the document does not state — an
-            internal deadline, a funder instruction given by email, a commitment made in the
-            application.
-          </DialogDescription>
         </DialogHeader>
 
         <form ref={formRef} onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
           <input type="hidden" name="awardId" value={awardId} />
 
+          {/*
+            The description scrolls with the form — see the note in
+            `obligation-editor.tsx`. Pinned above a phone-sized dialog it and
+            the recording note together left one visible field.
+          */}
           <DialogBody className="flex flex-col gap-5 py-px">
+            <DialogDescription id={`${fieldId}-intro`}>
+              Use this for a requirement you know about that the document does not state — an
+              internal deadline, a funder instruction given by email, a commitment made in the
+              application.
+            </DialogDescription>
+
             {/*
               How a hand-entered item is stored is the whole point of the
               register, so it is stated up front and in the accent tone the rest

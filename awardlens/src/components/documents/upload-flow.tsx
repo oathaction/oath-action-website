@@ -164,9 +164,19 @@ export function UploadFlow() {
         <h2 className="sr-only">Provide the award document</h2>
 
         <Tabs defaultValue="file">
+          {/*
+           * `[&_[role=tab]]:after:bottom-0` is not decoration — it is the only
+           * reason the active tab has an underline at all. TabsList is
+           * `overflow-x-auto` so a narrow phone can scroll the row, and any
+           * overflow other than `visible` clips its children: the trigger's
+           * underline sits at `bottom: -1px`, so exactly half of the 2px rule
+           * was being cut off and the surviving half landed on the list's own
+           * hairline. Pulling the rule fully inside the trigger puts all 2px of
+           * evergreen back on screen, in the same place it was aiming for.
+           */}
           <TabsList
             aria-label="How to provide the award document"
-            className="bg-surface-sunken px-1 sm:px-3"
+            className="bg-surface-sunken px-1 [&_[role=tab]]:after:bottom-0 sm:px-3"
           >
             <TabsTrigger value="file">Upload a file</TabsTrigger>
             <TabsTrigger value="paste">Paste text</TabsTrigger>
@@ -291,34 +301,47 @@ export function UploadFlow() {
                     </Button>
                   </div>
                 )}
-
-                {/*
-                 * Always rendered: `aria-describedby` on the input above points
-                 * at this id, and a dangling reference is an ARIA failure as
-                 * well as a lost hint.
-                 */}
-                <p
-                  id="award-file-hint"
-                  className={cn(
-                    "type-caption mt-3.5 text-muted-foreground",
-                    file ? "text-left" : "text-center",
-                  )}
-                >
-                  Text-based PDF, DOCX, TXT or Markdown · up to 15 MB
-                </p>
               </div>
 
               {/*
-               * Standing information, not an alarm: `role="note"` keeps this out
-               * of the assertive live region an Alert defaults to, so switching
-               * tabs no longer interrupts a screen reader with a caveat.
+               * The file rules, told once.
+               *
+               * This used to be two things: a centred format line inside the
+               * dropzone and, directly beneath it, a bordered Alert about
+               * scans. Same subject, two weights, and the caveat carried the
+               * visual mass of a form field while sitting between the page's
+               * only two inputs. Both statements now hang under the control
+               * they govern, at the weight the award-name field uses for its
+               * own hint — the caveat keeps its ink (--foreground-soft, 10.55:1)
+               * and its size, and only loses a border it never needed.
+               *
+               * `aria-describedby` on the file input points at this id, so it
+               * is rendered unconditionally. Outside the filled/empty branch
+               * the reference cannot dangle, and a screen reader now hears the
+               * scan caveat while focused on the input it applies to. It is a
+               * description, not an announcement, so it is deliberately not a
+               * live region and carries no role.
                */}
-              <Alert variant="quiet" role="note" icon={<CircleAlert aria-hidden="true" />}>
-                <AlertDescription className="text-[13px] leading-relaxed">
-                  Scanned documents and photos of documents are not supported yet — AwardLens needs
-                  a real text layer. If your PDF is a scan, paste the text instead.
-                </AlertDescription>
-              </Alert>
+              {/* mt-4, not the stack's 24px: the hint belongs to the box above
+                  it, not to the field below it. A utility replaces `.stack-lg`'s
+                  margin outright rather than adding to it. */}
+              <div id="award-file-hint" className="mt-4">
+                {/* Both lines at 13px. Setting the spec smaller than the caveat
+                    inverts the scale — the exception would out-size the rule. */}
+                <p className="pl-[22px] text-[13px] leading-relaxed text-muted-foreground">
+                  Text-based PDF, DOCX, TXT or Markdown · up to 15 MB
+                </p>
+                <p className="mt-1 flex gap-2 text-[13px] leading-relaxed text-foreground-soft">
+                  <CircleAlert
+                    aria-hidden="true"
+                    className="mt-[3px] size-3.5 shrink-0 text-muted-foreground"
+                  />
+                  <span>
+                    Scanned documents and photos of documents are not supported yet — AwardLens
+                    needs a real text layer. If your PDF is a scan, paste the text instead.
+                  </span>
+                </p>
+              </div>
 
               <AwardNameField />
 
@@ -398,7 +421,10 @@ export function UploadFlow() {
                 <li key={item} className="flex gap-2.5">
                   <span
                     aria-hidden="true"
-                    className="mt-[0.55em] size-1 shrink-0 rounded-full bg-border-control"
+                    /* A 4px dot centres on a 13px/1.625 line box at 0.66em; it
+                       sits a whisker above that so it reads with the x-height
+                       rather than the descenders. */
+                    className="mt-[0.64em] size-1 shrink-0 rounded-full bg-border-control"
                   />
                   {item}
                 </li>

@@ -20,6 +20,13 @@ import { ChevronDown } from "lucide-react";
  * colour, and the consequences folded into a native disclosure. Nothing was
  * removed: the modes are still named in full, in the first thing you read, and
  * the explanation is one keystroke away and reachable without a mouse.
+ *
+ * The sentence itself is ink, not amber. Setting the whole line in `--warning`
+ * still made it the most saturated thing on all sixteen screens, which is the
+ * original defect at a smaller size: amber is a budget, and a fact that is true
+ * everywhere, always, and asks nothing of anyone cannot draw on it. The marker
+ * carries the state — the same "marker plus plain text" economy the quiet badge
+ * uses — and the words carry the meaning, so nothing depends on colour alone.
  */
 export function ModeNotice({
   aiMode,
@@ -45,11 +52,13 @@ export function ModeNotice({
         <summary className="flex cursor-pointer list-none items-start gap-2 rounded-sm text-xs leading-relaxed text-foreground-soft marker:content-none [&::-webkit-details-marker]:hidden">
           <span
             aria-hidden="true"
-            className="mt-[7px] size-[5px] shrink-0 rounded-full bg-warning"
+            className="mt-[6px] size-1.5 shrink-0 rounded-full bg-warning"
           />
           <span className="min-w-0">
-            {/* 5.69:1 — --warning on --warning-quiet */}
-            <span className="font-medium text-warning">Running in {notices.join(", ")}.</span>{" "}
+            {/* 10.38:1 — --foreground-soft on --warning-quiet */}
+            <span className="font-medium text-foreground-soft">
+              Running in {notices.join(", ")}.
+            </span>{" "}
             {/* 5.64:1 — --muted-foreground on --warning-quiet */}
             <span className="whitespace-nowrap font-medium text-muted-foreground group-open:hidden">
               What this affects

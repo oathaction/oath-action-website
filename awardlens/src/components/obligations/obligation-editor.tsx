@@ -227,14 +227,23 @@ export function ObligationEditor({
       >
         <DialogHeader>
           <DialogTitle>Edit this requirement</DialogTitle>
-          <DialogDescription>
-            Change the wording, the dates or the category so this item matches what your
-            organisation actually has to do.
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} noValidate className="flex min-h-0 flex-1 flex-col gap-4">
+          {/*
+            The description scrolls with the form rather than being pinned above
+            it. On a 390px phone the header, the description and the provenance
+            note between them left about 150px of usable form — one field at a
+            time, read through a letterbox. Only the title has to stay fixed;
+            everything else is read once. Radix still wires `aria-describedby`
+            from wherever the Description sits inside the content.
+          */}
           <DialogBody className="flex flex-col gap-5 py-px">
+            <DialogDescription>
+              Change the wording, the dates or the category so this item matches what your
+              organisation actually has to do.
+            </DialogDescription>
+
             {isMachineWritten ? (
               /*
                 Provenance, not magic. This used to carry a sparkle icon, which

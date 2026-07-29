@@ -48,7 +48,13 @@ export default async function DashboardPage() {
             </span>
           </p>
         </div>
-        <Button asChild>
+        {/*
+         * Secondary, because the header's "New award" is the same action in the
+         * same colour 130px above it and very nearly in the same column. Two
+         * identical evergreen buttons that close together read as one control
+         * drawn twice; the evergreen belongs to the persistent one.
+         */}
+        <Button asChild variant="secondary">
           <Link href="/app/awards/new">
             <Plus className="size-4" aria-hidden="true" />
             Analyse an award
@@ -66,7 +72,9 @@ export default async function DashboardPage() {
         </p>
       ) : null}
 
-      <dl className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Two across on a phone. Stacked, four cells whose contents are usually
+          "0" spent 340px of an 844px screen before the first real content. */}
+      <dl className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <MetricCard
           label="Overdue"
           value={data.overdue.length}
@@ -102,7 +110,10 @@ export default async function DashboardPage() {
           {data.overdue.length + data.dueIn30.length + data.dueIn60.length + data.dueIn90.length ===
           0 ? (
             <EmptyState
-              className="mt-4"
+              /* Shorter than the 18rem default: this sits in the wide column of
+                 a two-column dashboard, so it is the largest object on the page
+                 while having nothing in it. */
+              className="mt-4 min-h-[14rem]"
               headingLevel={3}
               icon={<CalendarClock />}
               title="No dated deadlines in the next 90 days"
