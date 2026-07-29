@@ -145,7 +145,7 @@ test.describe("authentication", () => {
     await expect(signOutItem).toBeFocused();
     await page.keyboard.press("Enter");
 
-    await page.waitForURL(/localhost:3000\/$/, { timeout: 60_000 });
+    await page.waitForURL((url) => url.pathname === "/", { timeout: 60_000 });
     expect((await context.cookies()).map((cookie) => cookie.name)).not.toContain(
       "awardlens_session",
     );

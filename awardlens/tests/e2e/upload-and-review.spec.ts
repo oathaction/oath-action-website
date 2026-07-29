@@ -20,12 +20,14 @@ let context: BrowserContext;
 let page: Page;
 let awardId: string;
 
-/** The title we give an item when taking it over from the extractor. */
-const EDITED_TITLE = `Countersign and return the agreement (checked by ${Date.now()}）`.replace(
-  "）",
-  ")",
-);
-const MANUAL_TITLE = `Send the funder a mid-year variance note ${Date.now()}`;
+/**
+ * Titles used to take an item over from the extractor and to add one by hand.
+ * Both are stamped so they cannot collide with anything the document produced,
+ * and so "did this persist?" cannot pass on a coincidence.
+ */
+const STAMP = Date.now().toString(36);
+const EDITED_TITLE = `Countersign and return the agreement, checked ${STAMP}`;
+const MANUAL_TITLE = `Send the funder a mid-year variance note ${STAMP}`;
 
 test.beforeAll(async ({ browser }, testInfo) => {
   context = await browser.newContext({

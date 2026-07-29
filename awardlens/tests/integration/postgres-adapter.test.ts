@@ -26,7 +26,12 @@ if (!DATABASE_URL) {
   );
 }
 
-type Store = typeof import("@/lib/db/postgres");
+/**
+ * The contract is the reference implementation's surface, not the adapter's own.
+ * Typing against `local` is what makes "the adapter must behave identically"
+ * a compile-time claim rather than a comment.
+ */
+type Store = typeof import("@/lib/db/local");
 
 let db: Store;
 

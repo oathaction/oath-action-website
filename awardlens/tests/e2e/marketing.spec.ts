@@ -63,7 +63,7 @@ test.describe("marketing site", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Priced for the size");
 
     await page.getByRole("link", { name: "AwardLens — home" }).click();
-    await page.waitForURL(/localhost:3000\/$/);
+    await page.waitForURL((url) => url.pathname === "/");
 
     await page.getByRole("link", { name: "View a sample" }).first().click();
     await page.waitForURL(/\/demo$/);

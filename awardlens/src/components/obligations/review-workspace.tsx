@@ -162,6 +162,23 @@ export function ReviewWorkspace({
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [activeCitationId, setActiveCitationId] = React.useState<string | null>(null);
   const [editorTargetId, setEditorTargetId] = React.useState<string | null>(null);
+  /**
+   * The last obligation the editor was opened for, kept after it closes.
+   *
+   * Rendering the editor on `editorTargetId` alone unmounted the whole subtree
+   * in the same commit that set `open` to false, so Radix's focus scope was
+   * destroyed before it could restore focus and the caret fell to <body>. This
+   * keeps the dialog mounted through its close, and `restoreFocusTo` then puts
+   * focus back on the queue row the user came from.
+   *
+   * Set only when opening — never cleared — so it survives the close.
+   */
+  const [lastEditorTargetId, setLastEditorTargetId] = React.useState<string | null>(null);
+
+  const openEditor = React.useCallback((obligationId: string) => {
+    setEditorTargetId(obligationId);
+    setLastEditorTargetId(obligationId);
+  }, []);
   const [deleteTargetId, setDeleteTargetId] = React.useState<string | null>(null);
   const [bulkOpen, setBulkOpen] = React.useState(false);
   const [sourceDrawerOpen, setSourceDrawerOpen] = React.useState(false);
@@ -196,6 +213,16 @@ export function ReviewWorkspace({
     [obligations, deleteTargetId],
   );
 
+  // Falls back to the last edited obligation so the dialog stays mounted while
+  // it closes; see the note on `lastEditorTargetId`.
+  const editorObligation = React.useMemo(
+    () =>
+      editorTarget ??
+      obligations.find((obligation) => obligation.id === lastEditorTargetId) ??
+      null,
+    [editorTarget, obligations, lastEditorTargetId],
+  );
+
   const bulkEligible = React.useMemo(() => active.filter(BULK_ELIGIBLE), [active]);
   const outstanding = React.useMemo(
     () => active.filter((obligation) => obligation.reviewStatus === "needs_review"),
@@ -207,6 +234,9 @@ export function ReviewWorkspace({
   const queueFinished = active.length > 0 && outstanding.length === 0;
 
   const itemRefs = React.useRef(new Map<string, HTMLElement>());
+  // Focus fallback for when the row a dialog was opened from no longer exists
+  // — after a delete, for instance. Never let focus land on <body>.
+  const queueRef = React.useRef<HTMLOListElement | null>(null);
   const moveSourceRef = React.useRef<"keyboard" | "pointer" | null>(null);
   const anyDialogOpen =
     editorTargetId !== null || deleteTargetId !== null || bulkOpen || sourceDrawerOpen;
@@ -218,6 +248,26 @@ export function ReviewWorkspace({
     },
     [],
   );
+
+  /**
+   * Returns focus to a queue row after a programmatically opened dialog closes.
+   *
+   * Deferred to the next frame because Radix is still tearing down its focus
+   * scope in the same commit; focusing synchronously would be immediately
+   * overwritten. Falls back to the queue container so focus can never end up on
+   * <body>, which would strand a keyboard user at the top of the document.
+   */
+  const restoreFocusTo = React.useCallback((obligationId: string | null) => {
+    requestAnimationFrame(() => {
+      const node = obligationId ? itemRefs.current.get(obligationId) : null;
+      if (node) {
+        node.focus({ preventScroll: true });
+        node.scrollIntoView({ block: "nearest" });
+        return;
+      }
+      queueRef.current?.focus({ preventScroll: true });
+    });
+  }, []);
 
   const selectedKey = selected?.id ?? null;
   React.useEffect(() => {
@@ -345,13 +395,13 @@ export function ReviewWorkspace({
       }
       if (event.key === "e" && selected) {
         event.preventDefault();
-        setEditorTargetId(selected.id);
+        openEditor(selected.id);
       }
     }
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [anyDialogOpen, confirmSelected, legendOpen, move, selected]);
+  }, [anyDialogOpen, confirmSelected, legendOpen, move, openEditor, selected]);
 
   /* ------------------------------------------------------------ actions -- */
 
@@ -625,7 +675,12 @@ export function ReviewWorkspace({
                 see everything on this award.
               </p>
             ) : (
-              <ol className="mt-5 space-y-2.5" aria-label="Obligations awaiting review">
+              <ol
+                ref={queueRef}
+                tabIndex={-1}
+                className="mt-5 space-y-2.5"
+                aria-label="Obligations awaiting review"
+              >
                 {queue.map((obligation, index) => {
                   const isSelected = selected?.id === obligation.id;
                   const isPending = pendingId === obligation.id && pending;
@@ -742,7 +797,7 @@ export function ReviewWorkspace({
                                 variant="ghost"
                                 className="h-11 sm:h-8"
                                 disabled={pending}
-                                onClick={() => setEditorTargetId(obligation.id)}
+                                onClick={() => openEditor(obligation.id)}
                               >
                                 <Pencil className="size-4" aria-hidden="true" />
                                 Edit
@@ -793,13 +848,30 @@ export function ReviewWorkspace({
         </div>
       )}
 
-      {editorTarget ? (
+      {/*
+        Both dialogs below are opened programmatically (from the `e` shortcut
+        and from row actions), so there is no `DialogTrigger` for Radix to
+        restore focus to when they close. Left alone, focus falls to <body> —
+        and on this screen in particular that is punishing: it is the one
+        surface built for keyboard-driven work, and a user who pressed `e` on
+        item nine would have to tab back through the header, the filters and
+        every earlier row to resume.
+
+        So we return focus to the queue row the dialog was opened from, which
+        is where the user actually was. `restoreFocusTo` runs after the close
+        completes, and the editor is kept mounted (its own `open` prop drives
+        it) so Radix's focus scope is not unmounted mid-flight.
+      */}
+      {editorObligation ? (
         <ObligationEditor
-          key={editorTarget.id}
-          obligation={editorTarget}
+          key={editorObligation.id}
+          obligation={editorObligation}
           open={editorTargetId !== null}
           onOpenChange={(open) => {
-            if (!open) setEditorTargetId(null);
+            if (open) return;
+            const returnTo = editorTargetId;
+            setEditorTargetId(null);
+            restoreFocusTo(returnTo);
           }}
         />
       ) : null}
@@ -807,7 +879,10 @@ export function ReviewWorkspace({
       <Dialog
         open={deleteTarget !== null}
         onOpenChange={(open) => {
-          if (!open) setDeleteTargetId(null);
+          if (open) return;
+          const returnTo = deleteTargetId;
+          setDeleteTargetId(null);
+          restoreFocusTo(returnTo);
         }}
       >
         <DialogContent>

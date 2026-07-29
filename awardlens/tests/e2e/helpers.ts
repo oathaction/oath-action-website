@@ -39,10 +39,10 @@ export function uniqueEmail(prefix: string): string {
  * itself intact and exercised.
  */
 function uniqueClientAddress(): string {
-  // Drawn at random from a 24-bit space rather than counted, because the
-  // server's rate-limit buckets outlive a single `playwright test` invocation:
-  // a counter restarting at zero would re-use addresses whose 15-minute window
-  // is still open, and the ninth sign-in of the afternoon would fail.
+  // Drawn at random from a 24-bit space rather than counted: the server's
+  // buckets outlive a single `playwright test` invocation, so a counter
+  // restarting at zero would re-use an address whose 15-minute window is still
+  // open and fail the ninth sign-in of the afternoon.
   const octet = () => Math.floor(Math.random() * 254) + 1;
   return `10.${octet()}.${octet()}.${octet()}`;
 }
@@ -93,7 +93,7 @@ export async function signIn(page: Page, email: string): Promise<void> {
 export async function signOut(page: Page): Promise<void> {
   await page.getByRole("button", { name: /account menu/i }).click();
   await page.getByRole("menuitem", { name: "Sign out" }).click();
-  await page.waitForURL(/localhost:3000\/$/, { timeout: 60_000 });
+  await page.waitForURL((url) => url.pathname === "/", { timeout: 60_000 });
 }
 
 /* -------------------------------------------------------------- ingestion -- */

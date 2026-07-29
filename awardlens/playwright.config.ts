@@ -119,6 +119,16 @@ export default defineConfig({
       USE_DETERMINISTIC_AI_FIXTURES: "true",
       DEVELOPMENT_BILLING_MODE: "true",
       NEXT_PUBLIC_APP_URL: BASE_URL,
+
+      // Playwright merges this over `process.env`, so anything a developer
+      // happens to have exported would otherwise be inherited by the server the
+      // suite drives. These two are blanked deliberately rather than left to
+      // chance: `DATABASE_URL` would point the store at a real Postgres and the
+      // suite would create and delete awards in it, and `RESEND_API_KEY` would
+      // post real email for every generated @example.org address. Empty fails
+      // the `min(1)` in `src/lib/env`, so both fall back to the safe default.
+      DATABASE_URL: "",
+      RESEND_API_KEY: "",
     },
   },
 });

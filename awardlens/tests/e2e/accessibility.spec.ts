@@ -229,6 +229,7 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
       .getByRole("list", { name: "Obligations awaiting review" })
       .getByRole("article")
       .first();
+    const obligationTitle = (await rail.getByRole("heading").first().innerText()).trim();
     await rail.getByRole("button", { name: "Edit" }).click();
 
     const dialog = page.getByRole("dialog");
@@ -258,11 +259,28 @@ test.describe("authenticated pages meet WCAG 2.1 AA", () => {
       expect(escaped, `focus escaped the editor dialog onto "${escaped}"`).toBeNull();
     }
 
-    // Escape closes it and hands focus back to what opened it, so the user
-    // resumes where they were instead of at the top of the document.
+    // Escape closes it and hands focus back to where the user was — the row in
+    // the review queue they opened the editor from — rather than dropping it on
+    // <body>, which would put them at the top of the document.
     await page.keyboard.press("Escape");
     await expect(dialog).toBeHidden();
-    await expect(rail.getByRole("button", { name: "Edit" })).toBeFocused();
+
+    const queue = page.getByRole("list", { name: "Obligations awaiting review" });
+    await expect(
+      queue.locator(":focus"),
+      "focus did not return to the review queue after the editor closed",
+    ).toHaveCount(1);
+
+    const restored = await page.evaluate(() => {
+      const active = document.activeElement as HTMLElement | null;
+      if (!active || active === document.body) return null;
+      return active.getAttribute("aria-label") ?? active.textContent?.trim().slice(0, 80) ?? "";
+    });
+    expect(restored, "focus fell to <body> when the editor closed").not.toBeNull();
+    expect(
+      restored,
+      "focus returned somewhere unrelated to the item that was being edited",
+    ).toContain(obligationTitle);
 
     /* --------------------------------------------------- add obligation -- */
     await page.goto(`/app/awards/${id}/obligations`);
