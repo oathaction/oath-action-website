@@ -353,7 +353,12 @@ export async function updateAward(
 }
 
 export async function deleteAward(id: string, organizationId: string): Promise<boolean> {
-  return mutate((db) => {
+  // Collected before the mutation so the stored bytes can be removed too. An
+  // award deletion that left the private grant document on disk would be a
+  // privacy failure however tidy the database looked.
+  const documents = await listDocuments(id, organizationId);
+
+  const removed = await mutate((db) => {
     const award = db.awards.find(
       (entry) => entry.id === id && entry.organizationId === organizationId,
     );
@@ -381,6 +386,14 @@ export async function deleteAward(id: string, organizationId: string): Promise<b
     db.exports = db.exports.filter((record) => record.awardId !== id);
     return true;
   });
+
+  if (removed) {
+    for (const document of documents) {
+      await deleteDocumentBytes(document.id).catch(() => {});
+    }
+  }
+
+  return removed;
 }
 
 export async function findAwardByContentHash(

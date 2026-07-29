@@ -420,6 +420,21 @@ describe("reminders", () => {
 });
 
 describe("deletion", () => {
+  it("removes the stored document bytes when an award is deleted", async () => {
+    const session = await makeSession("owner@example.org", "Example Org");
+    const result = await ingestText(session, SAMPLE_AWARD_TEXT, "Sample grant");
+    if (!result.ok) throw new Error("ingest failed");
+
+    const documents = await db.listDocuments(result.awardId, session.organization.id);
+    expect(await db.readDocumentBytes(documents[0].id)).not.toBeNull();
+
+    expect(await db.deleteAward(result.awardId, session.organization.id)).toBe(true);
+
+    // The private grant document must not survive on disk.
+    expect(await db.readDocumentBytes(documents[0].id)).toBeNull();
+    expect(await db.listSegments(documents[0].id)).toEqual([]);
+  });
+
   it("removes every trace of an organisation's data", async () => {
     const session = await makeSession("owner@example.org", "Example Org");
     const result = await ingestText(session, SAMPLE_AWARD_TEXT, "Sample grant");
