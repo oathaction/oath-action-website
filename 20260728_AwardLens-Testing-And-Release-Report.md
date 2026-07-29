@@ -8,25 +8,29 @@ Verification record and release recommendation.
 
 | Check | Result |
 |---|---|
-| Unit + integration tests | **471 passing**, 16 files, 0 failing |
+| Unit + integration tests, Postgres backend | **481 passing / 481**, 0 failing |
+| Unit + integration tests, file-store backend | 471 passing, 10 skipped (the Postgres-only suites) |
 | Typecheck (`tsc --noEmit`, strict) | Clean |
 | Lint (ESLint 9) | Clean, 0 errors, 0 warnings |
 | Production build (Next 16 / Turbopack) | Succeeds, 17 routes |
 | CI (GitHub Actions, hermetic) | Green |
+| End-to-end (Playwright, real browser) | **52 passing / 52** — 48 desktop, 4 mobile |
+| Accessibility (`@axe-core/playwright`, WCAG 2.1 A + AA) | **0 violations** across 16 surfaces |
 | Extraction evaluation, 12 synthetic awards | 77.4% recall, **100% citation coverage**, **0% unsupported claims** |
-| Row-level security, live Postgres 16 | 16/16 tables, 54 policies, all negative tests pass |
+| Row-level security, live Postgres 16 | 16/16 public tables with RLS, 51 policies, all negative tests pass |
 | Independent security review | No Critical, **no cross-organisation access path** |
+| Postgres adapter adversarial review | One High (malformed id → 500), fixed; no cross-tenant defect |
 | Dependency audit | 2 advisories, both unreachable (see §6) |
 
-**Recommendation: ship as a single-tenant pilot, not as multi-tenant
-production.** The workflow is complete and verified. The blocker is storage,
-not correctness — see §7.
+**Recommendation: ship as a pilot.** The workflow is complete and verified on
+both storage backends. The remaining gaps are a live-model evaluation and real
+Stripe/Resend transactions, not correctness — see §7.
 
 ---
 
 ## 2. What was tested, and how
 
-### Unit — 460 tests across 14 files
+### Unit — 14 files
 
 Written by an independent QA agent that did not write the source. Concentrated
 on the logic where a defect would be invisible in the UI: citation resolution,
@@ -59,12 +63,27 @@ The organisation-isolation tests attack the boundary directly with a valid
 session and another organisation's ids, and assert that reads return null,
 writes return null, and deletes return false.
 
+`tests/integration/postgres-adapter.test.ts` adds ten tests that run only when
+`DATABASE_URL` is set — which is why the file-store run reports ten skipped
+rather than ten missing. They are written as attacks rather than as coverage: a
+valid session presenting another organisation's ids to every read, write and
+delete, and a hostile patch attempting to reassign a row's `organization_id`.
+All are rejected. The pipeline suite above is not duplicated for Postgres; it is
+the same file, unmodified, run against the other backend.
+
 ### End-to-end — Playwright, real browser, real dev server
 
-Sign-in through the actual six-digit code flow, sample analysis, review,
-editing, export downloads, deletion, mobile viewports, and axe accessibility
-scans. Findings are in §4; the suite found three real bugs the other layers
-missed.
+Eight spec files, 52 tests, all passing — 48 at 1280×800 and 4 at 390×844. They
+cover sign-in through the actual six-digit code flow, sample analysis, the review
+workflow, editing, export downloads, deletion, organisation isolation, mobile
+viewports and the axe scans.
+
+This layer earned its cost. It found ten real defects that unit and integration
+tests structurally could not see, because every one of them lived in the gap
+between a component and the browser: a `"use server"` module exporting a plain
+constant, a sign-out form that Radix unmounted before it could submit, a
+`loading.tsx` that made `notFound()` return HTTP 200, and a dialog whose focus
+returned to `<body>` instead of the row that opened it. Findings are in §4.
 
 ### Extraction evaluation — 12 synthetic award documents
 
@@ -180,8 +199,21 @@ progress, Radix-managed dialog focus, 44px touch targets on mobile, colour never
 the only signal, and `prefers-reduced-motion` honoured.
 
 Verified: no horizontal overflow at 390px or 1280px on `/`, `/pricing` and
-`/demo`; the landing page renders one `h1` with correct heading order. Axe scans
-across the public and authenticated routes run in `tests/e2e/accessibility.spec.ts`.
+`/demo`; the landing page renders one `h1` with correct heading order.
+
+`tests/e2e/accessibility.spec.ts` runs `@axe-core/playwright` against WCAG 2.1 A
+and AA on every public and authenticated route plus the three dialogs — sixteen
+surfaces in total. **Zero violations, with nothing excluded and no rule
+suppressed.** Scanning the dialogs matters more than scanning the pages: the
+edit, add and shortcut dialogs are where focus management, labelling and escape
+behaviour actually get exercised.
+
+The end-to-end suite found ten defects the unit and integration layers could not
+see, several of them accessibility defects — a source panel that could not be
+scrolled without a mouse (the panel where a citation is verified), a sign-out
+control that silently did nothing because Radix unmounted its portal before the
+form submitted, and `notFound()` returning HTTP 200 because a `loading.tsx` at
+the segment root streamed a response before the page ran.
 
 ---
 
@@ -211,39 +243,54 @@ Stated plainly because these are the gaps a reader should weigh:
    that runs against it on request — but every extraction number in this report
    comes from the deterministic extractor. **Run `pnpm test:ai-live` before
    trusting live extraction quality.**
-2. **The Supabase adapter does not exist.** The schema and RLS are complete and
-   verified against a real Postgres, but nothing in the application uses them.
-   All data is in a local file store that is per-instance and ephemeral on
-   serverless. This is the release blocker for multi-tenant use.
-3. **Stripe and Resend were never called for real.** Signature verification,
+2. **Stripe and Resend were never called for real.** Signature verification,
    idempotency, entitlement logic and email rendering are implemented and unit
    tested; no live transaction or delivery has occurred.
-4. **No load or soak testing.** No concurrency testing of the file store beyond
-   its serialised write queue.
-5. **OCR is out of scope.** Scanned PDFs are detected and explained.
+3. **No load or soak testing.** No concurrency testing of either store beyond the
+   file store's serialised write queue and the Postgres pool's default limits.
+4. **OCR is out of scope.** Scanned PDFs are detected and explained.
+
+The Supabase/Postgres gap that this section previously listed as the release
+blocker is closed. `src/lib/db/pg/` implements the same module surface as the
+reference file store, `src/lib/db/index.ts` selects between them at module load,
+and typing the chosen implementation as `typeof local` makes surface parity a
+compile-time check rather than a claim. The whole suite runs against both: 481
+tests pass with `DATABASE_URL` set, including the entire ingestion pipeline suite
+— written against the file store and never modified — passing unchanged on
+Postgres. An adversarial review of the adapter found one High-severity defect (a
+malformed id reaching a `uuid` column raised 22P02 and surfaced as a 500 instead
+of a not-found, and ids arrive from URLs), which is fixed by a shared `isUuid`
+guard in `src/lib/db/pg/client.ts`. It found no cross-tenant access path.
+
+One thing about that adapter is worth stating explicitly rather than leaving to
+be discovered: it connects directly to Postgres with the service role, so
+`auth.uid()` is not set and **RLS is not what protects tenants on this path**.
+Every query scopes by `organization_id` in its `WHERE` clause, exactly as the
+file store does, and that is the enforcement. RLS remains the backstop for
+anything arriving as an authenticated user — the Supabase client libraries, the
+SQL editor, a future browser-side read — and it is what makes a mistake in that
+file a bug rather than a breach.
 
 ---
 
 ## 8. Release recommendation
 
-**Substantially complete. Ship as a pilot; do not present as multi-tenant
-production.**
+**Substantially complete. Ship as a pilot.**
 
 Safe to do now:
 
-- Local use, demos, and a single-organisation pilot on the graded-mode
-  configuration.
-- A public demo deployment, provided `AUTH_SECRET` and Resend are configured
-  (without Resend, nobody can sign in to a production build) and
-  `ALLOW_LOCAL_STORE=true` acknowledges the ephemeral store.
+- A pilot on Postgres with `DATABASE_URL` set, `AUTH_SECRET` configured and
+  Resend connected. Without Resend nobody can sign in to a production build,
+  because the six-digit code is only returned to the browser outside production.
+- Local use and demos on the zero-credential configuration, where
+  `ALLOW_LOCAL_STORE=true` acknowledges that the file store is ephemeral.
 
-Required before holding multiple organisations' documents:
+Required before it should be presented as finished production software:
 
-1. Wire the Supabase adapter and flip `SUPABASE_ADAPTER_IMPLEMENTED`.
-2. Run the live-model evaluation and record real extraction numbers.
-3. Make sessions revocable.
-4. Exercise Stripe and Resend end to end in test mode.
-5. Add a Content-Security-Policy.
+1. Run the live-model evaluation and record real extraction numbers.
+2. Make sessions revocable.
+3. Exercise Stripe and Resend end to end in test mode.
+4. Add a Content-Security-Policy.
 
 The product's central claim — that every material obligation is traceable to the
 page it came from, and that nothing is treated as confirmed until a person

@@ -138,13 +138,18 @@ now has a regression test.
 
 ## 5. Verification performed
 
-- **Unit + integration: 449 tests, all passing** across 14 files.
+- **Unit + integration: 481 passing with `DATABASE_URL` set**; 471 passing and 10
+  skipped without it, the ten being the Postgres-only adapter attacks.
+- **End-to-end: 52 Playwright tests passing** — 48 at 1280×800, 4 at 390×844 —
+  against a real browser and a real dev server.
+- **Accessibility: 0 axe violations** (WCAG 2.1 A + AA) across 16 surfaces,
+  including the three dialogs, with nothing excluded and no rule suppressed.
 - **Extraction evaluation** over all 12 synthetic awards (deterministic mode):
   critical-obligation recall **77.4%** (65/84), citation coverage **100%**
   (193/193), unsupported-claim rate **0%**, date accuracy 67.7%, duplicate rate
   10.9%, review burden 17.5 items per award.
-- **Row-level security** verified by Agent 5 against a real Postgres 16 cluster:
-  16/16 tables with RLS enabled, 54 policies, all negative tests passing
+- **Row-level security** verified against a real Postgres 16 cluster: 16/16
+  public tables with RLS enabled, 51 policies, all negative tests passing
   (cross-org reads, id guessing, anonymous reads, child-table leaks, cross-org
   writes, billing self-upgrade, audit tampering, malformed storage paths).
 - **Production build succeeds** (Next 16 / Turbopack), 17 routes.
@@ -154,10 +159,17 @@ now has a regression test.
 
 ## 6. Deferred, and honest status
 
-- **Supabase adapter not wired in.** The migrations, RLS policies and storage
-  rules are complete and independently verified, but the application still
-  imports `src/lib/db/local.ts`. Production-grade persistence needs an adapter
-  implementing the same module surface. This is the single largest gap.
+- **~~Supabase adapter not wired in.~~ Closed.** `src/lib/db/pg/` now implements
+  the same module surface as the reference file store, and `src/lib/db/index.ts`
+  selects between them at module load. Typing the chosen implementation as
+  `typeof local` makes surface parity a compile-time check: if the adapter stops
+  matching the reference store, the file stops compiling. Verified at **481/481
+  with `DATABASE_URL` set**, including the entire ingestion pipeline suite —
+  written against the file store, never modified — passing unchanged on
+  Postgres. Note that the adapter connects with the service role, so `auth.uid()`
+  is unset and **RLS is not what protects tenants on that path**; every query
+  scopes by `organization_id` in its `WHERE` clause. RLS is the backstop for
+  anything arriving as an authenticated user.
 - **No live-model run.** No AI gateway credentials were available, so the live
   extraction path is exercised only by types, schema validation and the
   evaluation harness in deterministic mode. `pnpm test:ai-live` runs the same
@@ -179,6 +191,7 @@ now has a regression test.
 
 **Substantially complete.** The full MVP workflow — sign in, upload, parse,
 extract, cite, review, correct, export, remind — works end to end and is covered
-by tests. It is ready to deploy as a pilot on the graded-mode configuration, and
-needs the Supabase adapter plus a live-model evaluation before it should hold
-another organisation's grant documents in production.
+by tests on both storage backends. It is ready to deploy as a pilot. What it
+still needs before being presented as finished production software is a
+live-model evaluation, revocable sessions, real Stripe and Resend transactions,
+and a Content-Security-Policy.
