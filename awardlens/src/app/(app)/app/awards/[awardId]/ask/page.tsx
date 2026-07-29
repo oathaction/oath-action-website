@@ -1,14 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpenCheck, CircleHelp, Quote } from "lucide-react";
+import { ArrowLeft, BookOpenCheck } from "lucide-react";
 
 import { requireSession } from "@/lib/auth";
 import * as db from "@/lib/db";
 import { INTERPRETATION_LABELS } from "@/lib/domain/types";
 import { formatLocator } from "@/lib/documents/segment";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 import { AskPanel } from "@/components/award/ask-panel";
 
 export const metadata: Metadata = { title: "Ask this award" };
@@ -34,10 +34,10 @@ export default async function AskPage(props: {
         {award.name}
       </Link>
 
-      <div className="mt-5 grid gap-8 lg:grid-cols-[1fr_20rem]">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Ask this award</h1>
-          <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+      <div className="mt-4 grid gap-x-10 gap-y-8 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="min-w-0">
+          <h1 className="type-title">Ask this award</h1>
+          <p className="type-lede measure mt-2 text-muted-foreground">
             Questions are answered only from this award&rsquo;s own documents. If the document
             doesn&rsquo;t address something, AwardLens says so instead of filling the gap.
           </p>
@@ -45,92 +45,122 @@ export default async function AskPage(props: {
           <AskPanel awardId={awardId} />
 
           {exchanges.length > 0 ? (
-            <section className="mt-8 space-y-6" aria-label="Previous questions">
-              {[...exchanges].reverse().map((exchange) => (
-                <article
-                  key={exchange.id}
-                  className="rounded-lg border border-border bg-surface p-5"
-                >
-                  <h2 className="flex items-start gap-2 text-sm font-semibold">
-                    <CircleHelp
-                      className="mt-0.5 size-4 shrink-0 text-muted-foreground"
-                      aria-hidden="true"
-                    />
-                    {exchange.question}
-                  </h2>
+            <section className="mt-10" aria-labelledby="previous-questions">
+              <h2 id="previous-questions" className="eyebrow text-muted-foreground">
+                Previous questions
+              </h2>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    {exchange.answerType === "not_addressed" ? (
-                      <Badge variant="warning">Not addressed in this award</Badge>
-                    ) : exchange.answerType === "uncertain" ? (
-                      <Badge variant="warning">Uncertain</Badge>
-                    ) : (
-                      <Badge variant="success">Answered from the document</Badge>
-                    )}
-                    <Badge variant="outline">
-                      {INTERPRETATION_LABELS[exchange.interpretationLevel]}
-                    </Badge>
-                  </div>
+              <div className="mt-3 space-y-5">
+                {[...exchanges].reverse().map((exchange) => (
+                  <article
+                    key={exchange.id}
+                    className="overflow-hidden rounded-lg border border-border bg-surface shadow-resting"
+                  >
+                    <div className="px-5 pb-4 pt-4">
+                      <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+                        <h3 className="type-subhead min-w-0 flex-1 text-foreground">
+                          {exchange.question}
+                        </h3>
+                        {/* Answered from the document is the ordinary case, so
+                            it is quiet; "not addressed" and "uncertain" are the
+                            two outcomes worth a filled pill. */}
+                        <span className="shrink-0">
+                          {exchange.answerType === "not_addressed" ? (
+                            <Badge variant="warning" emphasis="solid">
+                              Not addressed in this award
+                            </Badge>
+                          ) : exchange.answerType === "uncertain" ? (
+                            <Badge variant="warning" emphasis="solid">
+                              Uncertain
+                            </Badge>
+                          ) : (
+                            <Badge variant="success" emphasis="quiet">
+                              Answered from the document
+                            </Badge>
+                          )}
+                        </span>
+                      </div>
 
-                  <div className="mt-3 space-y-2 text-sm leading-relaxed text-foreground-soft">
-                    {exchange.answer.split("\n\n").map((paragraph, index) => (
-                      <p key={index}>{paragraph}</p>
-                    ))}
-                  </div>
+                      <div className="stack-sm type-body measure-wide mt-3 text-foreground-soft">
+                        {exchange.answer.split("\n\n").map((paragraph, index) => (
+                          <p key={index}>{paragraph}</p>
+                        ))}
+                      </div>
 
-                  {exchange.citations.length > 0 ? (
-                    <div className="mt-4 space-y-3 border-t border-border pt-3">
-                      <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Quote className="size-3" aria-hidden="true" />
-                        Sources
-                      </p>
-                      {exchange.citations.map((citation, index) => (
-                        <figure key={index}>
-                          <figcaption className="text-xs font-medium text-muted-foreground">
-                            {formatLocator(citation.locatorType, citation.locatorValue)}
-                          </figcaption>
-                          <blockquote className="evidence-quote mt-1 border-l-2 border-border-strong pl-3">
-                            &ldquo;{citation.excerpt}&rdquo;
-                          </blockquote>
-                        </figure>
-                      ))}
-                    </div>
-                  ) : null}
-
-                  {exchange.suggestedFunderQuestion ? (
-                    <div className="mt-4 rounded-md bg-muted px-3 py-2.5">
-                      <p className="text-xs font-semibold text-foreground">
-                        Suggested question for the funder
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-foreground-soft">
-                        {exchange.suggestedFunderQuestion}
+                      <p className="type-caption mt-3 font-normal text-muted-foreground">
+                        {INTERPRETATION_LABELS[exchange.interpretationLevel]}
                       </p>
                     </div>
-                  ) : null}
-                </article>
-              ))}
+
+                    {/* The passages the answer was drawn from, set on paper:
+                        the same document surface the Evidence Rail uses, so a
+                        quotation always looks quoted rather than restated. */}
+                    {exchange.citations.length > 0 ? (
+                      <div className="border-t border-paper-border bg-paper px-5 pb-4 pt-3">
+                        <h4 className="eyebrow text-ink-document-soft">
+                          {exchange.citations.length === 1
+                            ? "Source passage"
+                            : `Source passages (${exchange.citations.length})`}
+                        </h4>
+                        <div className="stack-md mt-2.5">
+                          {exchange.citations.map((citation, index) => (
+                            <figure key={index}>
+                              <figcaption className="tabular font-mono text-[11.5px] font-medium tracking-[-0.01em] text-ink-document">
+                                {formatLocator(citation.locatorType, citation.locatorValue)}
+                              </figcaption>
+                              <blockquote className="evidence-quote evidence-quote-hang mt-1 max-w-[66ch]">
+                                &ldquo;{citation.excerpt}&rdquo;
+                              </blockquote>
+                            </figure>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {exchange.suggestedFunderQuestion ? (
+                      <div className="border-t border-border-subtle bg-surface-sunken px-5 py-3.5">
+                        <h4 className="eyebrow text-muted-foreground">
+                          Suggested question for the funder
+                        </h4>
+                        <p className="type-small mt-1 text-foreground-soft">
+                          {exchange.suggestedFunderQuestion}
+                        </p>
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
             </section>
-          ) : null}
+          ) : (
+            <div className="mt-10 rounded-lg border border-dashed border-border-strong bg-surface/60 px-6 py-10">
+              <p className="measure mx-auto text-center text-sm leading-relaxed text-muted-foreground">
+                Answers will appear here, each one followed by the passages it was drawn from. You
+                can check every claim against the document before you act on it.
+              </p>
+            </div>
+          )}
         </div>
 
-        <aside className="space-y-4">
-          <Alert variant="info">
-            <AlertDescription className="space-y-2 text-xs leading-relaxed">
-              <p className="flex items-center gap-1.5 font-semibold">
-                <BookOpenCheck className="size-3.5" aria-hidden="true" />
+        <aside className="lg:pt-1">
+          <Card tone="sunken" elevation="flat">
+            <CardContent padding="tight" className="pt-3.5">
+              <h2 className="type-subhead flex items-center gap-2 text-foreground">
+                <BookOpenCheck className="size-4 text-muted-foreground" aria-hidden="true" />
                 How answers work
-              </p>
-              <p>
-                AwardLens searches the stored text of this award and answers only from what it
-                finds, quoting the passages it used.
-              </p>
-              <p>
-                It will not tell you whether a cost is allowable or whether you are compliant —
-                those are judgements for your organisation and, where it matters, your funder or
-                adviser.
-              </p>
-            </AlertDescription>
-          </Alert>
+              </h2>
+              <div className="stack-sm mt-2.5 text-xs leading-relaxed text-foreground-soft">
+                <p>
+                  AwardLens searches the stored text of this award and answers only from what it
+                  finds, quoting the passages it used.
+                </p>
+                <p>
+                  It will not tell you whether a cost is allowable or whether you are compliant —
+                  those are judgements for your organisation and, where it matters, your funder or
+                  adviser.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </aside>
       </div>
     </div>

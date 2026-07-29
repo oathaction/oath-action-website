@@ -104,7 +104,7 @@ export default async function ObligationsPage(props: ObligationsPageProps) {
         <Alert
           role="note"
           variant="info"
-          className="mt-5 border-ink-accent-border bg-ink-accent-subtle text-ink-accent"
+          className="measure-wide mt-5 border-ink-accent-border bg-ink-accent-subtle text-ink-accent"
         >
           <AlertDescription className="leading-relaxed">
             <span className="font-semibold">

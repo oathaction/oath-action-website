@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { RefreshCw, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDivider, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogClose,
@@ -57,17 +57,17 @@ export function AwardDangerZone({
   };
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm">Manage this award</CardTitle>
+    <Card tone="sunken" elevation="flat">
+      <CardHeader padding="tight" className="pb-2.5">
+        <CardTitle className="text-[15px]">Manage this award</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2">
+      <CardContent padding="tight" className="space-y-2">
         {canReprocess ? (
           <Button
             type="button"
             variant="secondary"
             size="sm"
-            className="w-full justify-start"
+            className="min-h-11 w-full justify-start sm:min-h-8"
             disabled={pending}
             onClick={reprocess}
           >
@@ -83,7 +83,7 @@ export function AwardDangerZone({
                 type="button"
                 variant="secondary"
                 size="sm"
-                className="w-full justify-start"
+                className="min-h-11 w-full justify-start sm:min-h-8"
                 disabled={pending}
               >
                 <Trash2 className="size-4" aria-hidden="true" />
@@ -113,13 +113,17 @@ export function AwardDangerZone({
           </Dialog>
         ) : null}
 
+        {/* Below a rule, on its own: an irreversible action should not sit in
+            the same visual run as re-analysing a file. */}
+        <CardDivider padding="tight" className="my-3" />
+
         <Dialog>
           <DialogTrigger asChild>
             <Button
               type="button"
               variant="destructiveOutline"
               size="sm"
-              className="w-full justify-start"
+              className="min-h-11 w-full justify-start sm:min-h-8"
               disabled={pending}
             >
               <Trash2 className="size-4" aria-hidden="true" />

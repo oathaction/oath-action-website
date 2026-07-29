@@ -248,7 +248,10 @@ export function SourcePanel({
           <EmptyState
             bordered={false}
             headingLevel={3}
-            className="min-h-[14rem]"
+            /* Centres in the whole panel rather than in a box at the top of
+               it — an empty panel with its message pinned to the ceiling reads
+               as a page that failed to load. */
+            className="h-full"
             title="No stored text for this award"
             description="We could not read any text out of the uploaded file, so there is nothing to compare these items against. Check the document against the award yourself before relying on anything below."
           />

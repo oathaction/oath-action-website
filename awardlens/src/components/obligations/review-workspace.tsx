@@ -56,7 +56,7 @@ import {
   DialogTrigger,
   SheetContent,
 } from "@/components/ui/dialog";
-import { Kbd, Progress } from "@/components/ui/misc";
+import { EmptyState, Kbd, Progress } from "@/components/ui/misc";
 
 /**
  * The review workspace — the screen the whole product exists to serve.
@@ -680,7 +680,15 @@ export function ReviewWorkspace({
          * and the queue scroll inside themselves instead of the page scrolling
          * a sticky column past several hundred pixels of empty background.
          */
-        <div className="mt-4 lg:grid lg:h-[calc(100dvh-10rem)] lg:min-h-[32rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.03fr)] lg:gap-5">
+        /*
+         * The height is not arbitrary. Below the workspace sit the page's own
+         * bottom padding, the app layout's `pb-16` and the footer — about
+         * 11rem. Scrolled to the bottom, a workspace of `100dvh - 14rem` comes
+         * to rest just under the sticky header instead of tucking its top edge
+         * behind it, at every viewport height, because the offset above it
+         * cancels out.
+         */
+        <div className="mt-4 print:block! print:h-auto! lg:grid lg:h-[calc(100dvh-14rem)] lg:min-h-[30rem] lg:grid-cols-[minmax(0,1fr)_minmax(0,1.03fr)] lg:gap-5">
           {/* ------------------------------------------------ source pane -- */}
           <div className="hidden min-h-0 lg:block">{sourcePanel}</div>
 
@@ -764,14 +772,24 @@ export function ReviewWorkspace({
             </div>
 
             {/* ---------------------------------------------------- queue -- */}
-            <div className="mt-3 lg:-mx-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-1 lg:pb-1">
+            {/* `print:` overrides so a printed page is not clipped to one
+                viewport's worth of queue; the register and the plan are the
+                real print artefacts, but this must not silently lose rows. */}
+            <div className="mt-3 print:overflow-visible! lg:-mx-1 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:px-1 lg:pb-1">
               {queueFinished ? <CompletionState award={award} progress={progress} /> : null}
 
               {queue.length === 0 ? (
-                <p className="rounded-lg border border-dashed border-border-strong bg-surface px-4 py-8 text-center text-sm text-muted-foreground">
-                  No items match this filter. Choose <strong className="font-medium">All</strong> to
-                  see everything on this award.
-                </p>
+                <EmptyState
+                  headingLevel={3}
+                  className="h-full"
+                  title="No items match this filter"
+                  description={
+                    <>
+                      Choose <strong className="font-medium text-foreground">All</strong> to see
+                      everything on this award.
+                    </>
+                  }
+                />
               ) : (
                 <ol
                   ref={queueRef}
@@ -868,12 +886,34 @@ export function ReviewWorkspace({
                                   Not applicable
                                 </Button>
 
-                                <span className="flex items-center gap-1 sm:ml-auto">
+                                {/* Below the rule: everything that is not a
+                                    decision. Checking the passage in context
+                                    sits at the left, next to the evidence it
+                                    belongs to; editing and deleting the record
+                                    are pushed to the far end. */}
+                                <span className="rule flex w-full flex-wrap items-center gap-1 pt-2">
+                                  {citations.map((citation) => (
+                                    <Button
+                                      key={citation.id}
+                                      type="button"
+                                      size="sm"
+                                      variant={
+                                        activeCitation?.id === citation.id ? "subtle" : "ghost"
+                                      }
+                                      className="h-11 sm:h-8"
+                                      aria-pressed={activeCitation?.id === citation.id}
+                                      onClick={() => openSource(citation)}
+                                    >
+                                      <Quote className="size-4" aria-hidden="true" />
+                                      Open source ·{" "}
+                                      {formatLocator(citation.locatorType, citation.locatorValue)}
+                                    </Button>
+                                  ))}
                                   <Button
                                     type="button"
                                     size="sm"
                                     variant="ghost"
-                                    className="h-11 sm:h-9"
+                                    className="h-11 sm:ml-auto sm:h-8"
                                     disabled={pending}
                                     onClick={() => openEditor(obligation.id)}
                                   >
@@ -884,7 +924,7 @@ export function ReviewWorkspace({
                                     type="button"
                                     size="sm"
                                     variant="destructiveGhost"
-                                    className="h-11 sm:h-9"
+                                    className="h-11 sm:h-8"
                                     disabled={pending}
                                     onClick={() => openDeleteDialog(obligation.id)}
                                   >
@@ -892,31 +932,6 @@ export function ReviewWorkspace({
                                     Delete
                                   </Button>
                                 </span>
-
-                                {citations.length > 0 ? (
-                                  <span className="rule flex w-full flex-wrap items-center gap-2 pt-2.5">
-                                    {citations.map((citation) => (
-                                      <Button
-                                        key={citation.id}
-                                        type="button"
-                                        size="sm"
-                                        variant={
-                                          activeCitation?.id === citation.id ? "subtle" : "ghost"
-                                        }
-                                        className="h-11 sm:h-8"
-                                        aria-pressed={activeCitation?.id === citation.id}
-                                        onClick={() => openSource(citation)}
-                                      >
-                                        <Quote className="size-4" aria-hidden="true" />
-                                        Open source ·{" "}
-                                        {formatLocator(
-                                          citation.locatorType,
-                                          citation.locatorValue,
-                                        )}
-                                      </Button>
-                                    ))}
-                                  </span>
-                                ) : null}
                               </>
                             }
                           />

@@ -15,8 +15,8 @@ import {
 import { requireSession } from "@/lib/auth";
 import { getAwardWorkspace } from "@/lib/awards/queries";
 import type { ObligationWithCitations } from "@/lib/domain/types";
-import { formatCurrency, formatIsoDate } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { cn, formatCurrency, formatIsoDate } from "@/lib/utils";
+import { Button, ButtonRow } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Progress } from "@/components/ui/misc";
@@ -103,48 +103,53 @@ export default async function AwardPage(props: {
         </Alert>
       ) : null}
 
-      <header className="mt-5">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <h1 className="text-2xl font-semibold tracking-tight">{award.name}</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {award.funder ?? "Funder not identified"}
-              {award.awardNumber ? (
-                <>
-                  {" · "}
-                  <span className="font-mono">{award.awardNumber}</span>
-                </>
-              ) : null}
-            </p>
-          </div>
-
-          <div className="flex flex-wrap gap-2" data-print="hide">
-            <Button asChild variant="secondary" size="sm">
-              <Link href={`/app/awards/${award.id}/ask`}>
-                <MessageSquareText className="size-4" aria-hidden="true" />
-                Ask this award
-              </Link>
-            </Button>
-            <Button asChild variant="secondary" size="sm">
-              <Link href={`/app/awards/${award.id}/plan`}>
-                <Printer className="size-4" aria-hidden="true" />
-                Operating plan
-              </Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href={`/app/awards/${award.id}/review`}>
-                <ClipboardList className="size-4" aria-hidden="true" />
-                {progress.needsReview > 0 ? `Review ${progress.needsReview} items` : "Review"}
-              </Link>
-            </Button>
-          </div>
+      <header className="mt-4 flex flex-wrap items-start justify-between gap-x-6 gap-y-4">
+        <div className="min-w-0">
+          <h1 className="type-title">{award.name}</h1>
+          <p className="type-small mt-1.5 text-muted-foreground">
+            {award.funder ?? "Funder not identified"}
+            {award.awardNumber ? (
+              <>
+                {" · "}
+                <span className="font-mono">{award.awardNumber}</span>
+              </>
+            ) : null}
+          </p>
         </div>
+
+        <ButtonRow data-print="hide">
+          <Button asChild variant="secondary" size="sm" className="min-h-11 sm:min-h-8">
+            <Link href={`/app/awards/${award.id}/ask`}>
+              <MessageSquareText className="size-4" aria-hidden="true" />
+              Ask this award
+            </Link>
+          </Button>
+          <Button asChild variant="secondary" size="sm" className="min-h-11 sm:min-h-8">
+            <Link href={`/app/awards/${award.id}/plan`}>
+              <Printer className="size-4" aria-hidden="true" />
+              Operating plan
+            </Link>
+          </Button>
+          <Button asChild size="sm" className="min-h-11 sm:min-h-8">
+            <Link href={`/app/awards/${award.id}/review`}>
+              <ClipboardList className="size-4" aria-hidden="true" />
+              {progress.needsReview > 0 ? `Review ${progress.needsReview} items` : "Review"}
+            </Link>
+          </Button>
+        </ButtonRow>
       </header>
 
-      <dl className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCell label="Award amount" value={formatCurrency(award.awardAmount, award.currency)} mono />
+      {/* The four facts a grants manager reads first. Unequal columns because
+          a date range needs room and a percentage does not. */}
+      <dl className="mt-6 grid gap-px overflow-hidden rounded-lg border border-border bg-border shadow-resting sm:grid-cols-2 lg:grid-cols-[1fr_1.55fr_0.8fr_0.85fr]">
+        <SummaryCell
+          label="Award amount"
+          value={formatCurrency(award.awardAmount, award.currency)}
+          mono
+        />
         <SummaryCell
           label="Grant period"
+          size="sm"
           value={
             award.startDate || award.endDate
               ? `${formatIsoDate(award.startDate, { month: "short", day: "numeric", year: "numeric" })} – ${formatIsoDate(award.endDate, { month: "short", day: "numeric", year: "numeric" })}`
@@ -161,29 +166,40 @@ export default async function AwardPage(props: {
       </dl>
 
       {progress.needsReview > 0 ? (
-        <div className="mt-4 rounded-lg border border-ink-accent-subtle bg-ink-accent-subtle p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-ink-accent">
-                {progress.needsReview} of {progress.total} items still need your review
-              </p>
-              <p className="mt-0.5 text-xs text-ink-accent">
-                Nothing here is treated as confirmed until you check it against the document.
-              </p>
-            </div>
+        /* --ink-accent on --ink-accent-subtle is 10.85:1. The bar sits under
+           the sentence at full width, so at 0% it reads as a track waiting to
+           be filled rather than as an empty box floating beside the text. */
+        <section
+          aria-labelledby="review-progress-heading"
+          className="mt-4 rounded-lg border border-ink-accent-border bg-ink-accent-subtle px-5 py-4"
+        >
+          <h2 id="review-progress-heading" className="type-subhead text-ink-accent">
+            {progress.needsReview} of {progress.total} items still need your review
+          </h2>
+          <p className="type-small mt-1 text-ink-accent">
+            Nothing here is treated as confirmed until you check it against the document.
+          </p>
+          <div className="mt-3.5 flex max-w-sm items-center gap-3">
             <Progress
               value={progress.percentComplete}
               aria-label={`Review ${progress.percentComplete} percent complete`}
-              className="w-full max-w-48"
+              className="flex-1"
             />
+            <p className="tabular shrink-0 font-mono text-[11px] font-medium text-ink-accent">
+              {progress.confirmed} / {progress.total} confirmed
+            </p>
           </div>
-        </div>
+        </section>
       ) : null}
 
       {progress.unverifiedSource > 0 ? (
-        <Alert variant="warning" className="mt-4">
-          <AlertTitle className="flex items-center gap-2">
-            <ShieldAlert className="size-4" aria-hidden="true" />
+        <Alert
+          variant="warning"
+          role="note"
+          className="mt-4"
+          icon={<ShieldAlert aria-hidden="true" />}
+        >
+          <AlertTitle>
             {progress.unverifiedSource}{" "}
             {progress.unverifiedSource === 1 ? "item needs" : "items need"} source confirmation
           </AlertTitle>
@@ -194,8 +210,8 @@ export default async function AwardPage(props: {
         </Alert>
       ) : null}
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[1.7fr_1fr]">
-        <div className="space-y-8">
+      <div className="mt-9 grid gap-x-10 gap-y-9 lg:grid-cols-[1.7fr_1fr]">
+        <div className="space-y-9">
           <Section
             title="Upcoming deadlines"
             icon={<CalendarDays className="size-4" aria-hidden="true" />}
@@ -223,53 +239,60 @@ export default async function AwardPage(props: {
           />
         </div>
 
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <Download className="size-4" aria-hidden="true" />
+        <div className="space-y-5">
+          <Card className="overflow-hidden">
+            <CardHeader padding="tight" className="pb-2.5">
+              <CardTitle className="flex items-center gap-2 text-[15px]">
+                <Download className="size-4 text-muted-foreground" aria-hidden="true" />
                 Exports
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <ExportLink
-                href={`/api/awards/${award.id}/export/csv`}
-                label="Obligation register (CSV)"
-                hint="Every item, including unreviewed ones."
-              />
-              <ExportLink
-                href={`/api/awards/${award.id}/export/ics`}
-                label="Deadline calendar (.ics)"
-                hint="Confirmed dated items only."
-              />
-              <ExportLink
-                href={`/api/awards/${award.id}/export/json`}
-                label="Full data (JSON)"
-                hint="Everything, with citations and review state."
-              />
-              <Link
-                href={`/app/awards/${award.id}/plan`}
-                className="block rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-muted"
-              >
-                <span className="font-medium">Printable operating plan</span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                  Print or save as PDF from your browser.
-                </span>
-              </Link>
+            <CardContent padding="tight" className="px-0 pb-0">
+              <ul className="divide-y divide-border-subtle border-t border-border-subtle">
+                <ExportLink
+                  href={`/api/awards/${award.id}/export/csv`}
+                  label="Obligation register (CSV)"
+                  hint="Every item, including unreviewed ones."
+                  download
+                />
+                <ExportLink
+                  href={`/api/awards/${award.id}/export/ics`}
+                  label="Deadline calendar (.ics)"
+                  hint="Confirmed dated items only."
+                  download
+                />
+                <ExportLink
+                  href={`/api/awards/${award.id}/export/json`}
+                  label="Full data (JSON)"
+                  hint="Everything, with citations and review state."
+                  download
+                />
+                <ExportLink
+                  href={`/app/awards/${award.id}/plan`}
+                  label="Printable operating plan"
+                  hint="Print or save as PDF from your browser."
+                />
+              </ul>
             </CardContent>
           </Card>
 
           {openQuestions.length > 0 ? (
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm">
-                  Questions for the funder ({openQuestions.length})
+            <Card tone="sunken" elevation="flat">
+              <CardHeader padding="tight" className="pb-2">
+                <CardTitle className="text-[15px]">
+                  Questions for the funder{" "}
+                  <span className="tabular font-mono text-xs font-normal text-muted-foreground">
+                    ({openQuestions.length})
+                  </span>
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent padding="tight">
                 <ul className="space-y-2.5">
                   {openQuestions.slice(0, 6).map((obligation) => (
-                    <li key={obligation.id} className="text-xs leading-relaxed text-foreground-soft">
+                    <li
+                      key={obligation.id}
+                      className="border-l-2 border-border-strong pl-3 text-xs leading-relaxed text-foreground-soft"
+                    >
                       {obligation.clarificationQuestion}
                     </li>
                   ))}
@@ -279,15 +302,15 @@ export default async function AwardPage(props: {
           ) : null}
 
           <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-sm">
-                <FileText className="size-4" aria-hidden="true" />
+            <CardHeader padding="tight" className="pb-2.5">
+              <CardTitle className="flex items-center gap-2 text-[15px]">
+                <FileText className="size-4 text-muted-foreground" aria-hidden="true" />
                 Source document
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent padding="tight" className="space-y-3">
               {documents.length === 0 ? (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs leading-relaxed text-muted-foreground">
                   The source document has been deleted. Obligations remain, but source passages can
                   no longer be opened.
                 </p>
@@ -295,7 +318,7 @@ export default async function AwardPage(props: {
                 documents.map((document) => (
                   <div key={document.id}>
                     <p className="truncate text-sm font-medium">{document.originalFilename}</p>
-                    <p className="mt-0.5 font-mono text-xs text-muted-foreground">
+                    <p className="tabular mt-0.5 font-mono text-xs text-muted-foreground">
                       {(document.byteSize / 1024).toFixed(0)} KB
                       {document.pageCount ? ` · ${document.pageCount} pages` : ""}
                     </p>
@@ -303,8 +326,8 @@ export default async function AwardPage(props: {
                 ))
               )}
               {award.governingDocuments.length > 0 ? (
-                <div className="border-t border-border pt-3">
-                  <p className="text-xs font-medium">Referenced documents</p>
+                <div className="rule pt-3">
+                  <p className="type-caption text-foreground-soft">Referenced documents</p>
                   <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     This award incorporates {award.governingDocuments.join(", ")}. Those documents
                     carry their own requirements and are not analysed here.
@@ -325,24 +348,34 @@ export default async function AwardPage(props: {
   );
 }
 
+/**
+ * One cell of the summary strip. `size="sm"` is for the values that are a
+ * phrase rather than a figure — a date range set at metric size out-shouts the
+ * award amount, which is the number people actually came to read.
+ */
 function SummaryCell({
   label,
   value,
   mono,
   tone,
+  size = "md",
 }: {
   label: string;
   value: string;
   mono?: boolean;
   tone?: "success";
+  size?: "sm" | "md";
 }) {
   return (
-    <div className="bg-surface p-4">
-      <dt className="text-xs font-medium uppercase tracking-wide text-muted-foreground">{label}</dt>
+    <div className="bg-surface px-5 py-4">
+      <dt className="eyebrow text-muted-foreground">{label}</dt>
       <dd
-        className={`mt-1 text-lg font-semibold ${mono ? "font-mono" : ""} ${
-          tone === "success" ? "text-success" : "text-foreground"
-        }`}
+        className={cn(
+          "metric mt-2",
+          size === "sm" ? "text-[17px]" : "text-2xl",
+          mono && "font-mono",
+          tone === "success" ? "text-success" : "text-foreground",
+        )}
       >
         {value}
       </dd>
@@ -365,20 +398,18 @@ function Section({
   awardId: string;
   total?: number;
 }) {
+  const id = `section-${title.replace(/\s+/g, "-").toLowerCase()}`;
   return (
-    <section aria-labelledby={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}>
-      <div className="flex items-center justify-between gap-3">
-        <h2
-          id={`section-${title.replace(/\s+/g, "-").toLowerCase()}`}
-          className="flex items-center gap-2 text-lg font-semibold tracking-tight"
-        >
-          <span className="text-muted-foreground">{icon}</span>
+    <section aria-labelledby={id}>
+      <div className="flex items-center justify-between gap-3 border-b border-border pb-2">
+        <h2 id={id} className="type-heading flex items-center gap-2.5 text-foreground">
+          <span className="text-muted-foreground [&>svg]:size-[19px]">{icon}</span>
           {title}
         </h2>
         {total && total > items.length ? (
           <Link
             href={`/app/awards/${awardId}/obligations`}
-            className="text-xs font-medium text-primary hover:underline"
+            className="type-caption shrink-0 text-primary hover:underline"
           >
             View all {total}
           </Link>
@@ -386,11 +417,23 @@ function Section({
       </div>
 
       {items.length === 0 ? (
-        <p className="mt-3 rounded-lg border border-dashed border-border-strong bg-surface px-4 py-5 text-sm text-muted-foreground">
-          {empty}
-        </p>
+        <div className="mt-4 rounded-lg border border-dashed border-border-strong bg-surface/60 px-5 py-8">
+          <p className="mx-auto max-w-sm text-center text-sm leading-relaxed text-foreground-soft">
+            {empty}
+          </p>
+          <p className="mx-auto mt-2 max-w-sm text-center text-xs leading-relaxed text-muted-foreground">
+            Nothing found is not the same as nothing there.{" "}
+            <Link
+              href={`/app/awards/${awardId}/obligations`}
+              className="font-medium text-primary hover:underline"
+            >
+              Search the full register
+            </Link>
+            .
+          </p>
+        </div>
       ) : (
-        <div className="mt-3 space-y-3">
+        <div className="mt-4 space-y-3">
           {items.map((obligation) => (
             <EvidenceRail key={obligation.id} obligation={obligation} compact />
           ))}
@@ -400,15 +443,41 @@ function Section({
   );
 }
 
-function ExportLink({ href, label, hint }: { href: string; label: string; hint: string }) {
+/**
+ * A row in the exports list. `download` targets are plain anchors — they are
+ * file responses from a route handler, not client navigations — while the
+ * operating plan is a real page and stays a `<Link>`.
+ */
+function ExportLink({
+  href,
+  label,
+  hint,
+  download,
+}: {
+  href: string;
+  label: string;
+  hint: string;
+  download?: boolean;
+}) {
+  const className = "block px-4 py-2.5 transition-colors hover:bg-muted";
+  const body = (
+    <>
+      <span className="block text-[13px] font-medium text-foreground">{label}</span>
+      <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">{hint}</span>
+    </>
+  );
+
   return (
-    <a
-      href={href}
-      download
-      className="block rounded-md border border-border px-3 py-2 text-sm transition-colors hover:bg-muted"
-    >
-      <span className="font-medium">{label}</span>
-      <span className="mt-0.5 block text-xs text-muted-foreground">{hint}</span>
-    </a>
+    <li>
+      {download ? (
+        <a href={href} download className={className}>
+          {body}
+        </a>
+      ) : (
+        <Link href={href} className={className}>
+          {body}
+        </Link>
+      )}
+    </li>
   );
 }
