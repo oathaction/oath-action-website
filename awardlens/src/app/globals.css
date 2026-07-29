@@ -133,11 +133,39 @@
   /*
    * Elevation. Three things matter: the shadow is warm-tinted (pure black over
    * #fbfaf7 reads grey and dead), it is layered rather than one blur, and each
-   * level *means* something. See the @theme block for the values.
+   * level *means* something:
+   *
+   *   resting  a card at rest. Pair with border-border. The default.
+   *   raised   this one is selected, hovered, or is the primary object on the
+   *            screen. Ideally one raised element per view.
+   *   popover  a transient layer anchored to something: menu, tooltip, toast.
+   *   overlay  a modal layer that owns the screen: dialog, sheet.
+   *   header   the hairline under a sticky bar — not a card shadow.
+   *
+   * Use the Tailwind utilities (shadow-resting … shadow-overlay). These raw
+   * properties exist for the handful of places that need an inline style —
+   * third-party components such as the toaster — and as the single source the
+   * utilities are built from.
    */
   --shadow-tint: 44 36 22;
 
+  --elevation-resting:
+    0 1px 1px rgb(var(--shadow-tint) / 0.03), 0 1px 3px -1px rgb(var(--shadow-tint) / 0.05);
+  --elevation-raised:
+    0 1px 2px rgb(var(--shadow-tint) / 0.04), 0 4px 10px -3px rgb(var(--shadow-tint) / 0.07),
+    0 14px 28px -12px rgb(var(--shadow-tint) / 0.1);
+  --elevation-popover:
+    0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 8px 20px -6px rgb(var(--shadow-tint) / 0.12),
+    0 20px 44px -20px rgb(var(--shadow-tint) / 0.14);
+  --elevation-overlay:
+    0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 16px 36px -10px rgb(var(--shadow-tint) / 0.16),
+    0 44px 80px -32px rgb(var(--shadow-tint) / 0.22);
+  --elevation-header: 0 1px 0 var(--border), 0 6px 14px -12px rgb(var(--shadow-tint) / 0.3);
+
   --radius: 0.5rem;
+
+  /* Light-only, and native controls have to agree. */
+  color-scheme: light;
 }
 
 @theme inline {
@@ -194,39 +222,20 @@
   --font-serif: var(--font-source-serif), ui-serif, Georgia, "Times New Roman", serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SF Mono", Menlo, monospace;
 
-  /* ---------------------------------------------------------- Elevation ---
-   *
-   *   resting  a card at rest. Pair with border-border. The default.
-   *   raised   this one is selected, hovered, or is the primary object on the
-   *            screen. Ideally one raised element per view.
-   *   popover  a transient layer anchored to something: menu, tooltip.
-   *   overlay  a modal layer that owns the screen: dialog, sheet.
-   *   header   the hairline under a sticky bar — not a card shadow.
-   */
-  --shadow-resting:
-    0 1px 1px rgb(var(--shadow-tint) / 0.03), 0 1px 3px -1px rgb(var(--shadow-tint) / 0.05);
-  --shadow-raised:
-    0 1px 2px rgb(var(--shadow-tint) / 0.04), 0 4px 10px -3px rgb(var(--shadow-tint) / 0.07),
-    0 14px 28px -12px rgb(var(--shadow-tint) / 0.1);
-  --shadow-popover:
-    0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 8px 20px -6px rgb(var(--shadow-tint) / 0.12),
-    0 20px 44px -20px rgb(var(--shadow-tint) / 0.14);
-  --shadow-overlay:
-    0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 16px 36px -10px rgb(var(--shadow-tint) / 0.16),
-    0 44px 80px -32px rgb(var(--shadow-tint) / 0.22);
-  --shadow-header: 0 1px 0 var(--border), 0 6px 14px -12px rgb(var(--shadow-tint) / 0.3);
+  /* Elevation — semantics documented next to the raw values in :root. */
+  --shadow-resting: var(--elevation-resting);
+  --shadow-raised: var(--elevation-raised);
+  --shadow-popover: var(--elevation-popover);
+  --shadow-overlay: var(--elevation-overlay);
+  --shadow-header: var(--elevation-header);
 
   /* The stock Tailwind steps, re-tinted warm so nothing in the app is cold. */
   --shadow-2xs: 0 1px 1px rgb(var(--shadow-tint) / 0.04);
   --shadow-xs: 0 1px 2px rgb(var(--shadow-tint) / 0.05);
   --shadow-sm:
     0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 1px 3px -1px rgb(var(--shadow-tint) / 0.06);
-  --shadow-md:
-    0 1px 2px rgb(var(--shadow-tint) / 0.05), 0 8px 20px -6px rgb(var(--shadow-tint) / 0.12),
-    0 20px 44px -20px rgb(var(--shadow-tint) / 0.14);
-  --shadow-lg:
-    0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 16px 36px -10px rgb(var(--shadow-tint) / 0.16),
-    0 44px 80px -32px rgb(var(--shadow-tint) / 0.22);
+  --shadow-md: var(--elevation-popover);
+  --shadow-lg: var(--elevation-overlay);
   --shadow-xl:
     0 2px 6px rgb(var(--shadow-tint) / 0.06), 0 24px 50px -12px rgb(var(--shadow-tint) / 0.18),
     0 60px 100px -40px rgb(var(--shadow-tint) / 0.24);
